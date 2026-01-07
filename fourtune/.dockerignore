@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build
+build/
+target/
+out/
+.gradle/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.*
+!env.example
+
+# Documentation
+*.md
+!README.md
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Tests
+src/test/
+
