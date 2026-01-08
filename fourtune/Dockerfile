@@ -9,6 +9,9 @@ COPY gradle gradle
 COPY build.gradle .
 COPY settings.gradle .
 
+# Grant execute permission to gradlew
+RUN chmod +x gradlew
+
 # Download dependencies (cache layer)
 RUN ./gradlew dependencies --no-daemon || true
 
