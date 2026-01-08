@@ -1,0 +1,154 @@
+# 로컬 개발 환경용 Docker Compose
+# 사용법: docker-compose up -d
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: fourtune-postgres
+    environment:
+      POSTGRES_DB: fourtune_db
+      POSTGRES_USER: fourtune_user
+      POSTGRES_PASSWORD: fourtune
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    networks:
+      - fourtune-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fourtune_user -d fourtune_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: fourtune-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fourtune-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.3
+    container_name: fourtune-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - fourtune-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Kafka (추후 확장용, 로컬에서는 선택사항)
+  # 당장 안 쓰면 주석 처리해서 리소스 절약
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: fourtune-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - fourtune-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: fourtune-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - fourtune-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Spring Boot Application (로컬 개발용)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fourtune-app-local
+    environment:
+      # 기본 설정 (바로 실행 가능)
+      - SPRING_PROFILES_ACTIVE=local
+      - DB_URL=jdbc:postgresql://postgres:5432/fourtune_db
+      - DB_USERNAME=fourtune_user
+      - DB_PASSWORD=fourtune
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - ELASTICSEARCH_URIS=http://elasticsearch:9200
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      # JWT & 암호화 (로컬 개발용)
+      - JWT_SECRET=local-dev-secret-key-for-testing-only-change-in-production-min-256-bits-required
+      - ENCRYPTION_KEY=local-dev-encryption-key-32!!
+      # PG 테스트 API
+      - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY:-test_ck_YZ1aOwX7K8m5POogaBGV3yQxzvNP}
+      - TOSS_SECRET_KEY=${TOSS_SECRET_KEY:-test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R}
+      - KAKAO_ADMIN_KEY=${KAKAO_ADMIN_KEY:-}
+    ports:
+      - "8080:8080"
+      - "5005:5005"  # 디버깅 포트
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - fourtune-network
+    # 개발 중 자동 재시작 방지
+    restart: "no"
+
+  # Nginx는 로컬 개발에서 불필요
+  # 필요 시 docker-compose.dev.yml 사용
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+
+networks:
+  fourtune-network:
+    driver: bridge
+

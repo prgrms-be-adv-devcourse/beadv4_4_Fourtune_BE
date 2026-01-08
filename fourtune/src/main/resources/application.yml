@@ -1,0 +1,209 @@
+spring:
+  application:
+    name: fourtune
+  
+  profiles:
+    active: local
+    
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        default_batch_fetch_size: 100
+        
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+logging:
+  level:
+    root: INFO
+    com.fourtune: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+---
+# Local Profile
+spring:
+  config:
+    activate:
+      on-profile: local
+      
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/fourtune_db}
+    username: ${DB_USERNAME:fourtune_user}
+    password: ${DB_PASSWORD:fourtune}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+    
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: fourtune-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+# JWT 설정
+jwt:
+  secret: your-local-secret-key-change-this-in-production-min-256-bits-required-for-hs256-algorithm
+  access-token-expiration: 3600000  # 1시간
+  refresh-token-expiration: 1209600000  # 2주
+
+# 암호화 키 (AES-256)
+encryption:
+  key: your-local-encryption-key-32-chars  # 32자 (256비트)
+
+# 경매 설정
+auction:
+  bid-unit: 1000  # 입찰 단위 (원)
+  auto-extend-minutes: 3  # 자동 연장 시간
+  auto-extend-threshold-minutes: 5  # 연장 발동 시간
+  payment-deadline-days: 3  # 결제 기한
+  seller-shipping-deadline-days: 7  # 발송 기한
+  settlement-fee-rate: 0.1  # 정산 수수료 (10%)
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+      
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS}
+    
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: fourtune-consumer-group
+      auto-offset-reset: earliest
+    producer:
+      acks: all
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: 3600000
+  refresh-token-expiration: 1209600000
+
+encryption:
+  key: ${ENCRYPTION_KEY}
+
+auction:
+  bid-unit: 1000
+  auto-extend-minutes: 3
+  auto-extend-threshold-minutes: 5
+  payment-deadline-days: 3
+  seller-shipping-deadline-days: 7
+  settlement-fee-rate: 0.1
+
+logging:
+  level:
+    root: INFO
+    com.fourtune: DEBUG
+
+---
+# Production Profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+      
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 30
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS}
+    
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: fourtune-consumer-group
+      auto-offset-reset: earliest
+    producer:
+      acks: all
+      retries: 3
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: 3600000
+  refresh-token-expiration: 1209600000
+
+encryption:
+  key: ${ENCRYPTION_KEY}
+
+auction:
+  bid-unit: 1000
+  auto-extend-minutes: 3
+  auto-extend-threshold-minutes: 5
+  payment-deadline-days: 3
+  seller-shipping-deadline-days: 7
+  settlement-fee-rate: 0.1
+
+logging:
+  level:
+    root: WARN
+    com.fourtune: INFO
+
