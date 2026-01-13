@@ -20,6 +20,21 @@ spring:
       max-file-size: 10MB
       max-request-size: 50MB
 
+# SpringDoc OpenAPI (Swagger) 설정
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+  paths-to-exclude:
+    - /actuator/**
+    - /error
+
 logging:
   level:
     root: INFO
@@ -86,6 +101,52 @@ auction:
   payment-deadline-days: 3  # 결제 기한
   seller-shipping-deadline-days: 7  # 발송 기한
   settlement-fee-rate: 0.1  # 정산 수수료 (10%)
+
+---
+# Test Profile (CI/CD용)
+spring:
+  config:
+    activate:
+      on-profile: test
+      
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/fourtune_test_db}
+    username: ${DB_USERNAME:test_user}
+    password: ${DB_PASSWORD:test_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+    
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: fourtune-test-consumer-group
+      auto-offset-reset: earliest
+
+# Test에서는 Swagger 비활성화
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.fourtune: INFO
 
 ---
 # Development Profile
@@ -201,6 +262,13 @@ auction:
   payment-deadline-days: 3
   seller-shipping-deadline-days: 7
   settlement-fee-rate: 0.1
+
+# Production에서는 Swagger 비활성화 (보안)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 logging:
   level:
