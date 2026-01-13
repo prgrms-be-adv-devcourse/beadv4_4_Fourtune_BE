@@ -10,6 +10,7 @@ permissions:
   contents: read
   checks: write
   pull-requests: write
+  packages: write
 
 env:
   JAVA_VERSION: '25'
@@ -136,17 +137,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
-      - name: Log in to Docker Hub
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/fourtune
+          images: ghcr.io/${{ github.repository_owner }}/fourtune
           tags: |
             type=ref,event=branch
             type=sha,prefix={{branch}}-
@@ -165,7 +167,7 @@ jobs:
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest
-    needs: docker-build
+    needs: build
     if: github.ref == 'refs/heads/develop'
     environment:
       name: development
@@ -179,9 +181,10 @@ jobs:
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.DEV_SSH_KEY }}
           script: |
-            cd /app/fourtune
-            docker-compose pull
-            docker-compose up -d
+            cd /home/fourtune/fourtune || exit 1
+            git pull origin develop || exit 1
+            docker-compose -f docker-compose.dev.yml build app || exit 1
+            docker-compose -f docker-compose.dev.yml up -d || exit 1
             docker system prune -af
 
   deploy-prod:
@@ -202,8 +205,8 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
             cd /app/fourtune
-            docker-compose pull
-            docker-compose up -d --no-deps --build app
+            docker-compose -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.prod.yml up -d --no-deps --build app
             docker system prune -af
       
       - name: Health check
