@@ -1,7 +1,5 @@
-package com.fourtune.auction.global.exception;
+package com.fourtune.auction.global.error;
 
-import com.fourtune.auction.global.common.ApiResponse;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
