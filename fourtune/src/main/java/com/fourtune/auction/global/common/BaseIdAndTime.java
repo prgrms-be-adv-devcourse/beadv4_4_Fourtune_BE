@@ -1,8 +1,8 @@
 package com.fourtune.auction.global.common;
 
-import com.fourtune.auction.global.config.GlobalConfig;
-import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
@@ -10,22 +10,22 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
-/**
- * Base Entity
- * 모든 엔티티의 공통 필드
- */
-@Getter
+import static jakarta.persistence.GenerationType.IDENTITY;
+
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-public abstract class BaseEntity {
+@Getter
+public abstract class BaseIdAndTime extends BaseEntity{
 
-    protected void publishEvent(Object event){
-        GlobalConfig.getEventPublisher().publish(event);}
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
+    private int id;
 
-    public abstract Timestamp getCreateDate();
-    public abstract Timestamp getModifyDate();
+    @CreatedDate
+    private Timestamp createdAt;
+
+    @LastModifiedDate
+    private Timestamp updatedAt;
 
 }
-

@@ -16,6 +16,7 @@ public class User {
     private String email;
     private String nickname;
     private String password;
+    private String phoneNumber;
     
     // TODO: 비즈니스 로직 추가
 }
