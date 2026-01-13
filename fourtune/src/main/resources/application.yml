@@ -20,6 +20,21 @@ spring:
       max-file-size: 10MB
       max-request-size: 50MB
 
+# SpringDoc OpenAPI (Swagger) 설정
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+  paths-to-exclude:
+    - /actuator/**
+    - /error
+
 logging:
   level:
     root: INFO
@@ -201,6 +216,13 @@ auction:
   payment-deadline-days: 3
   seller-shipping-deadline-days: 7
   settlement-fee-rate: 0.1
+
+# Production에서는 Swagger 비활성화 (보안)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 logging:
   level:
