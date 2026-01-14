@@ -1,6 +1,6 @@
 package com.fourtune.auction.boundedContext.cash.app;
 
-import com.fourtune.auction.boundedContext.cash.domain.CashMember;
+import com.fourtune.auction.boundedContext.cash.domain.CashUser;
 import com.fourtune.auction.boundedContext.cash.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ public class CashFacade {
     private final CashSupport cashSupport;
 
     @Transactional(readOnly = true)
-    public Optional<Wallet> findWalletBySystem(CashMember System) {
+    public Optional<Wallet> findWalletBySystem(CashUser System) {
         return cashSupport.findWalletBySystem(System);
     }
 

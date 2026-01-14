@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.cash.domain;
 
+import com.fourtune.auction.global.common.BaseIdAndTime;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,20 +10,15 @@ import java.util.List;
 
 import static jakarta.persistence.CascadeType.PERSIST;
 import static jakarta.persistence.CascadeType.REMOVE;
-import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "CASH_WALLET")
 @NoArgsConstructor
 @Getter
-public class Wallet {
-
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    private Long id;
+public class Wallet extends BaseIdAndTime {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private CashMember holder;
+    private CashUser user;
 
     @Getter
     private long balance;
