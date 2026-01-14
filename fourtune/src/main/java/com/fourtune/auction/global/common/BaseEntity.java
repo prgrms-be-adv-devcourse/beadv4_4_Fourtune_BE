@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -24,8 +25,8 @@ public abstract class BaseEntity {
     protected void publishEvent(Object event){
         GlobalConfig.getEventPublisher().publish(event);}
 
-    public abstract Timestamp getCreateDate();
-    public abstract Timestamp getModifyDate();
+    public abstract LocalDateTime getCreatedAt();
+    public abstract LocalDateTime getUpdatedAt();
 
 }
 
