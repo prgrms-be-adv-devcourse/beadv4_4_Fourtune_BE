@@ -71,5 +71,11 @@ public class User extends BaseTimeEntity {
         this.refreshToken = refreshToken;
     }
 
+    public boolean isAvailableUser(){
+        if(this.status == Status.ACTIVE) return true;
+
+        return false;
+    }
+
 }
 
