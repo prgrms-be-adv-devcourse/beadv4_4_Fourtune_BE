@@ -1,5 +1,16 @@
-jwt:
-  secret: ${JWT_SECRET}
+spring:
+  datasource:
+    # 테스트는 항상 깨끗한 가짜 DB(H2)에서 시작하도록 설정
+    url: jdbc:h2:mem:testdb;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # 테스트 끝날 때 테이블 삭제
+    show-sql: true # SQL문 콘솔에 출력
 
-  access-token-expiration: 1800000  # 30분
-  refresh-token-expiration: 1209600000  # 2주
+jwt:
+  # 환경 변수 대신 직접 값을 넣어서 CI/CD 에러 방지
+  secret: "sdsdsdsaWQUIQB1541KJSABDAJKSD1K24JBJ1T14GSF="
