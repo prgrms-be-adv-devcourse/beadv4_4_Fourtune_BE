@@ -9,6 +9,7 @@ import com.fourtune.auction.shared.auth.dto.TokenResponse;
 import com.fourtune.auction.shared.user.dto.UserLoginRequest;
 import com.fourtune.auction.shared.user.dto.UserLoginResponse;
 import com.fourtune.auction.shared.user.dto.UserSignUpRequest;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,9 @@ class UserFacadeTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EntityManager entityManager;
+
     @Test
     @DisplayName("회원가입 시 유저 정보가 DB에 저장되고 비밀번호는 암호화되어야 한다")
     void signupSuccessTest() {
@@ -48,6 +52,9 @@ class UserFacadeTest {
 
         // 2. When: 회원가입 실행
         userFacade.signup(request);
+
+        entityManager.flush(); // insert 쿼리 강제 실행
+        entityManager.clear();
 
         // 3. Then: 검증
         User savedUser = userRepository.findByEmail("test@example.com")
