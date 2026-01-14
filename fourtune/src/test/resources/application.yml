@@ -14,3 +14,6 @@ spring:
 jwt:
   # 환경 변수 대신 직접 값을 넣어서 CI/CD 에러 방지
   secret: "sdsdsdsaWQUIQB1541KJSABDAJKSD1K24JBJ1T14GSF="
+
+  access-token-expiration: 1800000  # 30분
+  refresh-token-expiration: 1209600000  # 2주
