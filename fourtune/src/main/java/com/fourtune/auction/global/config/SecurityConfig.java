@@ -1,5 +1,6 @@
 package com.fourtune.auction.global.config;
 
+import com.fourtune.auction.global.security.jwt.JwtAuthenticationFilter;
 import com.fourtune.auction.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -30,7 +31,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/auth/**", "/api/users/signup", "/api/users/login", "/api/users/home").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/users/signup").permitAll()
                         .requestMatchers("/", "/index.html" /*조회 검색 추가*/).permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers("/error").permitAll()
