@@ -65,12 +65,13 @@ class UserFacadeTest {
     @DisplayName("이미 존재하는 이메일로 가입하면 예외가 발생해야 한다")
     void signupDuplicateEmailTest() {
         // Given: 이미 한 명이 가입된 상태
-        UserSignUpRequest request = new UserSignUpRequest("test@example.com", "pw123!", "테스터", "010-1111-1111");
+        UserSignUpRequest request = new UserSignUpRequest("test@example.com", "password123!", "테스터", "010-1111-1111");
         userFacade.signup(request);
 
         // When & Then: 동일한 이메일로 가입 시도 시 예외 발생 검증
         assertThatThrownBy(() -> userFacade.signup(request))
-                .isInstanceOf(BusinessException.class);
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.EMAIL_DUPLICATION);
     }
 
     @Test
