@@ -1,5 +1,6 @@
 package com.fourtune.auction.global.config;
 
+import com.fourtune.auction.global.security.jwt.JwtAuthenticationFilter;
 import com.fourtune.auction.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
