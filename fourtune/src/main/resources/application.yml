@@ -85,7 +85,7 @@ spring:
 
 # JWT 설정
 jwt:
-  secret: ${JWT_SECRET:local-dev-secret-key-must-be-32-bytes-long-1234}
+  secret: ${JWT_SECRET}
 
   access-token-expiration: 1800000  # 30분
   refresh-token-expiration: 1209600000  # 2주
