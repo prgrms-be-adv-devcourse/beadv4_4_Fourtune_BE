@@ -1,23 +1,68 @@
 package com.fourtune.auction.boundedContext.user.domain.entity;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.fourtune.auction.boundedContext.user.domain.constant.Role;
+import com.fourtune.auction.boundedContext.user.domain.constant.Status;
+import com.fourtune.auction.global.common.BaseIdAndTime;
+import com.fourtune.auction.global.common.BaseTimeEntity;
+import jakarta.persistence.*;
+import lombok.*;
 
-/**
- * User Domain Entity
- * 사용자 도메인 엔티티
- */
+import java.time.LocalDateTime;
+
+import static jakarta.persistence.GenerationType.IDENTITY;
+
+@Entity
+@Table(name = "users")
+@Builder
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
-    
+public class User extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false, length = 20)
     private String nickname;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false, length = 20)
     private String phoneNumber;
-    
-    // TODO: 비즈니스 로직 추가
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status = Status.ACTIVE;
+
+    private LocalDateTime deletedAt;
+
+    @Version
+    private Long version;
+
+    public void updateProfile(String newNickname, String newPhoneNumber) {
+        this.nickname = newNickname;
+        this.phoneNumber = newPhoneNumber;
+    }
+
+    public void changePassword(String newEncodedPassword) {
+        this.password = newEncodedPassword;
+    }
+
+    public void withdraw() {
+        this.status = Status.SUSPENDED;
+        this.deletedAt = LocalDateTime.now();
+    }
+
 }
 
