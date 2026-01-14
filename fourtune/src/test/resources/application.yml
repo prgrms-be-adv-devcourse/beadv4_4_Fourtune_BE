@@ -10,6 +10,9 @@ spring:
     hibernate:
       ddl-auto: create-drop # 테스트 끝날 때 테이블 삭제
     show-sql: true # SQL문 콘솔에 출력
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
 
 jwt:
   # 환경 변수 대신 직접 값을 넣어서 CI/CD 에러 방지
