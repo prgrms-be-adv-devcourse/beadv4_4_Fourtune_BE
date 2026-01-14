@@ -3,6 +3,7 @@ package com.fourtune.auction.boundedContext.user.application.service;
 import com.fourtune.auction.boundedContext.auth.application.service.AuthService;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
+import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.shared.auth.dto.TokenResponse;
 import com.fourtune.auction.shared.user.dto.UserLoginRequest;
@@ -50,7 +51,7 @@ class UserFacadeTest {
 
         // 3. Then: 검증
         User savedUser = userRepository.findByEmail("test@example.com")
-                .orElseThrow(() -> new AssertionError("유저가 DB에 저장되지 않았습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         assertThat(savedUser.getEmail()).isEqualTo("test@example.com");
         assertThat(savedUser.getNickname()).isEqualTo("테스터");
@@ -69,7 +70,7 @@ class UserFacadeTest {
 
         // When & Then: 동일한 이메일로 가입 시도 시 예외 발생 검증
         assertThatThrownBy(() -> userFacade.signup(request))
-                .isInstanceOf(BusinessException.class); // 실제 구현한 예외 클래스로 바꿔주세요 (예: CustomException)
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
