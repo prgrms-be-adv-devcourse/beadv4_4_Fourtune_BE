@@ -85,8 +85,9 @@ spring:
 
 # JWT 설정
 jwt:
-  secret: your-local-secret-key-change-this-in-production-min-256-bits-required-for-hs256-algorithm
-  access-token-expiration: 3600000  # 1시간
+  secret: ${JWT_SECRET:local-dev-secret-key-must-be-32-bytes-long-1234}
+
+  access-token-expiration: 1800000  # 30분
   refresh-token-expiration: 1209600000  # 2주
 
 # 암호화 키 (AES-256)
