@@ -44,7 +44,7 @@ class UserFacadeTest {
     void signupSuccessTest() {
         // 1. Given: 가입 요청 데이터 준비
         UserSignUpRequest request = new UserSignUpRequest(
-                "test@example.com",
+                "test1@example.com",
                 "password123!",
                 "테스터",
                 "010-1234-5678"
@@ -57,10 +57,10 @@ class UserFacadeTest {
         entityManager.clear();
 
         // 3. Then: 검증
-        User savedUser = userRepository.findByEmail("test@example.com")
+        User savedUser = userRepository.findByEmail("test1@example.com")
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        assertThat(savedUser.getEmail()).isEqualTo("test@example.com");
+        assertThat(savedUser.getEmail()).isEqualTo("test1@example.com");
         assertThat(savedUser.getNickname()).isEqualTo("테스터");
 
         // 비밀번호가 평문으로 저장되지 않고 암호화되었는지 확인
@@ -72,7 +72,7 @@ class UserFacadeTest {
     @DisplayName("이미 존재하는 이메일로 가입하면 예외가 발생해야 한다")
     void signupDuplicateEmailTest() {
         // Given: 이미 한 명이 가입된 상태
-        UserSignUpRequest request = new UserSignUpRequest("test@example.com", "password123!", "테스터", "010-1111-1111");
+        UserSignUpRequest request = new UserSignUpRequest("test2@example.com", "password123!", "테스터", "010-1111-1111");
         userFacade.signup(request);
 
         // When & Then: 동일한 이메일로 가입 시도 시 예외 발생 검증
