@@ -66,20 +66,24 @@ public class CashDataInit {
             cashUserRepository.save(cashUser);
 
             systemUser = cashUserRepository.findByNickname("system");
+        }
+
+        Optional<Wallet> systemWwallet = cashFacade.findWalletBySystemId(systemUser.get().getId());
+
+        if(systemWwallet.isEmpty()){
 
             Wallet wallet = Wallet.builder()
-                    .user(cashUser)
+                    .user(systemUser.get())
                     .balance(0)
                     .cashLogs(null)
                     .build();
             walletRepository.save(wallet);
+            systemWwallet = cashFacade.findWalletBySystemId(systemUser.get().getId());
         }
 
         log.info("system user : "+systemUser.get().getNickname() + ", id = "+systemUser.get().getId());
 
-        Wallet systemWwallet = cashFacade.findWalletBySystemId(systemUser.get().getId()).get();
-
-        log.info("system wallet : "+systemWwallet.getId());
+        log.info("system wallet : "+systemWwallet.get().getId());
 
     }
 }
