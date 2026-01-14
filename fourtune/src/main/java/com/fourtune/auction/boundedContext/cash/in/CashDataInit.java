@@ -3,7 +3,9 @@ package com.fourtune.auction.boundedContext.cash.in;
 import com.fourtune.auction.boundedContext.cash.app.CashFacade;
 import com.fourtune.auction.boundedContext.cash.domain.CashPolicy;
 import com.fourtune.auction.boundedContext.cash.domain.CashUser;
+import com.fourtune.auction.boundedContext.cash.domain.Wallet;
 import com.fourtune.auction.boundedContext.cash.out.CashUserRepository;
+import com.fourtune.auction.boundedContext.cash.out.WalletRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
@@ -22,15 +24,18 @@ public class CashDataInit {
     private final CashDataInit self;
     private final CashFacade cashFacade;
     private final CashUserRepository cashUserRepository;
+    private final WalletRepository walletRepository;
 
     public CashDataInit(
             @Lazy CashDataInit self,
             CashFacade cashFacade,
-            CashUserRepository cashUserRepository
+            CashUserRepository cashUserRepository,
+            WalletRepository walletRepository
     ) {
         this.self = self;
         this.cashFacade = cashFacade;
         this.cashUserRepository = cashUserRepository;
+        this.walletRepository = walletRepository;
     }
 
     @Bean
@@ -61,10 +66,20 @@ public class CashDataInit {
             cashUserRepository.save(cashUser);
 
             systemUser = cashUserRepository.findByNickname("system");
+
+            Wallet wallet = Wallet.builder()
+                    .user(cashUser)
+                    .balance(0)
+                    .cashLogs(null)
+                    .build();
+            walletRepository.save(wallet);
         }
 
         log.info("system user : "+systemUser.get().getNickname() + ", id = "+systemUser.get().getId());
 
+        Wallet systemWwallet = cashFacade.findWalletBySystemId(systemUser.get().getId()).get();
+
+        log.info("system wallet : "+systemWwallet.getId());
 
     }
 }

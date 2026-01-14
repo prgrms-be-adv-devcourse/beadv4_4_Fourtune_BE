@@ -2,6 +2,8 @@ package com.fourtune.auction.boundedContext.cash.domain;
 
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +13,8 @@ import java.util.List;
 import static jakarta.persistence.CascadeType.PERSIST;
 import static jakarta.persistence.CascadeType.REMOVE;
 
+@Builder
+@AllArgsConstructor
 @Entity
 @Table(name = "CASH_WALLET")
 @NoArgsConstructor
