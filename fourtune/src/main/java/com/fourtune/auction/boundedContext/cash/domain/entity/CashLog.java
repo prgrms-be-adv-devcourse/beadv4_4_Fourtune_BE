@@ -1,5 +1,6 @@
-package com.fourtune.auction.boundedContext.cash.domain;
+package com.fourtune.auction.boundedContext.cash.domain.entity;
 
+import com.fourtune.auction.boundedContext.cash.domain.constant.CashEventType;
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;

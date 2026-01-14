@@ -1,7 +1,7 @@
-package com.fourtune.auction.boundedContext.cash.out;
+package com.fourtune.auction.boundedContext.cash.port.out;
 
-import com.fourtune.auction.boundedContext.cash.domain.CashUser;
-import com.fourtune.auction.boundedContext.cash.domain.Wallet;
+import com.fourtune.auction.boundedContext.cash.domain.entity.CashUser;
+import com.fourtune.auction.boundedContext.cash.domain.entity.Wallet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

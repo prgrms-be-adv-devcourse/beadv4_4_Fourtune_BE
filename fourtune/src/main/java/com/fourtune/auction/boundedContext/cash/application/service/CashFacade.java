@@ -1,7 +1,7 @@
-package com.fourtune.auction.boundedContext.cash.app;
+package com.fourtune.auction.boundedContext.cash.application.service;
 
-import com.fourtune.auction.boundedContext.cash.domain.CashUser;
-import com.fourtune.auction.boundedContext.cash.domain.Wallet;
+import com.fourtune.auction.boundedContext.cash.domain.entity.CashUser;
+import com.fourtune.auction.boundedContext.cash.domain.entity.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

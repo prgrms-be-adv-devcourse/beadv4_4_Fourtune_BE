@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.cash.domain;
+package com.fourtune.auction.boundedContext.cash.domain.constant;
 
 public enum CashEventType {
     충전__무통장입금,

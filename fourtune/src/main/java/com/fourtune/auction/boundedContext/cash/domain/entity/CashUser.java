@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.cash.domain;
+package com.fourtune.auction.boundedContext.cash.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
