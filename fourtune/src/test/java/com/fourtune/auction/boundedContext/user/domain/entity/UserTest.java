@@ -3,10 +3,11 @@ package com.fourtune.auction.boundedContext.user.domain.entity;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+@Transactional
 public class UserTest {
 
     @Test
