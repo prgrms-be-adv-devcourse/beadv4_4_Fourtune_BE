@@ -27,6 +27,7 @@ public class Wallet extends BaseIdAndTime {
     @Getter
     private long balance;
 
+    @Builder.Default
     @OneToMany(mappedBy = "wallet", cascade = {PERSIST, REMOVE}, orphanRemoval = true)
     private List<CashLog> cashLogs = new ArrayList<>();
 

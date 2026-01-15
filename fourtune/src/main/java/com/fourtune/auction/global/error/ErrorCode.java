@@ -25,6 +25,13 @@ public enum ErrorCode {
     //Lock(락 관련)
     CHANGE_CONFLICT(409, "U008", "다른 사용자에 의해 정보가 변경되었습니다. 다시 시도해주세요"),
 
+    //Auction(경매 관련)
+    AUCTION_NOT_FOUND(404, "A001", "존재하지 않는 경매입니다."),
+    AUCTION_NOT_MODIFIABLE(400, "A002", "수정할 수 없는 경매 상태입니다."),
+    AUCTION_SELLER_MISMATCH(403, "A003", "판매자만 수정할 수 있습니다."),
+    AUCTION_ALREADY_ENDED(400, "A004", "이미 종료된 경매입니다."),
+    AUCTION_INVALID_PRICE(400, "A005", "유효하지 않은 가격입니다."),
+    AUCTION_INVALID_DURATION(400, "A006", "유효하지 않은 경매 기간입니다.");
     //JwtToken(토큰 관련)
     EXPIRED_ACCESS_TOKEN(401, "T001", "ACCESS 토큰이 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(401, "TOO2", "REFRESH 토큰이 만료되었습니다."),

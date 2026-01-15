@@ -19,12 +19,6 @@ ext {
 	jwtVersion = '0.12.3'
 }
 
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
-
 repositories {
 	mavenCentral()
 }
