@@ -3,10 +3,13 @@ package com.fourtune.auction.boundedContext.auth.adapter.in;
 import com.fourtune.auction.boundedContext.auth.application.service.AuthService;
 import com.fourtune.auction.shared.auth.dto.ReissueRequest;
 import com.fourtune.auction.shared.auth.dto.TokenResponse;
+import com.fourtune.auction.shared.auth.dto.UserContext;
 import com.fourtune.auction.shared.user.dto.UserLoginRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +33,13 @@ public class AuthController {
         TokenResponse tokenResponse = authService.reissue(request.refreshToken());
 
         return ResponseEntity.ok(tokenResponse);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal UserContext userContext) {
+        authService.logout(userContext.id());
+
+        return ResponseEntity.ok().build();
     }
 
 }
