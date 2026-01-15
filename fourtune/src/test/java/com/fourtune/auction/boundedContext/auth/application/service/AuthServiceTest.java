@@ -149,7 +149,7 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.reissue(requestToken))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REFRESH_TOKEN);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REFRESH_TOKEN_MISMATCH);
     }
 
 }
