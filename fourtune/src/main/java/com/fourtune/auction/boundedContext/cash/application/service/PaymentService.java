@@ -1,0 +1,60 @@
+package com.fourtune.auction.boundedContext.cash.application.service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PaymentService {
+
+        @Value("${toss.secret-key}")
+        private String tossSecretKey;
+
+        private final RestTemplate restTemplate = new RestTemplate();
+
+        public void confirmPayment(String paymentKey, String orderId, Long amount) {
+                // 1. 헤더 설정
+                String secretKey = tossSecretKey + ":";
+                String encodedAuth = Base64.getEncoder().encodeToString(secretKey.getBytes(StandardCharsets.UTF_8));
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("Authorization", "Basic " + encodedAuth);
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                // 2. 바디 설정
+                Map<String, Object> body = new HashMap<>();
+                body.put("paymentKey", paymentKey);
+                body.put("orderId", orderId);
+                body.put("amount", amount);
+
+                // Spring의 HttpEntity 사용
+                HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+                // 3. 토스 API 호출
+                String url = "https://api.tosspayments.com/v1/payments/confirm";
+
+                ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
+
+                // 4. 응답 확인
+                if (response.getStatusCode() != HttpStatus.OK) {
+                        throw new RuntimeException("토스 결제 승인 실패: " + response.getBody());
+                }
+
+                // TODO: 주문 완료 처리, cash log 생성(구매자 지갑 -> 시스템 지갑으로 현금 이동)
+                log.info("===== 토스 결제 검증 성공 =====");
+        }
+}
