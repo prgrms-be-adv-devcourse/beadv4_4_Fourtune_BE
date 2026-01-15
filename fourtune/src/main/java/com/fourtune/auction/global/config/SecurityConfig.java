@@ -36,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html" /*조회 검색 추가*/).permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
 
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 

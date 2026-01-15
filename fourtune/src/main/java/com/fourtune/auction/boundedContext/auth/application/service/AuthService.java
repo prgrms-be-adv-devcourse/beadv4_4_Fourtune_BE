@@ -28,7 +28,7 @@ public class AuthService {
 
         validatePassword(request.password(), user.getPassword());
 
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getRole());
+        String accessToken = jwtTokenProvider.createAccessToken(user);
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
 
         user.updateRefreshToken(refreshToken);
