@@ -32,11 +32,12 @@ public abstract class ReplicaUser extends BaseUser {
             String email,
             String nickname,
             String password,
+            String phoneNumber,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
             LocalDateTime deletedAt
     ) {
-        super(email, nickname, password);
+        super(email, nickname, password, phoneNumber);
         this.id = id;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
