@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, feature/44 ]
   pull_request:
     branches: [ main, develop ]
 
@@ -176,13 +176,31 @@ jobs:
     steps:
       - name: Deploy to development server
         uses: appleboy/ssh-action@v1.0.0
+        env:
+          TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.DEV_SSH_KEY }}
+          envs: TOSS_SECRET_KEY, JWT_SECRET
           script: |
             cd /home/fourtune/fourtune || exit 1
             git pull origin develop || exit 1
+            
+            # env.template을 .env로 복사 (기본 설정 유지)
+            if [ -f env.template ]; then
+              cp env.template .env
+            else
+              touch .env
+            fi
+            
+            # 시크릿 키를 파일 끝에 추가 (append)
+            # (중복된 키가 있어도 마지막에 추가된 값이 우선 적용됩니다)
+            echo "" >> .env
+            echo "TOSS_SECRET_KEY=$TOSS_SECRET_KEY" >> .env
+            echo "JWT_SECRET=$JWT_SECRET" >> .env
+            
             docker-compose -f docker-compose.dev.yml build app || exit 1
             docker-compose -f docker-compose.dev.yml up -d || exit 1
             docker system prune -af
