@@ -24,10 +24,14 @@ public abstract class BaseUser {
     @Column(nullable = false)
     private String password;
 
-    public BaseUser(String email, String nickname, String password) {
+    @Column(nullable = false)
+    private String phoneNumber;
+
+    public BaseUser(String email, String nickname, String password, String phoneNumber) {
         this.email = email;
         this.nickname = nickname;
         this.password = password;
+        this.phoneNumber = phoneNumber;
     }
 
     public boolean isSystemUser() {
