@@ -49,7 +49,7 @@ public class UserSupport {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOGIN_INPUT_INVALID));
 
-        if (user.getStatus() != Status.ACTIVE) {
+        if (!user.isAvailableUser()) {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
