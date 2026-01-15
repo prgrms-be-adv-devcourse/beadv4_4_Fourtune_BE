@@ -1,0 +1,37 @@
+spring:
+  datasource:
+    # H2 DB 설정 (성공하셨던 부분)
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  # --- [추가해야 할 부분] 메인에 있는 변수들의 '가짜 값' 정의 ---
+  data:
+    redis:
+      host: localhost       # ${REDIS_HOST} 대체
+      port: 6379            # ${REDIS_PORT} 대체
+
+  kafka:
+    bootstrap-servers: localhost:9092  # ${KAFKA_BOOTSTRAP_SERVERS} 대체
+
+  elasticsearch:
+    uris: http://localhost:9200        # ${ELASTICSEARCH_URIS} 대체
+
+# 커스텀 키값들
+jwt:
+  secret: "sdsdsdsaWQUIQB1541KJSABDAJKSD1K24JBJ1T14GSF=" # ${JWT_SECRET} 대체
+  access-token-expiration: 1800000
+  refresh-token-expiration: 1209600000
+
+# 암호화 키 (변수명이 encryption-key라고 가정)
+encryption:
+  key: "dummy-encryption-key-for-test" # ${ENCRYPTION_KEY} 대체
