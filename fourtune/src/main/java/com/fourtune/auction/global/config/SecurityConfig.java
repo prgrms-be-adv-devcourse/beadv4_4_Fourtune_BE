@@ -32,6 +32,7 @@ public class SecurityConfig {
                         ,"/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/**", "/api/users/signup").permitAll()
                         .requestMatchers("/api/payments/**").permitAll()
+                        .requestMatchers("/tosspay.html").permitAll()
                         .requestMatchers("/", "/index.html" /*조회 검색 추가*/).permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers("/error").permitAll()
