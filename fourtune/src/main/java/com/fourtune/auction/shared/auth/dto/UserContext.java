@@ -1,4 +1,4 @@
-package com.fourtune.auction.global.security.dto;
+package com.fourtune.auction.shared.auth.dto;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.auth.adapter.in;
 
 import com.fourtune.auction.boundedContext.auth.application.service.AuthService;
+import com.fourtune.auction.shared.auth.dto.ReissueRequest;
 import com.fourtune.auction.shared.auth.dto.TokenResponse;
 import com.fourtune.auction.shared.user.dto.UserLoginRequest;
 import jakarta.validation.Valid;
@@ -22,6 +23,13 @@ public class AuthController {
     public ResponseEntity<TokenResponse> login(@RequestBody @Valid UserLoginRequest request) {
         TokenResponse token = authService.login(request);
         return ResponseEntity.ok(token);
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<TokenResponse> reissue(@RequestBody ReissueRequest request){
+        TokenResponse tokenResponse = authService.reissue(request.refreshToken());
+
+        return ResponseEntity.ok(tokenResponse);
     }
 
 }

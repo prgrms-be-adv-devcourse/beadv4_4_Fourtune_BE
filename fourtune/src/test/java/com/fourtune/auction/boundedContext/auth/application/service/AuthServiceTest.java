@@ -8,6 +8,7 @@ import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.global.security.jwt.JwtTokenProvider;
 import com.fourtune.auction.shared.auth.dto.TokenResponse;
 import com.fourtune.auction.shared.user.dto.UserLoginRequest;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
+
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -33,6 +35,9 @@ class AuthServiceTest {
 
     @Mock
     private JwtTokenProvider jwtTokenProvider;
+
+    @Mock
+    private User user;
 
     @InjectMocks
     private AuthService authService;
@@ -91,4 +96,60 @@ class AuthServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.PASSWORD_NOT_MATCH);
     }
+
+    @Test
+    @DisplayName("성공: 리프레시 토큰이 유효하고 DB와 일치하면 재발급된다")
+    void reissue_Success() {
+        // given
+        String refreshToken = "valid_refresh_token";
+        String userIdStr = "1";
+        Long userId = 1L;
+
+        given(jwtTokenProvider.getUserIdFromToken(refreshToken)).willReturn(userIdStr);
+
+        given(userSupport.findByIdOrThrow(userId)).willReturn(user);
+        given(user.getId()).willReturn(userId);
+        given(user.getRefreshToken()).willReturn(refreshToken);
+
+        given(jwtTokenProvider.createAccessToken(user)).willReturn("new_access");
+        given(jwtTokenProvider.createRefreshToken(userId)).willReturn("new_refresh");
+
+        TokenResponse response = authService.reissue(refreshToken);
+
+        assertThat(response.getAccessToken()).isEqualTo("new_access");
+        assertThat(response.getRefreshToken()).isEqualTo("new_refresh");
+
+        verify(user, times(1)).updateRefreshToken("new_refresh");
+    }
+
+    @Test
+    @DisplayName("실패: 리프레시 토큰 자체가 만료되었으면 예외 발생")
+    void reissue_Fail_Expired() {
+        String expiredToken = "expired_token";
+
+        doThrow(new ExpiredJwtException(null, null, "만료됨"))
+                .when(jwtTokenProvider).validateToken(expiredToken);
+
+        assertThatThrownBy(() -> authService.reissue(expiredToken))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.EXPIRED_REFRESH_TOKEN);
+    }
+
+    @Test
+    @DisplayName("실패: DB에 저장된 토큰과 다르면 (탈취 의심) 예외 발생")
+    void reissue_Fail_TokenMismatch() {
+        String requestToken = "hacker_token";
+        String dbToken = "original_token";
+        String userIdStr = "1";
+
+        given(jwtTokenProvider.getUserIdFromToken(requestToken)).willReturn(userIdStr);
+        given(userSupport.findByIdOrThrow(1L)).willReturn((user));
+
+        given(user.getRefreshToken()).willReturn(dbToken);
+
+        assertThatThrownBy(() -> authService.reissue(requestToken))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_REFRESH_TOKEN);
+    }
+
 }

@@ -24,7 +24,7 @@ public class UserSupport {
         return userRepository.findByNickname(nickname);
     }
 
-    User findByIdOrThrow(long id){
+    public User findByIdOrThrow(long id){
         return userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }

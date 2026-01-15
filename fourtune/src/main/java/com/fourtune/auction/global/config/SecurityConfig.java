@@ -29,7 +29,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs"
-                        ,"/swagger-ui.html").permitAll()
+                        ,"/swagger-ui.html", "/api/auth/reissue").permitAll()
                         .requestMatchers("/api/auth/**", "/api/users/signup").permitAll()
                         .requestMatchers("/", "/index.html" /*조회 검색 추가*/).permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
