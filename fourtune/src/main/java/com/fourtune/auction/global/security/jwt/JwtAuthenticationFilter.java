@@ -1,11 +1,16 @@
 package com.fourtune.auction.global.security.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.ErrorResponse;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -25,13 +30,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            Authentication authentication = jwtTokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            if (token != null && jwtTokenProvider.validateToken(token)) {
+                Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            log.debug("Security Context에 '{}' 인증 정보를 저장했습니다", authentication.getName());
+                log.debug("Security Context에 '{}' 인증 정보를 저장했습니다", authentication.getName());
+            }
         }
-
+        catch(ExpiredJwtException e){
+            reissueResponse(response);
+            return;
+        }
         filterChain.doFilter(request, response);
     }
 
@@ -42,6 +52,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return bearerToken.substring(7);
         }
         return null;
+    }
+
+    private void reissueResponse(HttpServletResponse response) throws IOException {
+        ErrorResponse errorResponse = new ErrorResponse(ErrorCode.EXPIRED_ACCESS_TOKEN);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(errorResponse);
+
+        response.setContentType("application/json;charset=UTF-8");
+        response.setStatus(errorResponse.getStatus());
+
+        response.getWriter().write(json);
     }
 
 }
