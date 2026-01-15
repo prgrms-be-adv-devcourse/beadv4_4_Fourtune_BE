@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@Transactional
 public class UserTest {
 
     @Test
