@@ -76,7 +76,7 @@ public class JwtTokenProviderTest {
         String token = jwtTokenProvider.createAccessToken(user);
         Authentication auth = jwtTokenProvider.getAuthentication(token);
 
-        assertThat(auth.getName()).isEqualTo("1");
+        assertThat(auth.getName()).isEqualTo("qwer123@.com");
         assertThat(auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_USER"))).isTrue();
 
