@@ -1,6 +1,7 @@
 package com.fourtune.auction.global.security.jwt;
 
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
+import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,8 +30,15 @@ public class JwtTokenProviderTest {
     void createAndValidateToken() {
         Long userId = 1L;
         Role role = Role.USER;
+        String email = "2asd13@.com";
 
-        String accessToken = jwtTokenProvider.createAccessToken(userId, role);
+        User user = User.builder()
+                .id(userId)
+                .role(role)
+                .email(email)
+                .build();
+
+        String accessToken = jwtTokenProvider.createAccessToken(user);
         String refreshToken = jwtTokenProvider.createRefreshToken(userId);
 
         assertThat(accessToken).isNotNull();
@@ -42,8 +50,14 @@ public class JwtTokenProviderTest {
     @Test
     @DisplayName("만료된 토큰 검증 실패")
     void validateExpiredToken() {
+        User user = User.builder()
+                .email("qwer1234@.com")
+                .id(1L)
+                .role(Role.USER)
+                .build();
+
         JwtTokenProvider jwtTokenProviderHasZero = new JwtTokenProvider(secretKey, 0, 0);
-        String expiredToken = jwtTokenProviderHasZero.createAccessToken(1L, Role.USER);
+        String expiredToken = jwtTokenProviderHasZero.createAccessToken(user);
 
         boolean isValid = jwtTokenProviderHasZero.validateToken(expiredToken);
 
@@ -53,7 +67,13 @@ public class JwtTokenProviderTest {
     @Test
     @DisplayName("토큰에서 정보 추출")
     void getAuthentication() {
-        String token = jwtTokenProvider.createAccessToken(1L, Role.USER);
+        User user = User.builder()
+                .email("qwer123@.com")
+                .id(1L)
+                .role(Role.USER)
+                .build();
+
+        String token = jwtTokenProvider.createAccessToken(user);
         Authentication auth = jwtTokenProvider.getAuthentication(token);
 
         assertThat(auth.getName()).isEqualTo("1");
