@@ -70,6 +70,7 @@ jobs:
           DB_PASSWORD: test_password
           REDIS_HOST: localhost
           REDIS_PORT: 6379
+          TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
       
       - name: Generate test report
         if: always()
