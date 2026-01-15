@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.user.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
+import com.fourtune.auction.global.security.dto.UserContext;
 import com.fourtune.auction.shared.user.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,30 +32,30 @@ public class UserController {
     */
     @PatchMapping("/profile")
     public ResponseEntity<Void> updateProfile(
-            @AuthenticationPrincipal UserDetails user,
+            @AuthenticationPrincipal UserContext user,
             @RequestBody @Valid UserUpdateRequest request
     ) {
-        Long userId = Long.parseLong(user.getUsername());
+        Long userId = user.id();
         userFacade.updateProfile(userId, request);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/password")
     public ResponseEntity<Void> changePassword(
-            @AuthenticationPrincipal UserDetails user,
+            @AuthenticationPrincipal UserContext user,
             @RequestBody @Valid UserPasswordChangeRequest request
     ) {
-        Long userId = Long.parseLong(user.getUsername());
+        Long userId = user.id();
         userFacade.changePassword(userId, request);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/withdraw")
     public ResponseEntity<Void> withdraw(
-            @AuthenticationPrincipal UserDetails user,
+            @AuthenticationPrincipal UserContext user,
             @RequestBody @Valid UserWithdrawRequest request
     ) {
-        Long userId = Long.parseLong(user.getUsername());
+        Long userId = user.id();
         userFacade.withdraw(userId, request);
         return ResponseEntity.ok().build();
     }

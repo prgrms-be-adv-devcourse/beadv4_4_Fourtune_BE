@@ -51,7 +51,7 @@ class AuthServiceTest {
 
         given(userSupport.findActiveUserByEmailOrThrow(request.email())).willReturn(user);
         given(passwordEncoder.matches(request.password(), user.getPassword())).willReturn(true);
-        given(jwtTokenProvider.createAccessToken(user.getId(), user.getRole())).willReturn("access.token");
+        given(jwtTokenProvider.createAccessToken(user)).willReturn("access.token");
         given(jwtTokenProvider.createRefreshToken(user.getId())).willReturn("refresh.token");
 
         TokenResponse result = authService.login(request);

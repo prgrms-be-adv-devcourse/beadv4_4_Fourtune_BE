@@ -1,6 +1,7 @@
 package com.fourtune.auction.global.security.jwt;
 
-import com.fourtune.auction.boundedContext.user.domain.constant.Role;
+import com.fourtune.auction.boundedContext.user.domain.entity.User;
+import com.fourtune.auction.global.security.dto.UserContext;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -10,8 +11,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -39,14 +38,15 @@ public class JwtTokenProvider {
     }
 
 
-    public String createAccessToken(Long userId, Role role) {
+    public String createAccessToken(User user) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + accessTokenValidityInMilliseconds);
 
         return Jwts.builder()
                 .header().type("JWT").and()
-                .subject(String.valueOf(userId))
-                .claim("role", role.getKey())
+                .subject(String.valueOf(user.getId()))
+                .claim("role", user.getRole().getKey())
+                .claim("email", user.getEmail())
                 .issuedAt(now)
                 .expiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -101,11 +101,14 @@ public class JwtTokenProvider {
                 .getPayload();
 
         String role = claims.get("role", String.class);
+        Long userId = Long.valueOf(claims.getSubject());
+        String email = claims.get("email", String.class);
+
 
         Collection<? extends GrantedAuthority> authorities =
                 Collections.singletonList(new SimpleGrantedAuthority(role));
 
-        UserDetails principal = new User(claims.getSubject(), "", authorities);
+        UserContext principal = new UserContext(userId, email, "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
