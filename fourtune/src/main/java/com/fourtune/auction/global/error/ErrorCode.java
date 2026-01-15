@@ -32,6 +32,11 @@ public enum ErrorCode {
     AUCTION_ALREADY_ENDED(400, "A004", "이미 종료된 경매입니다."),
     AUCTION_INVALID_PRICE(400, "A005", "유효하지 않은 가격입니다."),
     AUCTION_INVALID_DURATION(400, "A006", "유효하지 않은 경매 기간입니다.");
+    //JwtToken(토큰 관련)
+    EXPIRED_ACCESS_TOKEN(401, "T001", "ACCESS 토큰이 만료되었습니다."),
+    EXPIRED_REFRESH_TOKEN(401, "TOO2", "REFRESH 토큰이 만료되었습니다."),
+    INVALID_REFRESH_TOKEN(401, "T003", "유효하지 않은 REFRESH 토큰입니다."),
+    REFRESH_TOKEN_MISMATCH(401, "T004", "리프레시 토큰이 일치하지 않습니다.(해킹 의심)");
 
     private final int status;
     private final String code;

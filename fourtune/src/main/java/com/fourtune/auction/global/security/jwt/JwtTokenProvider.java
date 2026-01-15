@@ -1,7 +1,7 @@
 package com.fourtune.auction.global.security.jwt;
 
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.auction.global.security.dto.UserContext;
+import com.fourtune.auction.shared.auth.dto.UserContext;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -76,6 +76,7 @@ public class JwtTokenProvider {
             log.error("잘못된 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
             log.error("만료된 JWT 토큰입니다.");
+            throw e;
         } catch (UnsupportedJwtException e) {
             log.error("지원되지 않는 JWT 토큰입니다.");
         } catch (IllegalArgumentException e) {

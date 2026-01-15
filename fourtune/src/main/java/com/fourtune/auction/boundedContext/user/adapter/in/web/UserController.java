@@ -1,14 +1,13 @@
 package com.fourtune.auction.boundedContext.user.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.auction.global.security.dto.UserContext;
+import com.fourtune.auction.shared.auth.dto.UserContext;
 import com.fourtune.auction.shared.user.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
