@@ -175,4 +175,3 @@ volumes:
 networks:
   fourtune-network:
     driver: bridge
-

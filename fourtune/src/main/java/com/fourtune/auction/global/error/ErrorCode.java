@@ -23,7 +23,15 @@ public enum ErrorCode {
     ALREADY_WITHDRAWN(400, "U008", "이미 탈퇴한 사용자입니다."),
 
     //Lock(락 관련)
-    CHANGE_CONFLICT(409, "U008", "다른 사용자에 의해 정보가 변경되었습니다. 다시 시도해주세요");
+    CHANGE_CONFLICT(409, "U008", "다른 사용자에 의해 정보가 변경되었습니다. 다시 시도해주세요"),
+
+    //Auction(경매 관련)
+    AUCTION_NOT_FOUND(404, "A001", "존재하지 않는 경매입니다."),
+    AUCTION_NOT_MODIFIABLE(400, "A002", "수정할 수 없는 경매 상태입니다."),
+    AUCTION_SELLER_MISMATCH(403, "A003", "판매자만 수정할 수 있습니다."),
+    AUCTION_ALREADY_ENDED(400, "A004", "이미 종료된 경매입니다."),
+    AUCTION_INVALID_PRICE(400, "A005", "유효하지 않은 가격입니다."),
+    AUCTION_INVALID_DURATION(400, "A006", "유효하지 않은 경매 기간입니다.");
 
     private final int status;
     private final String code;
