@@ -8,6 +8,7 @@ import com.fourtune.auction.global.security.jwt.JwtTokenProvider;
 import com.fourtune.auction.shared.auth.dto.TokenResponse;
 import com.fourtune.auction.shared.user.dto.UserLoginRequest;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,9 +41,39 @@ public class AuthService {
                 .build();
     }
 
+    @Transactional
+    public TokenResponse reissue(String refreshToken){
+        try{
+            jwtTokenProvider.validateToken(refreshToken);
+        }
+        catch(ExpiredJwtException e){
+            throw new BusinessException(ErrorCode.EXPIRED_REFRESH_TOKEN);
+        }catch (Exception e) {
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        String id = jwtTokenProvider.getUserIdFromToken(refreshToken);
+        User user = userSupport.findByIdOrThrow(Long.parseLong(id));
+
+        isRefreshTokenSame(user, refreshToken);
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(user);
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+
+        user.updateRefreshToken(newRefreshToken);
+
+        return new TokenResponse("Bearer", newAccessToken, newRefreshToken);
+    }
+
     private void validatePassword(String rawPassword, String encodedPassword) {
         if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
             throw new BusinessException(ErrorCode.PASSWORD_NOT_MATCH);
+        }
+    }
+
+    private void isRefreshTokenSame(User user, String refreshToken){
+        if (user.getRefreshToken() == null || !user.getRefreshToken().equals(refreshToken)) {
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
     }
 
