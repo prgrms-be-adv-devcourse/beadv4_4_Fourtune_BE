@@ -21,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PaymentService {
 
-        @Value("${toss.secret-key}")
+        @Value("${payment.toss.secret-key}")
         private String tossSecretKey;
 
         private final RestTemplate restTemplate = new RestTemplate();
@@ -55,6 +55,6 @@ public class PaymentService {
                 }
 
                 // TODO: 주문 완료 처리, cash log 생성(구매자 지갑 -> 시스템 지갑으로 현금 이동)
-                log.info("===== 토스 결제 검증 성공 =====");
+                log.info("주문 확인 응답: "+response.getStatusCode().toString());
         }
 }
