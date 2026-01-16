@@ -15,7 +15,7 @@ import java.io.IOException;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/payments")
+@RequestMapping("/api/payment")
 public class PaymentController {
     private final PaymentConfirmUseCase paymentConfirmUseCase;
     private final EventPublisher eventPublisher;
@@ -26,7 +26,7 @@ public class PaymentController {
       */
 
 
-    @PostMapping("/payment/confirm/by/tosspayments")
+    @PostMapping("/confirm/by/tosspayments")
     public void tossPaymentSuccess(
             @RequestBody ConfirmPaymentRequest confirmPaymentRequest,
             HttpServletResponse response
