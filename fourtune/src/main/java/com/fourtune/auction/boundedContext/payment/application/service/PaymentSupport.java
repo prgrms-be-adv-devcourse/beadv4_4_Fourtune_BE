@@ -24,14 +24,14 @@ public class PaymentSupport {
     }
 
     public Optional<Wallet> findWalletByUser(PaymentUser paymentUser) {
-        return walletRepository.findWalletByUser(paymentUser);
+        return walletRepository.findWalletByPaymentUser(paymentUser);
     }
 
     public Optional<Wallet> findWalletByUserId(Long userId) {
-        return walletRepository.findWalletByUserId(userId);
+        return walletRepository.findWalletById(userId);
     }
 
     public Optional<Wallet> findSystemWallet() {
-        return walletRepository.findWalletByUserId(CashPolicy.SYSTEM_MEMBER_ID);
+        return walletRepository.findWalletById(CashPolicy.SYSTEM_MEMBER_ID);
     }
 }

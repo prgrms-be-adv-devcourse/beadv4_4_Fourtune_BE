@@ -2,6 +2,7 @@ package com.fourtune.auction.boundedContext.payment.adapter.in.init;
 
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
+import com.fourtune.auction.boundedContext.payment.domain.entity.CashLog;
 import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentUserRepository;
@@ -15,6 +16,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -48,6 +50,7 @@ public class PaymentDataInit {
 
     @Transactional
     public void makeSystemUser() {
+        //TODO: payment user 에만 저장함. 동기화 할때 충돌 예상 수정필요
         Optional<PaymentUser> systemUser = paymentUserRepository.findByNickname("system");
 
         if(systemUser.isEmpty()) {
@@ -75,7 +78,6 @@ public class PaymentDataInit {
             Wallet wallet = Wallet.builder()
                     .paymentUser(systemUser.get())
                     .balance(0L)
-                    .cashLogs(null)
                     .build();
             walletRepository.save(wallet);
             systemWwallet = paymentFacade.findSystemWallet();
