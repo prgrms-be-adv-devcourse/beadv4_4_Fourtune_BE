@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.cash.domain.entity;
+package com.fourtune.auction.boundedContext.payment.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,12 +6,12 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "CASH_USER")
+@Table(name = "PAYMENT_USER")
 @Builder
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CashUser {
+public class PaymentUser {
 
     @Id
     private Long id;

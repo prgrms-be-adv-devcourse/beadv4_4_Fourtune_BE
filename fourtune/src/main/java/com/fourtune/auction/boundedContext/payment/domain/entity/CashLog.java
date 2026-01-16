@@ -1,6 +1,6 @@
-package com.fourtune.auction.boundedContext.cash.domain.entity;
+package com.fourtune.auction.boundedContext.payment.domain.entity;
 
-import com.fourtune.auction.boundedContext.cash.domain.constant.CashEventType;
+import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
-@Table(name = "CASH_CASH_LOG")
+@Table(name = "PAYMENT_CASH_LOG")
 @NoArgsConstructor
 public class CashLog extends BaseIdAndTime {
 
@@ -17,10 +17,10 @@ public class CashLog extends BaseIdAndTime {
 
     private String relTypeCode;
 
-    private int relId;
+    private Long relId;
 
     @ManyToOne(fetch = LAZY)
-    private CashUser user;
+    private PaymentUser paymentUser;
 
     @ManyToOne(fetch = LAZY)
     private Wallet wallet;
@@ -29,11 +29,11 @@ public class CashLog extends BaseIdAndTime {
 
     private long balance;
 
-    public CashLog(CashEventType eventType, String relTypeCode, int relId, CashUser user, Wallet wallet, long amount, long balance) {
+    public CashLog(CashEventType eventType, String relTypeCode, Long relId, PaymentUser paymentUser, Wallet wallet, Long amount, Long balance) {
         this.eventType = eventType;
         this.relTypeCode = relTypeCode;
         this.relId = relId;
-        this.user = user;
+        this.paymentUser = paymentUser;
         this.wallet = wallet;
         this.amount = amount;
         this.balance = balance;

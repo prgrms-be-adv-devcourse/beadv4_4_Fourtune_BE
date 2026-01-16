@@ -103,6 +103,11 @@ auction:
   seller-shipping-deadline-days: 7  # 발송 기한
   settlement-fee-rate: 0.1  # 정산 수수료 (10%)
 
+payment:
+    toss:
+      client-key: test_ck_5OWRapdA8dwjJb9WO69Bro1zEqZK
+      secret-key: ${TOSS_SECRET_KEY:test_sk_dskflfjeifwsdfjdsfsddfdf}
+
 ---
 # Test Profile (CI/CD용)
 spring:
