@@ -47,8 +47,13 @@ public class AuctionItem extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer bidUnit = 1000;
     
+    // 즉시구매 관련 필드
     @Column(precision = 19, scale = 2)
     private BigDecimal buyNowPrice;
+    
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean buyNowEnabled = false;
     
     @Column(nullable = false)
     private LocalDateTime auctionStartTime;
