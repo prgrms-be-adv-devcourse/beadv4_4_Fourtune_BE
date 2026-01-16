@@ -28,7 +28,7 @@ public class PaymentConfirmUseCase {
 
         private final RestTemplate restTemplate = new RestTemplate();
 
-        public void confirmPayment(String paymentKey, String orderId, Long amount) {
+        public void confirmPayment(String paymentKey, Long orderId, Long amount) {
                 // 1. 헤더 설정
                 String secretKey = tossSecretKey + ":";
                 String encodedAuth = Base64.getEncoder().encodeToString(secretKey.getBytes(StandardCharsets.UTF_8));
@@ -57,7 +57,7 @@ public class PaymentConfirmUseCase {
                 }
 
                 if(response.getStatusCode().equals(HttpStatus.OK)){
-                        // TODO: 주문 완료 처리, cash log 생성(구매자 지갑 -> 시스템 지갑으로 현금 이동)
+                        // 주문/결제 검증, cash log 생성(구매자 지갑 -> 시스템 지갑으로 현금 이동)
                         log.info("주문 확인 응답: "+response.getStatusCode().toString());
 
                         OrderDto orderDto = getOrdrerDto(orderId);
@@ -69,7 +69,7 @@ public class PaymentConfirmUseCase {
                 }
         }
 
-        private OrderDto getOrdrerDto(String orderId) {
-                return new OrderDto();//TODO: auction에서 요청 받아오기
+        private OrderDto getOrdrerDto(Long orderId) {
+                return new OrderDto();//TODO: auction에서 주문데이터 API로 요청 받아오기
         }
 }

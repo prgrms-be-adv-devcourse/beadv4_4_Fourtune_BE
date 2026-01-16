@@ -10,6 +10,6 @@ public class PaymentCashFailedEvent {
     private final String resultCode;
     private final String msg;
     private final OrderDto order;
-    private final long pgPaymentAmount;
-    private final long shortfallAmount;
+    private final Long pgPaymentAmount;
+    private final Long shortfallAmount;
 }
