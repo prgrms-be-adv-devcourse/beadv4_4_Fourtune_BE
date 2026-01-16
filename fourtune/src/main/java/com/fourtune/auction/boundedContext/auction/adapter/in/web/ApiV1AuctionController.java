@@ -3,7 +3,7 @@ package com.fourtune.auction.boundedContext.auction.adapter.in.web;
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionFacade;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
 import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
-import com.fourtune.auction.global.security.dto.UserContext;
+import com.fourtune.auction.shared.auth.dto.UserContext;
 import com.fourtune.auction.shared.auction.dto.AuctionItemCreateRequest;
 import com.fourtune.auction.shared.auction.dto.AuctionItemDetailResponse;
 import com.fourtune.auction.shared.auction.dto.AuctionItemResponse;
