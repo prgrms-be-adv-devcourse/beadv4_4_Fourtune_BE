@@ -1,12 +1,12 @@
 package com.fourtune.auction.boundedContext.payment.port.out;
 
-import com.fourtune.auction.boundedContext.payment.domain.entity.User;
+import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface PaymentUserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByNickname(String nickname);
-    Optional<User> findByEmail(String email);
-    Optional<User> findByUserId(Long userId);
+public interface PaymentUserRepository extends JpaRepository<PaymentUser, Long> {
+    Optional<PaymentUser> findByNickname(String nickname);
+    Optional<PaymentUser> findByEmail(String email);
+    Optional<PaymentUser> findByUserId(Long userId);
 }

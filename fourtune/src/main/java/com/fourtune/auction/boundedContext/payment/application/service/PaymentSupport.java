@@ -1,6 +1,6 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
-import com.fourtune.auction.boundedContext.payment.domain.entity.User;
+import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentUserRepository;
@@ -16,15 +16,15 @@ public class PaymentSupport {
     private final PaymentUserRepository paymentUserRepository;
     private final WalletRepository walletRepository;
 
-    public Optional<User> findUserByEmail(String email) {
+    public Optional<PaymentUser> findUserByEmail(String email) {
         return paymentUserRepository.findByEmail(email);
     }
-    public Optional<User> findUserByUserId(Long userId) {
+    public Optional<PaymentUser> findUserByUserId(Long userId) {
         return paymentUserRepository.findById(userId);
     }
 
-    public Optional<Wallet> findWalletByUser(User user) {
-        return walletRepository.findWalletByUser(user);
+    public Optional<Wallet> findWalletByUser(PaymentUser paymentUser) {
+        return walletRepository.findWalletByUser(paymentUser);
     }
 
     public Optional<Wallet> findWalletByUserId(Long userId) {

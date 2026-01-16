@@ -2,7 +2,7 @@ package com.fourtune.auction.boundedContext.payment.adapter.in.init;
 
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
-import com.fourtune.auction.boundedContext.payment.domain.entity.User;
+import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentUserRepository;
 import com.fourtune.auction.boundedContext.payment.port.out.WalletRepository;
@@ -48,10 +48,10 @@ public class PaymentDataInit {
 
     @Transactional
     public void makeSystemUser() {
-        Optional<User> systemUser = paymentUserRepository.findByNickname("system");
+        Optional<PaymentUser> systemUser = paymentUserRepository.findByNickname("system");
 
         if(systemUser.isEmpty()) {
-            User user = User.builder()
+            PaymentUser paymentUser = PaymentUser.builder()
                     .email("system@email.com")
                     .password("password")
                     .nickname("system")
@@ -63,7 +63,7 @@ public class PaymentDataInit {
                     .updatedAt(null)
                     .status("ACTIVE")
                     .build();
-            paymentUserRepository.save(user);
+            paymentUserRepository.save(paymentUser);
 
             systemUser = paymentUserRepository.findByNickname("system");
         }
@@ -73,7 +73,7 @@ public class PaymentDataInit {
         if(systemWwallet.isEmpty()){
 
             Wallet wallet = Wallet.builder()
-                    .user(systemUser.get())
+                    .paymentUser(systemUser.get())
                     .balance(0L)
                     .cashLogs(null)
                     .build();

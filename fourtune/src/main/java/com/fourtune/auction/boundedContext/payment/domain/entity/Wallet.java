@@ -23,7 +23,7 @@ import static jakarta.persistence.CascadeType.REMOVE;
 public class Wallet extends BaseIdAndTime {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private User user;
+    private PaymentUser paymentUser;
 
     @Getter
     private Long balance;
@@ -46,7 +46,7 @@ public class Wallet extends BaseIdAndTime {
                 cashEventType,
                 relTypeCode,
                 relId,
-                user,
+                paymentUser,
                 this,
                 amount,
                 balance
