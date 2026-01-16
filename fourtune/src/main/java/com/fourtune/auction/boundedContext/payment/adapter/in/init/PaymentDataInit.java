@@ -4,7 +4,7 @@ import com.fourtune.auction.boundedContext.payment.application.service.PaymentFa
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
 import com.fourtune.auction.boundedContext.payment.domain.entity.User;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
-import com.fourtune.auction.boundedContext.payment.port.out.UserRepository;
+import com.fourtune.auction.boundedContext.payment.port.out.PaymentUserRepository;
 import com.fourtune.auction.boundedContext.payment.port.out.WalletRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
@@ -23,18 +23,18 @@ public class PaymentDataInit {
 
     private final PaymentDataInit self;
     private final PaymentFacade paymentFacade;
-    private final UserRepository userRepository;
+    private final PaymentUserRepository paymentUserRepository;
     private final WalletRepository walletRepository;
 
     public PaymentDataInit(
             @Lazy PaymentDataInit self,
             PaymentFacade paymentFacade,
-            UserRepository userRepository,
+            PaymentUserRepository paymentUserRepository,
             WalletRepository walletRepository
     ) {
         this.self = self;
         this.paymentFacade = paymentFacade;
-        this.userRepository = userRepository;
+        this.paymentUserRepository = paymentUserRepository;
         this.walletRepository = walletRepository;
     }
 
@@ -48,7 +48,7 @@ public class PaymentDataInit {
 
     @Transactional
     public void makeSystemUser() {
-        Optional<User> systemUser = userRepository.findByNickname("system");
+        Optional<User> systemUser = paymentUserRepository.findByNickname("system");
 
         if(systemUser.isEmpty()) {
             User user = User.builder()
@@ -63,9 +63,9 @@ public class PaymentDataInit {
                     .updatedAt(null)
                     .status("ACTIVE")
                     .build();
-            userRepository.save(user);
+            paymentUserRepository.save(user);
 
-            systemUser = userRepository.findByNickname("system");
+            systemUser = paymentUserRepository.findByNickname("system");
         }
 
         Optional<Wallet> systemWwallet = paymentFacade.findSystemWallet();
@@ -74,7 +74,7 @@ public class PaymentDataInit {
 
             Wallet wallet = Wallet.builder()
                     .user(systemUser.get())
-                    .balance(0)
+                    .balance(0L)
                     .cashLogs(null)
                     .build();
             walletRepository.save(wallet);
