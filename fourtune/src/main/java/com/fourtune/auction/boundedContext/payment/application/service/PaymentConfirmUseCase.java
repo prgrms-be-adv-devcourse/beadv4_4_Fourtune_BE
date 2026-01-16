@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
+import com.fourtune.auction.shared.payment.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PaymentConfirmUseCase {
 
+        final private PaymentCashCompleteUseCase paymentCashCompleteUseCase;
         @Value("${payment.toss.secret-key}")
         private String tossSecretKey;
 
@@ -54,7 +56,20 @@ public class PaymentConfirmUseCase {
                         throw new RuntimeException("토스 결제 승인 실패: " + response.getBody());
                 }
 
-                // TODO: 주문 완료 처리, cash log 생성(구매자 지갑 -> 시스템 지갑으로 현금 이동)
-                log.info("주문 확인 응답: "+response.getStatusCode().toString());
+                if(response.getStatusCode().equals(HttpStatus.OK)){
+                        // TODO: 주문 완료 처리, cash log 생성(구매자 지갑 -> 시스템 지갑으로 현금 이동)
+                        log.info("주문 확인 응답: "+response.getStatusCode().toString());
+
+                        OrderDto orderDto = getOrdrerDto(orderId);
+                        if(orderDto.getPrice() == amount){// 존재하고 같은 주문인지 판단
+                                // 현금이동
+                                paymentCashCompleteUseCase.cashComplete(orderDto, amount);
+                        }
+
+                }
+        }
+
+        private OrderDto getOrdrerDto(String orderId) {
+                return new OrderDto();//TODO: auction에서 요청 받아오기
         }
 }

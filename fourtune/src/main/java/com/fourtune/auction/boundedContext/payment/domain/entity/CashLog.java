@@ -17,7 +17,7 @@ public class CashLog extends BaseIdAndTime {
 
     private String relTypeCode;
 
-    private int relId;
+    private Long relId;
 
     @ManyToOne(fetch = LAZY)
     private User user;
@@ -29,7 +29,7 @@ public class CashLog extends BaseIdAndTime {
 
     private long balance;
 
-    public CashLog(CashEventType eventType, String relTypeCode, int relId, User user, Wallet wallet, long amount, long balance) {
+    public CashLog(CashEventType eventType, String relTypeCode, Long relId, User user, Wallet wallet, Long amount, Long balance) {
         this.eventType = eventType;
         this.relTypeCode = relTypeCode;
         this.relId = relId;

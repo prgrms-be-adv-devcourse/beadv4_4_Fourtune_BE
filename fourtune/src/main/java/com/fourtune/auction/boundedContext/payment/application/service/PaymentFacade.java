@@ -20,6 +20,11 @@ public class PaymentFacade {
     }
 
     @Transactional(readOnly = true)
+    public Optional<Wallet> findWalletByUserId(Long userId) {
+        return paymentSupport.findWalletByUserId(userId);
+    }
+
+    @Transactional(readOnly = true)
     public Optional<Wallet> findSystemWallet() {
         return paymentSupport.findSystemWallet();
     }
