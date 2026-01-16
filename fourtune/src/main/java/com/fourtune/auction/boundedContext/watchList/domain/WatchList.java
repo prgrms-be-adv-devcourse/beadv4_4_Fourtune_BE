@@ -1,14 +1,13 @@
 package com.fourtune.auction.boundedContext.watchList.domain;
 
+import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
+import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -20,23 +19,21 @@ public class WatchList extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(nullable = false)
-    private Long auctionItemId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auction_item_id", nullable = false)
+    private AuctionItem auctionItem;
 
     private boolean isStartAlertSent;
     private boolean isEndAlertSent;
 
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-
     @Builder
-    public WatchList(Long userId, Long auctionItemId) {
-        this.userId = userId;
-        this.auctionItemId = auctionItemId;
+    public WatchList(User user, AuctionItem auctionItem) {
+        this.user = user;
+        this.auctionItem = auctionItem;
         this.isStartAlertSent = false;
         this.isEndAlertSent = false;
     }
