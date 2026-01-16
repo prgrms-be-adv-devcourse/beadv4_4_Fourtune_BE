@@ -26,19 +26,19 @@ public class Wallet extends BaseIdAndTime {
     private User user;
 
     @Getter
-    private long balance;
+    private Long balance;
 
     @OneToMany(mappedBy = "wallet", cascade = {PERSIST, REMOVE}, orphanRemoval = true)
     private List<CashLog> cashLogs = new ArrayList<>();
 
-    public void credit(Long amount, CashEventType cashEventType, String order, Long orderId) {
-        addCashLog(amount, cashEventType, order, orderId);
-
+    public void credit(Long amount, CashEventType cashEventType, String relTypeCode, Long relId) {
+        balance += amount;
+        addCashLog(amount, cashEventType, relTypeCode, relId);
     }
 
-    public void debit(Long price, CashEventType cashEventType, String order, Long orderId) {
-
-
+    public void debit(Long amount, CashEventType cashEventType, String relTypeCode, Long relId) {
+        balance -= amount;
+        addCashLog(-amount, cashEventType, relTypeCode, relId);
     }
 
     private CashLog addCashLog(long amount, CashEventType cashEventType, String relTypeCode, Long relId){
