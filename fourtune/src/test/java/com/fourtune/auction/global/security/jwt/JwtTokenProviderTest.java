@@ -2,6 +2,9 @@ package com.fourtune.auction.global.security.jwt;
 
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.exception.BusinessException;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 public class JwtTokenProviderTest {
@@ -59,9 +63,8 @@ public class JwtTokenProviderTest {
         JwtTokenProvider jwtTokenProviderHasZero = new JwtTokenProvider(secretKey, 0, 0);
         String expiredToken = jwtTokenProviderHasZero.createAccessToken(user);
 
-        boolean isValid = jwtTokenProviderHasZero.validateToken(expiredToken);
-
-        assertThat(isValid).isFalse();
+        assertThatThrownBy(() -> jwtTokenProviderHasZero.validateToken(expiredToken))
+                .isInstanceOf(ExpiredJwtException.class);
     }
 
     @Test

@@ -1,7 +1,10 @@
 package com.fourtune.auction.global.security.jwt;
 
+import com.fourtune.auction.global.error.ErrorCode;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -127,4 +130,34 @@ class JwtFilterTest {
         verify(jwtTokenProvider, never()).validateToken(anyString());
         verify(filterChain, times(1)).doFilter(request, response);
     }
+
+    @Test
+    @DisplayName("토큰이 만료되었을 때 401 상태코드와 에러 JSON을 응답한다")
+    void doFilterInternal_ExpiredToken_ReturnsErrorResponse() throws Exception {
+        String expiredToken = "expired.token.value";
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + expiredToken);
+        request.setRequestURI("/api/boards");
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        doThrow(new ExpiredJwtException(null, null, "Token Expired"))
+                .when(jwtTokenProvider).validateToken(anyString());
+
+        jwtAuthenticationFilter.doFilter(request, response, filterChain);
+
+        assertThat(response.getStatus()).isEqualTo(ErrorCode.EXPIRED_ACCESS_TOKEN.getStatus());
+
+        assertThat(response.getContentType()).contains("application/json");
+        assertThat(response.getCharacterEncoding()).isEqualTo("UTF-8");
+
+        String responseBody = response.getContentAsString();
+
+        assertThat(responseBody).contains(ErrorCode.EXPIRED_ACCESS_TOKEN.getCode());
+        assertThat(responseBody).contains(ErrorCode.EXPIRED_ACCESS_TOKEN.getMessage());
+
+        verify(filterChain, never()).doFilter(request, response);
+    }
+
 }
