@@ -106,7 +106,7 @@ auction:
 payment:
     toss:
       client-key: test_ck_5OWRapdA8dwjJb9WO69Bro1zEqZK
-      secret-key: ${TOSS_SECRET_KEY}
+      secret-key: ${TOSS_SECRET_KEY:test_sk_dskflfjeifwsdfjdsfsddfdf}
 
 ---
 # Test Profile (CI/CD용)
