@@ -1,10 +1,10 @@
 package com.fourtune.auction.boundedContext.payment.adapter.in.init;
 
-import com.fourtune.auction.boundedContext.payment.application.service.CashFacade;
+import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
-import com.fourtune.auction.boundedContext.payment.domain.entity.CashUser;
+import com.fourtune.auction.boundedContext.payment.domain.entity.User;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
-import com.fourtune.auction.boundedContext.payment.port.out.CashUserRepository;
+import com.fourtune.auction.boundedContext.payment.port.out.UserRepository;
 import com.fourtune.auction.boundedContext.payment.port.out.WalletRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
@@ -19,22 +19,22 @@ import java.util.Optional;
 
 @Slf4j
 @Configuration
-public class CashDataInit {
+public class PaymentDataInit {
 
-    private final CashDataInit self;
-    private final CashFacade cashFacade;
-    private final CashUserRepository cashUserRepository;
+    private final PaymentDataInit self;
+    private final PaymentFacade paymentFacade;
+    private final UserRepository userRepository;
     private final WalletRepository walletRepository;
 
-    public CashDataInit(
-            @Lazy CashDataInit self,
-            CashFacade cashFacade,
-            CashUserRepository cashUserRepository,
+    public PaymentDataInit(
+            @Lazy PaymentDataInit self,
+            PaymentFacade paymentFacade,
+            UserRepository userRepository,
             WalletRepository walletRepository
     ) {
         this.self = self;
-        this.cashFacade = cashFacade;
-        this.cashUserRepository = cashUserRepository;
+        this.paymentFacade = paymentFacade;
+        this.userRepository = userRepository;
         this.walletRepository = walletRepository;
     }
 
@@ -48,10 +48,10 @@ public class CashDataInit {
 
     @Transactional
     public void makeSystemUser() {
-        Optional<CashUser> systemUser = cashUserRepository.findByNickname("system");
+        Optional<User> systemUser = userRepository.findByNickname("system");
 
         if(systemUser.isEmpty()) {
-            CashUser cashUser = CashUser.builder()
+            User user = User.builder()
                     .email("system@email.com")
                     .password("password")
                     .nickname("system")
@@ -63,12 +63,12 @@ public class CashDataInit {
                     .updatedAt(null)
                     .status("ACTIVE")
                     .build();
-            cashUserRepository.save(cashUser);
+            userRepository.save(user);
 
-            systemUser = cashUserRepository.findByNickname("system");
+            systemUser = userRepository.findByNickname("system");
         }
 
-        Optional<Wallet> systemWwallet = cashFacade.findSystemWallet();
+        Optional<Wallet> systemWwallet = paymentFacade.findSystemWallet();
 
         if(systemWwallet.isEmpty()){
 
@@ -78,7 +78,7 @@ public class CashDataInit {
                     .cashLogs(null)
                     .build();
             walletRepository.save(wallet);
-            systemWwallet = cashFacade.findSystemWallet();
+            systemWwallet = paymentFacade.findSystemWallet();
         }
 
         log.info("system user : "+systemUser.get().getNickname() + ", id = "+systemUser.get().getId());

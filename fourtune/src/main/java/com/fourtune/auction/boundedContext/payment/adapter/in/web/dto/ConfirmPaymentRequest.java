@@ -13,8 +13,6 @@ public record ConfirmPaymentRequest(
         String orderId,
 
         @NotNull(message = "amount는 필수입니다.")
-        Long amount, // 토스펭이 결제 금액
-
-        Long totalPrice
+        Long amount // 토스펭이 결제 금액
 ) {
 }

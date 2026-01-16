@@ -19,7 +19,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentService {
+public class PaymentConfirmUseCase {
 
         @Value("${payment.toss.secret-key}")
         private String tossSecretKey;

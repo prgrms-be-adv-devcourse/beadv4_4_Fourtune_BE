@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CashUser {
+public class User {
 
     @Id
     private Long id;
