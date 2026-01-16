@@ -1,6 +1,6 @@
-package com.fourtune.auction.boundedContext.cash.domain.entity;
+package com.fourtune.auction.boundedContext.payment.domain.entity;
 
-import com.fourtune.auction.boundedContext.cash.domain.constant.CashEventType;
+import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
-@Table(name = "CASH_CASH_LOG")
+@Table(name = "PAYMENT_CASH_LOG")
 @NoArgsConstructor
 public class CashLog extends BaseIdAndTime {
 

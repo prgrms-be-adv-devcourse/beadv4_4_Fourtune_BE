@@ -1,11 +1,11 @@
-package com.fourtune.auction.boundedContext.cash.adapter.in.init;
+package com.fourtune.auction.boundedContext.payment.adapter.in.init;
 
-import com.fourtune.auction.boundedContext.cash.application.service.CashFacade;
-import com.fourtune.auction.boundedContext.cash.domain.constant.CashPolicy;
-import com.fourtune.auction.boundedContext.cash.domain.entity.CashUser;
-import com.fourtune.auction.boundedContext.cash.domain.entity.Wallet;
-import com.fourtune.auction.boundedContext.cash.port.out.CashUserRepository;
-import com.fourtune.auction.boundedContext.cash.port.out.WalletRepository;
+import com.fourtune.auction.boundedContext.payment.application.service.CashFacade;
+import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
+import com.fourtune.auction.boundedContext.payment.domain.entity.CashUser;
+import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
+import com.fourtune.auction.boundedContext.payment.port.out.CashUserRepository;
+import com.fourtune.auction.boundedContext.payment.port.out.WalletRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
@@ -68,7 +68,7 @@ public class CashDataInit {
             systemUser = cashUserRepository.findByNickname("system");
         }
 
-        Optional<Wallet> systemWwallet = cashFacade.findWalletBySystemId(systemUser.get().getId());
+        Optional<Wallet> systemWwallet = cashFacade.findSystemWallet();
 
         if(systemWwallet.isEmpty()){
 
@@ -78,7 +78,7 @@ public class CashDataInit {
                     .cashLogs(null)
                     .build();
             walletRepository.save(wallet);
-            systemWwallet = cashFacade.findWalletBySystemId(systemUser.get().getId());
+            systemWwallet = cashFacade.findSystemWallet();
         }
 
         log.info("system user : "+systemUser.get().getNickname() + ", id = "+systemUser.get().getId());

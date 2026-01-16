@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.cash.application.service;
+package com.fourtune.auction.boundedContext.payment.application.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

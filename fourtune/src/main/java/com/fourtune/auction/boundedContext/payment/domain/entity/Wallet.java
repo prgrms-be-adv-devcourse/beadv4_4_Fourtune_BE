@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.cash.domain.entity;
+package com.fourtune.auction.boundedContext.payment.domain.entity;
 
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import jakarta.persistence.*;
@@ -16,7 +16,7 @@ import static jakarta.persistence.CascadeType.REMOVE;
 @Builder
 @AllArgsConstructor
 @Entity
-@Table(name = "CASH_WALLET")
+@Table(name = "PAYMENT_WALLET")
 @NoArgsConstructor
 @Getter
 public class Wallet extends BaseIdAndTime {

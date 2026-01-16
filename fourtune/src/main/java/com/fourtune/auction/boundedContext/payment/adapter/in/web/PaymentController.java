@@ -1,13 +1,10 @@
-package com.fourtune.auction.boundedContext.cash.adapter.in.web;
+package com.fourtune.auction.boundedContext.payment.adapter.in.web;
 
-import com.fourtune.auction.boundedContext.cash.application.service.PaymentService;
+import com.fourtune.auction.boundedContext.payment.application.service.PaymentService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -21,7 +18,7 @@ public class PaymentController {
       * 토스페이먼츠 성공 리다이렉트 처리 (백엔드 처리 후 프론트로 이동)
       * URL 예시: /api/payments/toss/success?paymentKey=...&orderId=...&amount=...
       */
-    @GetMapping("/toss/success")
+    @PostMapping("/toss/success")
     public void tossPaymentSuccess(
             @RequestParam String paymentKey,
             @RequestParam String orderId,
