@@ -29,4 +29,9 @@ public class Settlement extends BaseIdAndTime {
 
     @OneToMany(mappedBy = "settlement", cascade = {PERSIST, REMOVE}, orphanRemoval = true)
     private List<SettlementItem> items = new ArrayList<>();
+
+    public Settlement(SettlementUser payee){
+        this.payee = payee;
+        this.amount = 0L;
+    }
 }

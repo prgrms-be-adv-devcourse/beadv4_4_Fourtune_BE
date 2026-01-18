@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.settlement.domain.entity;
 
+import com.fourtune.auction.shared.settlement.dto.SettlementUserDto;
 import com.fourtune.auction.shared.user.domain.BaseUser;
 import com.fourtune.auction.shared.user.domain.ReplicaUser;
 import jakarta.persistence.Entity;
@@ -28,7 +29,16 @@ public class SettlementUser extends ReplicaUser{
         super(id, email, nickname, password, phoneNumber, createdAt, updatedAt, deletedAt);
     }
 
-    //TODO: 기본 유저를 2개 만들기
-    // SYSTEM_HOLDING     // [보관용] 결제금 임시 저장
-    // PLATFORM_REVENUE      // 플랫폼 매출
+    public SettlementUserDto toDto() {
+        return new SettlementUserDto(
+                getId(),
+                getEmail(),
+                getNickname(),
+                getPhoneNumber(),
+                getCreatedAt(),
+                getUpdatedAt(),
+                getDeletedAt()
+        );
+    }
+
 }
