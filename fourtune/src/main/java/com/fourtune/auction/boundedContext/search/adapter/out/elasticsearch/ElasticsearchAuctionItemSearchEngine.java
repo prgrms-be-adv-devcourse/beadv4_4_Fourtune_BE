@@ -3,12 +3,14 @@ package com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
 import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.stereotype.Component;
 
 import com.fourtune.auction.boundedContext.search.application.service.AuctionItemSearchEngine;
 import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
 
+@Profile("!test")
 @Component
 @RequiredArgsConstructor
 public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEngine {
