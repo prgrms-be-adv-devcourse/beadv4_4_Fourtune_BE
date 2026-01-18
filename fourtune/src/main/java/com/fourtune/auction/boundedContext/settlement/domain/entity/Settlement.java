@@ -1,6 +1,8 @@
 package com.fourtune.auction.boundedContext.settlement.domain.entity;
 
 import com.fourtune.auction.global.common.BaseIdAndTime;
+import com.fourtune.auction.shared.settlement.dto.SettlementDto;
+import com.fourtune.auction.shared.settlement.event.SettlementCompletedEvent;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,5 +35,24 @@ public class Settlement extends BaseIdAndTime {
     public Settlement(SettlementUser payee){
         this.payee = payee;
         this.amount = 0L;
+    }
+
+    public void competeSettlement(){
+        this.settledAt = LocalDateTime.now();
+        publishEvent(new SettlementCompletedEvent(
+                toDto()
+        ));
+    }
+
+    public SettlementDto toDto(){
+        return SettlementDto.builder()
+                .id(getId())
+                .settledAt(getSettledAt())
+                .amount(getAmount())
+                .payeeEmail(getPayee().getEmail())
+                .payeeId(getPayee().getId())
+                .updatedAt(getUpdatedAt())
+                .createdAt(getCreatedAt())
+                .build();
     }
 }

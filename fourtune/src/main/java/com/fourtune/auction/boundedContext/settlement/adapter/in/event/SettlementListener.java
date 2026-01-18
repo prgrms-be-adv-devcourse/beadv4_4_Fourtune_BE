@@ -1,7 +1,6 @@
 package com.fourtune.auction.boundedContext.settlement.adapter.in.event;
 
 import com.fourtune.auction.boundedContext.settlement.application.service.SettlementFacade;
-import com.fourtune.auction.shared.settlement.dto.SettlementUserDto;
 import com.fourtune.auction.shared.settlement.event.SettlementCompletedEvent;
 import com.fourtune.auction.shared.settlement.event.SettlementUserCreatedEvent;
 import lombok.RequiredArgsConstructor;

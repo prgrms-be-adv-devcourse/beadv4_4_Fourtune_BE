@@ -1,16 +1,13 @@
 package com.fourtune.auction.boundedContext.settlement.domain.entity;
 
 import com.fourtune.auction.shared.settlement.dto.SettlementUserDto;
-import com.fourtune.auction.shared.user.domain.BaseUser;
 import com.fourtune.auction.shared.user.domain.ReplicaUser;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
