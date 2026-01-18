@@ -7,7 +7,12 @@ import org.springframework.data.elasticsearch.annotations.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Document(indexName = "auction_items")
+// @Setting(settingPath = "...")
 public class SearchAuctionItemDocument {
 
     @Id
@@ -29,7 +34,7 @@ public class SearchAuctionItemDocument {
     @Field(type = FieldType.Keyword)
     private String status;    // enum 이름
 
-    @Field(type = FieldType.Scaled_Float, scalingFactor = 100)
+    @Field(type = FieldType.Scaled_Float, scalingFactor = 100) // BigDecimal 정렬용
     private BigDecimal startPrice;
 
     @Field(type = FieldType.Scaled_Float, scalingFactor = 100)
