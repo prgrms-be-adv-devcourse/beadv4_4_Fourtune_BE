@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * 경매 Facade
  * - 여러 UseCase를 조합하여 복잡한 비즈니스 플로우 처리
@@ -31,19 +33,22 @@ public class AuctionFacade {
     /**
      * 경매 생성
      */
-    public Long createAuction(Long sellerId, AuctionItemCreateRequest request) {
+    public AuctionItemResponse createAuction(AuctionItemCreateRequest request, List<?> images) {
         // TODO: 구현 필요
-        // 1. AuctionCreateUseCase 호출
-        // 2. 필요시 다른 UseCase 조합 (예: 이미지 업로드, 알림 전송)
+        // 1. 이미지 업로드 (S3Service)
+        // 2. AuctionCreateUseCase 호출
+        // 3. DTO 변환 후 반환
         return null;
     }
 
     /**
      * 경매 수정
      */
-    public void updateAuction(Long auctionId, Long userId, AuctionItemUpdateRequest request) {
+    public AuctionItemResponse updateAuction(Long auctionId, Long userId, AuctionItemUpdateRequest request) {
         // TODO: 구현 필요
-        return;
+        // 1. AuctionUpdateUseCase 호출
+        // 2. DTO 변환 후 반환
+        return null;
     }
 
     /**
@@ -76,11 +81,16 @@ public class AuctionFacade {
     }
 
     /**
-     * 경매 목록 조회
+     * 경매 목록 조회 (필터링)
      */
     @Transactional(readOnly = true)
-    public Page<AuctionItemResponse> getAuctionList(Pageable pageable) {
+    public Page<AuctionItemResponse> getAuctionList(
+            com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus status,
+            com.fourtune.auction.boundedContext.auction.domain.constant.Category category,
+            Pageable pageable) {
         // TODO: 구현 필요
+        // 1. AuctionQueryUseCase 호출
+        // 2. status, category 필터링 적용
         return null;
     }
 
@@ -101,6 +111,15 @@ public class AuctionFacade {
         // 1. AuctionBuyNowUseCase.executeBuyNow 호출
         // 2. orderId 반환 (결제 페이지로 리다이렉트)
         return null;
+    }
+
+    /**
+     * 조회수 증가
+     */
+    public void increaseViewCount(Long auctionId) {
+        // TODO: 구현 필요
+        // 1. AuctionQueryUseCase.increaseViewCount 호출
+        // 2. 비동기 처리 (Redis)
     }
 
 }
