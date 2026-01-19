@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.notification.adapter.in;
+package com.fourtune.auction.boundedContext.notification.adapter.in.controller;
 
 import com.fourtune.auction.boundedContext.notification.application.NotificationFacade;
 import com.fourtune.auction.shared.auth.dto.UserContext;
