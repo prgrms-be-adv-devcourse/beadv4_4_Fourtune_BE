@@ -34,10 +34,11 @@ public class Cart extends BaseTimeEntity {
     @Builder.Default
     private List<CartItem> items = new ArrayList<>();
     
-    // 비즈니스 메서드
+    // ==================== 비즈니스 메서드 ====================
     
     /**
-     * 장바구니에 경매 상품 추가
+     * 경매 상품 추가
+     * 중복 검증 포함
      */
     public void addItem(Long auctionId, BigDecimal buyNowPrice) {
         // 중복 체크
@@ -56,37 +57,28 @@ public class Cart extends BaseTimeEntity {
     }
     
     /**
-     * 장바구니에서 상품 제거
+     * 장바구니 아이템 제거
      */
     public void removeItem(Long cartItemId) {
         items.removeIf(item -> item.getId().equals(cartItemId));
     }
     
     /**
-     * 구매 완료된 아이템 정리
+     * 구매 완료 아이템 정리
      */
     public void clearPurchasedItems() {
         items.removeIf(item -> item.getStatus() == CartItemStatus.PURCHASED);
     }
     
     /**
-     * 만료된 아이템 정리
+     * 만료 아이템 정리
      */
     public void clearExpiredItems() {
         items.removeIf(item -> item.getStatus() == CartItemStatus.EXPIRED);
     }
     
     /**
-     * 중복 체크 (같은 경매 상품이 이미 담겨있는지)
-     */
-    private boolean hasItem(Long auctionId) {
-        return items.stream()
-            .anyMatch(item -> item.getAuctionId().equals(auctionId) 
-                && item.getStatus() == CartItemStatus.ACTIVE);
-    }
-    
-    /**
-     * 활성 상태의 아이템만 조회
+     * 활성 아이템 목록 조회
      */
     public List<CartItem> getActiveItems() {
         return items.stream()
@@ -101,5 +93,17 @@ public class Cart extends BaseTimeEntity {
         return (int) items.stream()
             .filter(item -> item.getStatus() == CartItemStatus.ACTIVE)
             .count();
+    }
+    
+    // ==================== 검증 메서드 (private) ====================
+    
+    /**
+     * 중복 확인
+     * 같은 경매 상품이 활성 상태로 담겨있는지 확인
+     */
+    private boolean hasItem(Long auctionId) {
+        return items.stream()
+            .anyMatch(item -> item.getAuctionId().equals(auctionId) 
+                && item.getStatus() == CartItemStatus.ACTIVE);
     }
 }

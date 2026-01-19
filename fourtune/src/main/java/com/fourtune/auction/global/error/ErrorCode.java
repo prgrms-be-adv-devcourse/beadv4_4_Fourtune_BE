@@ -48,6 +48,10 @@ public enum ErrorCode {
     ORDER_ALREADY_EXISTS(409, "O002", "이미 생성된 주문이 있습니다."),
     ORDER_ALREADY_COMPLETED(400, "O003", "이미 완료된 주문입니다."),
     ORDER_AMOUNT_MISMATCH(400, "O004", "주문 금액이 일치하지 않습니다."),
+    ORDER_ALREADY_PROCESSED(400, "O005", "이미 처리된 주문입니다."),
+    ORDER_CANCEL_NOT_ALLOWED(400, "O006", "취소할 수 없는 주문입니다."),
+    ORDER_ALREADY_CANCELLED(400, "O007", "이미 취소된 주문입니다."),
+    ORDER_INVALID_AMOUNT(400, "O008", "유효하지 않은 주문 금액입니다."),
     
     //Cart(장바구니 관련)
     CART_NOT_FOUND(404, "CA001", "존재하지 않는 장바구니입니다."),
