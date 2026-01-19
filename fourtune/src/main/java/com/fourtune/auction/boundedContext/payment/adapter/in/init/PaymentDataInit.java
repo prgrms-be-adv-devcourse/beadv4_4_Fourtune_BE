@@ -53,14 +53,13 @@ public class PaymentDataInit {
         //TODO: payment user 에만 저장함. 동기화 할때 충돌 예상 수정필요
 
         // 1. System User 확보 (없으면 생성, 있으면 조회)
-        PaymentUser systemUser = paymentUserRepository.findByNickname("system")
+        PaymentUser systemUser = paymentUserRepository.findByEmail(CashPolicy.SYSTEM_HOLDING_USER_EMAIL)
                 .orElseGet(() -> {
                     PaymentUser newUser = PaymentUser.builder()
-                            .email("system@email.com")
                             .password("password")
+                            .email(CashPolicy.SYSTEM_HOLDING_USER_EMAIL)
                             .nickname("system")
                             .role("USER")
-                            .id(CashPolicy.SYSTEM_MEMBER_ID)
                             .deletedAt(null)
                             .createdAt(LocalDateTime.now())
                             .phoneNumber("010-1234-1234")

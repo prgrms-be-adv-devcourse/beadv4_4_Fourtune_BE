@@ -1,13 +1,14 @@
 package com.fourtune.auction.boundedContext.payment.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.payment.adapter.in.web.dto.ConfirmPaymentRequest;
-import com.fourtune.auction.boundedContext.payment.application.service.PaymentConfirmUseCase;
+import com.fourtune.auction.boundedContext.payment.adapter.in.web.dto.WalletInfoResponse;
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentConfirmUseCase;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.shared.payment.event.PaymentCashFailedEvent;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -58,5 +59,11 @@ public class PaymentController {
                     )
             );
         }
+    }
+
+    @GetMapping("/my-wallet")
+    public ResponseEntity<WalletInfoResponse> getWalletHistosry() {
+        // todo: 사용자 지갑 잔액, 기록 조회
+        return ResponseEntity.ok(WalletInfoResponse.builder().build());
     }
 }
