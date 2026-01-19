@@ -1,10 +1,13 @@
 package com.fourtune.auction.boundedContext.settlement.application.service;
 
+import com.fourtune.auction.boundedContext.settlement.domain.entity.Settlement;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
+import com.fourtune.auction.boundedContext.settlement.port.out.SettlementRepository;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -12,6 +15,7 @@ import java.util.Optional;
 public class SettlementSupport {
 
     private final SettlementUserRepository settlementUserRepository;
+    private final SettlementRepository settlementRepository;
 
     public Optional<SettlementUser> findSystemHoldingUser(){
         return settlementUserRepository.findByEmail("holding@system.com");
@@ -23,6 +27,10 @@ public class SettlementSupport {
 
     public Optional<SettlementUser> findUserById(Long userId){
         return settlementUserRepository.findById(userId);
+    }
+
+    public List<Settlement> findLatestSettlementByUserId(Long userId){
+        return settlementRepository.findFirstByPayeeIdAndSettledAtIsNotNullOrderByCreatedAtDesc(userId);
     }
 
 }

@@ -35,4 +35,8 @@ public class SettlementFacade {
     public SettlementUser syncUser(SettlementUserDto dto){
         return syncUserUseCase.syncUser(dto);
     }
+
+    public Settlement findLatestSettlementByUserId(Long userId){
+        return settlementSupport.findLatestSettlementByUserId(userId).getFirst();
+    }
 }
