@@ -21,7 +21,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/payment")
+@RequestMapping("/api/payments")
 public class PaymentController {
     private final PaymentConfirmUseCase paymentConfirmUseCase;
     private final PaymentFacade paymentFacade;
@@ -33,7 +33,7 @@ public class PaymentController {
       */
 
 
-    @PostMapping("/confirm/by/tosspayments")
+    @PostMapping("/toss/confirm")
     public void tossPaymentSuccess(
             @RequestBody ConfirmPaymentRequest confirmPaymentRequest,
             HttpServletResponse response
@@ -68,9 +68,25 @@ public class PaymentController {
     }
 
     /**
+     * 결제 내역 조회 payment 테이블 조회
+     */
+    @GetMapping("/{userId}")
+    public ApiResponse getPayments(@PathVariable("userId") Long userId) {
+        return ApiResponse.success(paymentFacade.findPaymentListByUserId(userId));
+    }
+
+    /**
+     * 환불 내역 조회 refund 테이블 조회
+     */
+    @GetMapping("/{userId}/refunds")
+    public ApiResponse getRefunds(@PathVariable("userId") Long userId) {
+        return ApiResponse.success(paymentFacade.findRefundListByUserId(userId));
+    }
+
+    /**
      * 지갑 잔액 조회 API
      */
-    @GetMapping("/wallet/{userId}/balance")
+    @GetMapping("/wallets/{userId}/balance")
     public ApiResponse<WalletResponse> getMyBalance(@PathVariable("userId") Long userId) {
         Long balance = paymentFacade.getBalance(userId);
         return ApiResponse.success(WalletResponse.of(balance));
@@ -79,7 +95,7 @@ public class PaymentController {
     /**
      * 지갑 상세 내역 조히 API TODO: 무한 스크롤/페이징 API
      */
-    @GetMapping("/wallet/{userId}/history")
+    @GetMapping("/wallets/{userId}/history")
     public ApiResponse<WalletResponse> getWalletHistory(@PathVariable("userId") Long userId) {
         List<CashLog> cashLogs = paymentFacade.getCashLogList(userId);
         return ApiResponse.success(WalletResponse.of(cashLogs));
@@ -88,7 +104,7 @@ public class PaymentController {
     /**
      * 지갑 잔액 + 상세 내역 조히 API TODO: 최신 10개 로그만
      */
-    @GetMapping("/wallet/{userId}/summary")
+    @GetMapping("/wallets/{userId}/summary")
     public ApiResponse<WalletResponse> getWalletSummary(@PathVariable("userId") Long userId) {
         Wallet wallet = paymentFacade.findWalletByUserId(userId).orElseThrow();
         return ApiResponse.success(WalletResponse.of(wallet.getBalance(), wallet.getCashLogs()));

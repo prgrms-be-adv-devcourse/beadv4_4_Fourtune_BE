@@ -1,10 +1,10 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
-import com.fourtune.auction.boundedContext.payment.domain.entity.CashLog;
-import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
+import com.fourtune.auction.boundedContext.payment.domain.entity.*;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
-import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
+import com.fourtune.auction.boundedContext.payment.port.out.PaymentRepository;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentUserRepository;
+import com.fourtune.auction.boundedContext.payment.port.out.RefundRepository;
 import com.fourtune.auction.boundedContext.payment.port.out.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,6 +17,8 @@ import java.util.Optional;
 public class PaymentSupport {
     private final PaymentUserRepository paymentUserRepository;
     private final WalletRepository walletRepository;
+    private final PaymentRepository paymentRepository;
+    private final RefundRepository refundRepository;
 
     public Optional<PaymentUser> findUserByEmail(String email) {
         return paymentUserRepository.findByEmail(email);
@@ -57,5 +59,13 @@ public class PaymentSupport {
     public List<CashLog> getCashLogList(Long userId) {
         Wallet wallet = findWalletByUserId(userId).orElseThrow();
         return wallet.getCashLogs();
+    }
+
+    public List<Payment> findPaymentListByUserId(Long userId){
+        return paymentRepository.findPaymentsByPaymentUserId(userId);
+    }
+
+    public List<Refund> findRefundListByUserId(Long userId){
+        return refundRepository.findRefundsByPayment_PaymentUser_Id(userId);
     }
 }

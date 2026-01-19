@@ -1,8 +1,6 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
-import com.fourtune.auction.boundedContext.payment.domain.entity.CashLog;
-import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
-import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
+import com.fourtune.auction.boundedContext.payment.domain.entity.*;
 import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -55,5 +53,13 @@ public class PaymentFacade {
 
     public List<CashLog> getCashLogList(Long userId) {
         return paymentSupport.getCashLogList(userId);
+    }
+
+    public List<Payment> findPaymentListByUserId(Long userId){
+        return paymentSupport.findPaymentListByUserId(userId);
+    }
+
+    public List<Refund> findRefundListByUserId(Long userId){
+        return paymentSupport.findRefundListByUserId(userId);
     }
 }
