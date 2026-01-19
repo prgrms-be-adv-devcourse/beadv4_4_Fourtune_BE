@@ -13,7 +13,6 @@ import static lombok.AccessLevel.PROTECTED;
 
 @MappedSuperclass
 @Getter
-@Setter/*(value = PROTECTED)*/
 @NoArgsConstructor
 public abstract class ReplicaUser extends BaseUser {
 
@@ -23,9 +22,6 @@ public abstract class ReplicaUser extends BaseUser {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
-
-    @Version
-    private Long version;
 
     public ReplicaUser(
             Long id,
