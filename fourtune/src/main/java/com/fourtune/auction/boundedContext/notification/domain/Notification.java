@@ -1,12 +1,12 @@
 package com.fourtune.auction.boundedContext.notification.domain;
 
 import com.fourtune.auction.boundedContext.notification.constant.NotificationType;
-import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +21,7 @@ public class Notification {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private NotificationUser user;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -36,19 +36,19 @@ public class Notification {
     @Column(nullable = false)
     private boolean isRead;
 
+    @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime sendAt;
 
     private LocalDateTime readAt;
 
     @Builder
-    public Notification(User user, NotificationType type, String title, String content) {
+    public Notification(NotificationUser user, NotificationType type, String title, String content) {
         this.user = user;
         this.type = type;
         this.title = title;
         this.content = content;
         this.isRead = false;
-        this.sendAt = (sendAt != null) ? sendAt : LocalDateTime.now();
     }
 
     public void read() {
