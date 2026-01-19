@@ -20,9 +20,10 @@ public class WatchListService {
 
 
     @Transactional
-    public void toggleWatchList(Long userId, Long auctionItemId) {
+    public boolean toggleWatchList(Long userId, Long auctionItemId) {
         if (isExistWatchList(userId, auctionItemId)) {
             watchListSupport.deleteByUserIdAndAuctionItemId(userId, auctionItemId);
+            return false;
         }
         else {
             WatchListUser user = watchListSupport.findByUserId(userId);
@@ -34,6 +35,7 @@ public class WatchListService {
                     .build();
 
             watchListSupport.save(watchList);
+            return true;
         }
     }
 
@@ -43,11 +45,8 @@ public class WatchListService {
                 .collect(Collectors.toList());
     }
 
-    private boolean isExistWatchList(Long userId, Long itemId){
-        if (watchListSupport.existsByUserIdAndAuctionItemId(userId, itemId)) {
-            return true;
-        }
-
-        return false;
+    private boolean isExistWatchList(Long userId, Long itemId) {
+        return watchListSupport.existsByUserIdAndAuctionItemId(userId, itemId);
     }
+
 }
