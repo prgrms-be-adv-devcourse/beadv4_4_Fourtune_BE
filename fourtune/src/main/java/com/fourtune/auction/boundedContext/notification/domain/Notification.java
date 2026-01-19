@@ -1,6 +1,6 @@
 package com.fourtune.auction.boundedContext.notification.domain;
 
-import com.fourtune.auction.boundedContext.notification.constant.NotificationType;
+import com.fourtune.auction.boundedContext.notification.domain.constant.NotificationType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -33,6 +33,9 @@ public class Notification {
     @Column(nullable = false)
     private String content;
 
+    @Column
+    private String relatedUrl;
+
     @Column(nullable = false)
     private boolean isRead;
 
@@ -43,17 +46,25 @@ public class Notification {
     private LocalDateTime readAt;
 
     @Builder
-    public Notification(NotificationUser user, NotificationType type, String title, String content) {
+    public Notification(NotificationUser user, NotificationType type, String title, String content, String relatedUrl) {
         this.user = user;
         this.type = type;
         this.title = title;
         this.content = content;
+        this.relatedUrl = relatedUrl;
         this.isRead = false;
     }
 
     public void read() {
         this.isRead = true;
         this.readAt = LocalDateTime.now();
+    }
+
+    public boolean isOwnedBy(Long userId){
+        if(userId == null || this.user == null)
+            return false;
+
+        return this.user.getId().equals(userId);
     }
 
 }
