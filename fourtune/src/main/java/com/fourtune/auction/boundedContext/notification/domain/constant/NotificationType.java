@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.notification.constant;
+package com.fourtune.auction.boundedContext.notification.domain.constant;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
