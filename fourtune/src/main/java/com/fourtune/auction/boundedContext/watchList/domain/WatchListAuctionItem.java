@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "watch_list_auction_items")
+@SuperBuilder
 public class WatchListAuctionItem extends ReplicaAuctionItem {
 
     @Id
@@ -24,12 +26,5 @@ public class WatchListAuctionItem extends ReplicaAuctionItem {
 
     private String itemName;
     private BigDecimal currentPrice;
-
-    @Builder
-    public WatchListAuctionItem(Long id, String title, BigDecimal currentPrice,
-                                BigDecimal buyNowPrice,
-                                String thumbnailImageUrl) {
-        super(id, title, currentPrice, buyNowPrice, thumbnailImageUrl);
-    }
 
 }
