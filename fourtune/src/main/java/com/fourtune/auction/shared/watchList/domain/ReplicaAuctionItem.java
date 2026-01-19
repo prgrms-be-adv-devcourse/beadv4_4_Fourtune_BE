@@ -5,10 +5,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,7 +14,6 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SuperBuilder
 public class ReplicaAuctionItem extends BaseEntity {
 
     @Id
@@ -37,7 +34,6 @@ public class ReplicaAuctionItem extends BaseEntity {
 
     private String thumbnailImageUrl;
 
-    @Builder
     public ReplicaAuctionItem(Long id, String title, BigDecimal currentPrice,
                               BigDecimal buyNowPrice,
                               String thumbnailImageUrl) {
