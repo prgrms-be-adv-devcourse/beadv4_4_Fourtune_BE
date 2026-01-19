@@ -23,7 +23,7 @@ public class WatchListAuctionItem extends ReplicaAuctionItem {
     private Long id;
 
     private String itemName;
-    private Long currentPrice;
+    private BigDecimal currentPrice;
 
     @Builder
     public WatchListAuctionItem(Long id, String title, BigDecimal currentPrice,
