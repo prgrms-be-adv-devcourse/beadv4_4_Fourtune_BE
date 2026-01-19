@@ -38,10 +38,11 @@ public enum ErrorCode {
     EXPIRED_ACCESS_TOKEN(401, "T001", "ACCESS 토큰이 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(401, "TOO2", "REFRESH 토큰이 만료되었습니다."),
     INVALID_REFRESH_TOKEN(401, "T003", "유효하지 않은 REFRESH 토큰입니다."),
-    REFRESH_TOKEN_MISMATCH(401, "T004", "리프레시 토큰이 일치하지 않습니다.(해킹 의심)");
+    REFRESH_TOKEN_MISMATCH(401, "T004", "리프레시 토큰이 일치하지 않습니다.(해킹 의심)"),
 
-    //WatchList(관심상품 관련)
-
+    //Notification(알림 관련)
+    NOTIFICATION_NOT_FOUND(404, "N001", "존재하지 않는 알림입니다."),
+    NOT_NOTIFICATION_OWNER(403, "N002", "해당 알림에 대한 접근 권한이 없습니다.");
 
     private final int status;
     private final String code;
