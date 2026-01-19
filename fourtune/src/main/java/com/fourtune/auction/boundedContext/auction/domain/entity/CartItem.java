@@ -41,38 +41,39 @@ public class CartItem extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private CartItemStatus status = CartItemStatus.ACTIVE;
     
-    // 비즈니스 메서드
+    // ==================== 비즈니스 메서드 ====================
     
     /**
-     * 구매 완료 처리
+     * 구매 완료 처리 (ACTIVE → PURCHASED)
      */
     public void markAsPurchased() {
         this.status = CartItemStatus.PURCHASED;
     }
     
     /**
-     * 만료 처리 (경매 종료 시)
+     * 만료 처리 (ACTIVE → EXPIRED)
+     * 경매 종료 시 호출
      */
     public void markAsExpired() {
         this.status = CartItemStatus.EXPIRED;
     }
     
     /**
-     * 활성 상태 여부
+     * 활성 상태 확인
      */
     public boolean isActive() {
         return this.status == CartItemStatus.ACTIVE;
     }
     
     /**
-     * 구매 완료 여부
+     * 구매 완료 상태 확인
      */
     public boolean isPurchased() {
         return this.status == CartItemStatus.PURCHASED;
     }
     
     /**
-     * 만료 여부
+     * 만료 상태 확인
      */
     public boolean isExpired() {
         return this.status == CartItemStatus.EXPIRED;
