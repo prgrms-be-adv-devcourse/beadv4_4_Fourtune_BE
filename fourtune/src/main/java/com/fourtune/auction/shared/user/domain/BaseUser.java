@@ -34,4 +34,9 @@ public abstract class BaseUser extends BaseEntity {
         this.phoneNumber = phoneNumber;
     }
 
+    public void updateInfo(String nickname, String email) {
+        this.nickname = nickname;
+        this.email = email;
+    }
+
 }
