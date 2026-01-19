@@ -12,9 +12,9 @@ public interface WatchListRepository extends JpaRepository<WatchList, Long> {
     boolean existsByUserIdAndAuctionItemId(Long userId, Long auctionItemId);
     void deleteByUserIdAndAuctionItemId(Long userId, Long auctionItemId);
 
-    //@Query("SELECT w FROM WatchList w JOIN FETCH w.auctionItem WHERE w.user.id = :userId")
+    //@Query("SELECT w FROM WatchList w JOIN FETCH w.watchListAuctionItem WHERE w.user.id = :userId")
     //List<WatchList> findAllByUserIdWithItem(@Param("userId") Long userId);
 
-    List<WatchList> findAllByUserId();
+    List<WatchList> findAllByUserId(Long userId);
 
 }
