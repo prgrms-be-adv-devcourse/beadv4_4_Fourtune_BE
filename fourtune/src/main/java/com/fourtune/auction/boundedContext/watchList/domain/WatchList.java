@@ -10,6 +10,12 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        name = "watch_list",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_watchlist_user_item", columnNames = {"user_id", "auction_item_id"})
+        }
+)
 public class WatchList extends BaseTimeEntity {
 
     @Id
