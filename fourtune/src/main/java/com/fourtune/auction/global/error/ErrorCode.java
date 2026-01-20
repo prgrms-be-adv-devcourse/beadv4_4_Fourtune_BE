@@ -65,7 +65,12 @@ public enum ErrorCode {
     BUY_NOW_PRICE_NOT_SET(400, "BN002", "즉시구매가가 설정되지 않았습니다."),
     AUCTION_NOT_ACTIVE(400, "BN003", "진행 중인 경매가 아닙니다."),
     CANNOT_ADD_TO_CART(400, "BN004", "장바구니에 담을 수 없는 경매 상품입니다."),
-    
+
+    // Search(검색 관련)
+    SEARCH_INVALID_CONDITION(400, "S001", "검색 조건이 올바르지 않습니다."),
+    SEARCH_DEEP_PAGING_NOT_ALLOWED(400, "S002", "너무 깊은 페이지는 조회할 수 없습니다."),
+    SEARCH_ENGINE_ERROR(500, "S003", "검색 처리 중 오류가 발생했습니다."),
+
     //JwtToken(토큰 관련)
     EXPIRED_ACCESS_TOKEN(401, "T001", "ACCESS 토큰이 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(401, "TOO2", "REFRESH 토큰이 만료되었습니다."),
