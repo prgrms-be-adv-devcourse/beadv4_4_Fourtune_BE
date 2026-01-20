@@ -2,9 +2,11 @@ package com.fourtune.auction.boundedContext.settlement.application.service;
 
 import com.fourtune.auction.boundedContext.settlement.domain.entity.Settlement;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
+import com.fourtune.auction.shared.payment.dto.OrderDto;
 import com.fourtune.auction.shared.settlement.dto.SettlementUserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -15,6 +17,7 @@ public class SettlementFacade {
     private final SettlementSupport settlementSupport;
     private final CreateSettlementUseCase createSettlementUseCase;
     private final SyncUserUseCase syncUserUseCase;
+    private final AddSettlementCandidatedItemsUseCase addSettlementCandidatedItemsUseCase;
 
     public Optional<SettlementUser> findSystemHoldingUser(){
         return settlementSupport.findSystemHoldingUser();
@@ -38,5 +41,10 @@ public class SettlementFacade {
 
     public Settlement findLatestSettlementByUserId(Long userId){
         return settlementSupport.findLatestSettlementByUserId(userId).getFirst();
+    }
+
+    @Transactional
+    public void addSettlementCandidatedItem(OrderDto dto){
+        addSettlementCandidatedItemsUseCase.addSettlementCandidatedItems(dto);
     }
 }
