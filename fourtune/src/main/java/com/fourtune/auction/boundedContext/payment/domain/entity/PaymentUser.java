@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.payment.domain.entity;
 
+import com.fourtune.auction.shared.payment.dto.PaymentUserDto;
 import com.fourtune.auction.shared.user.domain.ReplicaUser;
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,5 +36,20 @@ public class PaymentUser extends ReplicaUser {
         super(id, email, nickname, password, phoneNumber, createdAt, updatedAt, deletedAt);
         this.role = role;
         this.status = status;
+    }
+
+    public PaymentUserDto toDto(){
+        return PaymentUserDto.builder()
+                .id(this.getId())
+                .email(this.getEmail())
+                .nickname(this.getNickname())
+                .password(this.getPassword())
+                .phoneNumber(this.getPhoneNumber())
+                .createdAt(this.getCreatedAt())
+                .updatedAt(this.getUpdatedAt())
+                .deletedAt(this.getDeletedAt())
+                .role(this.role)
+                .status(this.status)
+                .build();
     }
 }
