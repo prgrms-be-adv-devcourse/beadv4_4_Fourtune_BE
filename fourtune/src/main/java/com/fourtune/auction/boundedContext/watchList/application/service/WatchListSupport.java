@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.watchList.application.service;
 
+import com.fourtune.auction.boundedContext.notification.domain.NotificationUser;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchList;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchListAuctionItem;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchListUser;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +53,14 @@ public class WatchListSupport {
 
     public List<WatchList> findAllByUserId(Long userId){
         return watchListRepository.findAllByUserId(userId);
+    }
+
+    public Optional<WatchListUser> findOptionalByUserId(Long userId){
+        return watchListUserRepository.findById(userId);
+    }
+
+    public WatchListUser saveWatchListUser(WatchListUser watchListUser){
+        return watchListUserRepository.save(watchListUser);
     }
 
 }

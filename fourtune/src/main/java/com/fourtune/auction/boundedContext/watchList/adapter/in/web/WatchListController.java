@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.watchList.adapter.web;
+package com.fourtune.auction.boundedContext.watchList.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.watchList.application.service.WatchListService;
 import com.fourtune.auction.shared.auth.dto.UserContext;
