@@ -27,25 +27,32 @@ public class AuctionCreateUseCase {
      */
     @Transactional
     public Long createAuction(Long sellerId, AuctionItemCreateRequest request) {
-        // TODO: 구현 필요
-        // 1. 요청 검증 (필수 필드, 시작가 > 0, 종료시간 > 시작시간)
-        // 2. 이미지 업로드 (S3)
-        // 3. AuctionItem 엔티티 생성
-        // 4. DB 저장
-        // 5. 이벤트 발행 (AuctionCreatedEvent)
-        // 6. 경매 ID 반환
-        return null;
-    }
-
-    /**
-     * 경매 생성 요청 검증
-     */
-    private void validateCreateRequest(AuctionItemCreateRequest request) {
-        // TODO: 구현 필요
-        // - title 필수
-        // - startPrice > 0
-        // - auctionEndTime > auctionStartTime
-        // - buyNowPrice가 있으면 startPrice보다 커야 함
+        // 1. 경매 엔티티 생성 (정적 팩토리 메서드 사용)
+        AuctionItem auctionItem = AuctionItem.create(
+                sellerId,
+                request.title(),
+                request.description(),
+                request.category(),
+                request.startPrice(),
+                request.bidUnit() != null ? request.bidUnit() : 1000,
+                request.buyNowPrice(),
+                request.buyNowPrice() != null,  // buyNowEnabled
+                request.auctionStartTime(),
+                request.auctionEndTime()
+        );
+        
+        // 2. DB 저장
+        AuctionItem savedAuction = auctionSupport.save(auctionItem);
+        
+        // 3. 이벤트 발행 (선택)
+        eventPublisher.publish(new AuctionCreatedEvent(
+                savedAuction.getId(),
+                sellerId,
+                savedAuction.getCategory()
+        ));
+        
+        // 4. 경매 ID 반환
+        return savedAuction.getId();
     }
 
 }

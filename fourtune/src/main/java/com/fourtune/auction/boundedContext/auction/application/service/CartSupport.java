@@ -29,68 +29,67 @@ public class CartSupport {
      * 사용자 ID로 장바구니 조회 (Optional)
      */
     public Optional<Cart> findByUserId(Long userId) {
-        // TODO: 구현 필요
-        return Optional.empty();
+        return cartRepository.findByUserId(userId);
     }
 
     /**
      * 사용자 ID로 장바구니 조회 (없으면 생성)
      */
     public Cart findOrCreateCart(Long userId) {
-        // TODO: 구현 필요
-        // return cartRepository.findByUserId(userId)
-        //         .orElseGet(() -> createCart(userId));
-        return null;
+        return cartRepository.findByUserId(userId)
+                .orElseGet(() -> createCart(userId));
     }
 
     /**
      * 장바구니 생성
      */
     private Cart createCart(Long userId) {
-        // TODO: 구현 필요
-        return null;
+        Cart cart = Cart.builder()
+                .userId(userId)
+                .build();
+        return cartRepository.save(cart);
     }
 
     /**
      * 장바구니 저장
      */
     public Cart save(Cart cart) {
-        // TODO: 구현 필요
-        return null;
+        return cartRepository.save(cart);
     }
 
     /**
      * 장바구니 아이템 ID로 조회 (예외 발생)
      */
     public CartItem findCartItemByIdOrThrow(Long cartItemId) {
-        // TODO: 구현 필요
-        // return cartItemRepository.findById(cartItemId)
-        //         .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
-        return null;
+        return cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
     }
 
     /**
      * 장바구니 ID로 아이템 목록 조회
      */
     public List<CartItem> findCartItemsByCartId(Long cartId) {
-        // TODO: 구현 필요
-        return null;
+        return cartItemRepository.findByCartIdAndStatus(cartId, CartItemStatus.ACTIVE);
     }
 
     /**
      * 경매 ID로 활성 상태의 장바구니 아이템들 만료 처리
+     * 경매 종료 시 해당 경매의 장바구니 아이템 만료
      */
     public void expireCartItemsByAuctionId(Long auctionId) {
-        // TODO: 구현 필요
-        // @Modifying @Query 사용
+        List<CartItem> activeItems = cartItemRepository
+                .findByAuctionIdAndStatus(auctionId, CartItemStatus.ACTIVE);
+        activeItems.forEach(CartItem::markAsExpired);
+        cartItemRepository.saveAll(activeItems);
     }
 
     /**
      * 장바구니의 구매완료 아이템 삭제
      */
     public void deletePurchasedItems(Long cartId) {
-        // TODO: 구현 필요
-        // @Modifying @Query 사용
+        List<CartItem> purchasedItems = cartItemRepository
+                .findByCartIdAndStatus(cartId, CartItemStatus.PURCHASED);
+        cartItemRepository.deleteAll(purchasedItems);
     }
 
 }
