@@ -2,7 +2,6 @@ package com.fourtune.auction.boundedContext.payment.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.payment.adapter.in.web.dto.ConfirmPaymentRequest;
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentConfirmUseCase;
-import com.fourtune.auction.boundedContext.payment.application.service.PaymentConfirmUseCase;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.shared.payment.event.PaymentCashFailedEvent;
 import jakarta.servlet.http.HttpServletResponse;
