@@ -24,13 +24,14 @@ public class NotificationUser extends ReplicaUser {
             String phoneNumber,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
-            LocalDateTime deletedAt
+            LocalDateTime deletedAt,
+            String status
     ) {
-        super(id, email, nickname, password, phoneNumber, createdAt, updatedAt, deletedAt);
+        super(id, email, nickname, password, phoneNumber, createdAt, updatedAt, deletedAt, status);
     }
 
-    public void syncProfile(String nickname, String email) {
-        super.updateInfo(nickname, email);
+    public void syncProfile(String nickname, String email, String status) {
+        super.updateInfo(nickname, email, status);
     }
 
 }
