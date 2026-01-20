@@ -3,6 +3,7 @@ package com.fourtune.auction.boundedContext.watchList.application.service;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchList;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchListAuctionItem;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchListUser;
+import com.fourtune.auction.shared.auction.dto.AuctionItemResponse;
 import com.fourtune.auction.shared.user.dto.UserResponse;
 import com.fourtune.auction.shared.watchList.dto.WatchListResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class WatchListService {
 
     private final WatchListSupport watchListSupport;
     private final WatchListSyncUserUseCase watchListSyncUserUseCase;
+    private final WatchListSyncAuctionItemUseCase watchListSyncAuctionItemUseCase;
 
     @Transactional
     public boolean toggleWatchList(Long userId, Long auctionItemId) {
@@ -50,8 +52,14 @@ public class WatchListService {
         return watchListSupport.existsByUserIdAndAuctionItemId(userId, itemId);
     }
 
+    @Transactional
     public void syncUser(UserResponse userResponse){
         watchListSyncUserUseCase.syncUser(userResponse);
+    }
+
+    @Transactional
+    public void syncAuctionItem(AuctionItemResponse auctionItemResponse){
+        watchListSyncAuctionItemUseCase.syncAuctionItem(auctionItemResponse);
     }
 
 }

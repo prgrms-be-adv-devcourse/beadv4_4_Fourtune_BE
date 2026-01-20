@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.watchList.application.service;
 
+import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.notification.domain.NotificationUser;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchList;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchListAuctionItem;
@@ -61,6 +62,10 @@ public class WatchListSupport {
 
     public WatchListUser saveWatchListUser(WatchListUser watchListUser){
         return watchListUserRepository.save(watchListUser);
+    }
+
+    public Optional<WatchListAuctionItem> findOptionalByAuctionItemId(Long auctionItemId){
+        return watchListItemsRepository.findById(auctionItemId);
     }
 
 }
