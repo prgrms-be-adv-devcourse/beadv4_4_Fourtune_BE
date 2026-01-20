@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.settlement.domain.entity;
 
+import com.fourtune.auction.boundedContext.settlement.domain.constant.SettlementEventType;
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import com.fourtune.auction.shared.settlement.dto.SettlementDto;
 import com.fourtune.auction.shared.settlement.event.SettlementCompletedEvent;
@@ -42,6 +43,31 @@ public class Settlement extends BaseIdAndTime {
         publishEvent(new SettlementCompletedEvent(
                 toDto()
         ));
+    }
+
+    public SettlementItem addItem(SettlementEventType settlementEventType,
+                                  String relTypeCode,
+                                  Long relId,
+                                  LocalDateTime paymentDate,
+                                  SettlementUser payer,
+                                  SettlementUser payee,
+                                  Long amount){
+
+        SettlementItem item = SettlementItem.builder()
+                                .settlement(this)
+                                .settlementEventType(settlementEventType)
+                                .relTypeCode(relTypeCode)
+                                .relId(relId)
+                                .paymentDate(paymentDate)
+                                .payee(payee)
+                                .payer(payer)
+                                .amount(amount)
+                                .build();
+
+        this.items.add(item);
+        this.amount += amount;
+
+        return item;
     }
 
     public SettlementDto toDto(){

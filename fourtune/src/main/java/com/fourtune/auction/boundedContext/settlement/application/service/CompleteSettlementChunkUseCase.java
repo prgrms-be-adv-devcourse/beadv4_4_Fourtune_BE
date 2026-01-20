@@ -1,11 +1,34 @@
 package com.fourtune.auction.boundedContext.settlement.application.service;
 
+import com.fourtune.auction.boundedContext.settlement.domain.entity.Settlement;
+import com.fourtune.auction.boundedContext.settlement.port.out.SettlementRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+@RequiredArgsConstructor
 @Service
 public class CompleteSettlementChunkUseCase {
-    // todo: 정산일이 null이고 정산 금액이 0 이상인 정산데이터를 조회
 
-    // todo: (정산일 추가하고 저장해서 정산 완료 event 날리기) -> 새 정산 생성
+    private final SettlementRepository settlementRepository;
 
+    public int completeSettlementsChunk(int size) {
+        List<Settlement> activeSettlements = findActiveSettlements(size);
+
+        if (activeSettlements.isEmpty())
+            return 0;
+
+        activeSettlements.forEach(Settlement::competeSettlement);
+
+        return activeSettlements.size();
+    }
+
+    private List<Settlement> findActiveSettlements(int size) {
+        // 정산 일시(SettledAt)가 아직 Null이고(정산 안 됐고), 금액이 0보다 큰 것 조회
+        return settlementRepository.findBySettledAtIsNullAndAmountGreaterThanOrderByIdAsc(
+                0L, PageRequest.of(0, size)
+                );
+    }
 }
