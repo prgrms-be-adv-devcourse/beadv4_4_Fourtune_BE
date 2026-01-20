@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
+import com.fourtune.auction.shared.auction.dto.CartResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,65 +26,65 @@ public class CartFacade {
      * 장바구니에 아이템 추가
      */
     public void addItemToCart(Long userId, Long auctionId) {
-        // TODO: 구현 필요
-        // 1. CartAddItemUseCase 호출
-        // 2. 만료된 아이템 자동 정리 (선택사항)
-        return;
+        // CartAddItemUseCase 호출
+        cartAddItemUseCase.addItemToCart(userId, auctionId);
     }
 
     /**
      * 장바구니에서 아이템 제거
      */
     public void removeItemFromCart(Long userId, Long cartItemId) {
-        // TODO: 구현 필요
-        return;
+        // CartRemoveItemUseCase 호출
+        cartRemoveItemUseCase.removeItemFromCart(userId, cartItemId);
     }
 
     /**
      * 사용자의 장바구니 조회
      */
     @Transactional(readOnly = true)
-    public Object getUserCart(Long userId) {
-        // TODO: 구현 필요
-        // 1. CartQueryUseCase.getUserCart 호출
-        // 2. 만료된 아이템 표시 (상태 값으로 구분)
-        return null;
+    public CartResponse getUserCart(Long userId) {
+        // CartQueryUseCase.getUserCart 호출
+        return cartQueryUseCase.getUserCart(userId);
     }
 
     /**
      * 장바구니에서 선택 아이템 즉시구매
      */
     public List<String> buyNowFromCart(Long userId, List<Long> cartItemIds) {
-        // TODO: 구현 필요
-        // 1. CartBuyNowUseCase.buyNowFromCart 호출
-        // 2. 생성된 주문 ID 목록 반환
-        // 3. 구매완료된 아이템 장바구니에서 제거 (자동 처리됨)
-        return null;
+        // CartBuyNowUseCase.buyNowFromCart 호출
+        return cartBuyNowUseCase.buyNowFromCart(userId, cartItemIds);
     }
 
     /**
      * 장바구니 전체 즉시구매
      */
     public List<String> buyNowAllCart(Long userId) {
-        // TODO: 구현 필요
-        // 1. CartBuyNowUseCase.buyNowAllCart 호출
-        return null;
+        // CartBuyNowUseCase.buyNowAllCart 호출
+        return cartBuyNowUseCase.buyNowAllCart(userId);
     }
 
     /**
      * 만료된 아이템 일괄 제거
      */
     public void clearExpiredItems(Long userId) {
-        // TODO: 구현 필요
-        return;
+        // CartRemoveItemUseCase.removeExpiredItems 호출
+        cartRemoveItemUseCase.removeExpiredItems(userId);
     }
 
     /**
      * 구매완료 아이템 일괄 제거
      */
     public void clearPurchasedItems(Long userId) {
-        // TODO: 구현 필요
-        return;
+        // CartRemoveItemUseCase.removePurchasedItems 호출
+        cartRemoveItemUseCase.removePurchasedItems(userId);
+    }
+
+    /**
+     * 장바구니 활성 아이템 개수 조회
+     */
+    @Transactional(readOnly = true)
+    public int getActiveItemCount(Long userId) {
+        return cartQueryUseCase.getActiveItemCount(userId);
     }
 
 }

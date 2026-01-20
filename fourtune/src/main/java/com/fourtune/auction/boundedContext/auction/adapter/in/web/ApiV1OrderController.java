@@ -3,6 +3,8 @@ package com.fourtune.auction.boundedContext.auction.adapter.in.web;
 import com.fourtune.auction.boundedContext.auction.application.service.OrderCompleteUseCase;
 import com.fourtune.auction.boundedContext.auction.application.service.OrderQueryUseCase;
 import com.fourtune.auction.global.common.ApiResponse;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.shared.auction.dto.OrderDetailResponse;
 import com.fourtune.auction.shared.auction.dto.OrderResponse;
 import com.fourtune.auction.shared.auth.dto.UserContext;
@@ -32,10 +34,14 @@ public class ApiV1OrderController {
         @AuthenticationPrincipal UserContext user,
         @PathVariable String orderId
     ) {
-        // TODO: 구현 필요
-        // 1. orderQueryUseCase.getOrderByOrderId(orderId) 호출
-        // 2. 본인 확인 (winnerId == user.id())
-        return null;
+        OrderDetailResponse response = orderQueryUseCase.getOrderByOrderId(orderId);
+        
+        // 본인 확인 (구매자 또는 판매자)
+        if (!response.winnerId().equals(user.id()) && !response.sellerId().equals(user.id())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
     
     /**
@@ -45,9 +51,8 @@ public class ApiV1OrderController {
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(
         @AuthenticationPrincipal UserContext user
     ) {
-        // TODO: 구현 필요
-        // 1. orderQueryUseCase.getUserOrders(user.id()) 호출
-        return null;
+        List<OrderResponse> response = orderQueryUseCase.getUserOrders(user.id());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
     
     /**
@@ -58,23 +63,44 @@ public class ApiV1OrderController {
         @AuthenticationPrincipal UserContext user,
         @PathVariable Long auctionId
     ) {
-        // TODO: 구현 필요
-        // 1. orderQueryUseCase.getOrderByAuctionId(auctionId) 호출
-        // 2. 권한 확인 (판매자 또는 낙찰자만)
-        return null;
+        OrderDetailResponse response = orderQueryUseCase.getOrderByAuctionId(auctionId);
+        
+        // 권한 확인 (구매자 또는 판매자만)
+        if (!response.winnerId().equals(user.id()) && !response.sellerId().equals(user.id())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
     
     /**
      * 결제 완료 처리 (Payment 도메인에서 호출)
+     * 내부 API - 별도 인증 처리 필요
      */
     @PostMapping("/{orderId}/complete")
     public ResponseEntity<Void> completePayment(
         @PathVariable String orderId,
         @RequestParam String paymentKey
     ) {
-        // TODO: 구현 필요
-        // 1. orderCompleteUseCase.completePayment(orderId, paymentKey) 호출
-        // 2. 내부 API이므로 인증 처리 필요 (API Key or 내부 통신)
-        return null;
+        orderCompleteUseCase.completePayment(orderId, paymentKey);
+        return ResponseEntity.ok().build();
+    }
+    
+    /**
+     * 주문 취소
+     */
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<Void> cancelOrder(
+        @AuthenticationPrincipal UserContext user,
+        @PathVariable String orderId
+    ) {
+        // 주문 조회하여 본인 확인 후 취소
+        OrderDetailResponse order = orderQueryUseCase.getOrderByOrderId(orderId);
+        if (!order.winnerId().equals(user.id())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        
+        orderCompleteUseCase.cancelOrder(orderId);
+        return ResponseEntity.ok().build();
     }
 }

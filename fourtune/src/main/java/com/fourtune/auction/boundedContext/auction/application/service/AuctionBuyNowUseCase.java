@@ -1,10 +1,17 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
+import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.shared.auction.event.AuctionBuyNowEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 /**
  * 즉시구매 UseCase
@@ -13,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
  * - Order 생성
  * - 장바구니의 해당 경매 아이템 만료 처리
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuctionBuyNowUseCase {
@@ -27,32 +35,64 @@ public class AuctionBuyNowUseCase {
      */
     @Transactional
     public String executeBuyNow(Long auctionId, Long buyerId) {
-        // TODO: 구현 필요
         // 1. 경매 조회
+        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        
         // 2. 즉시구매 가능 여부 검증
-        //    - buyNowEnabled = true
-        //    - status = ACTIVE
-        //    - buyNowPrice != null
-        //    - 본인이 판매자가 아닌지
+        validateBuyNowAvailable(auctionItem, buyerId);
+        
         // 3. 경매 상태 변경 (ACTIVE -> SOLD_BY_BUY_NOW)
+        auctionItem.executeBuyNow();
+        auctionSupport.save(auctionItem);
+        
         // 4. 주문 생성 (OrderCreateUseCase.createBuyNowOrder)
+        String orderId = orderCreateUseCase.createBuyNowOrder(auctionId, buyerId, auctionItem.getBuyNowPrice());
+        
         // 5. 장바구니의 해당 경매 아이템 만료 처리
-        //    - CartSupport.expireCartItemsByAuctionId(auctionId)
+        try {
+            cartSupport.expireCartItemsByAuctionId(auctionId);
+        } catch (Exception e) {
+            log.warn("장바구니 아이템 만료 처리 실패: auctionId={}, error={}", auctionId, e.getMessage());
+        }
+        
         // 6. 이벤트 발행 (AuctionBuyNowEvent)
+        eventPublisher.publish(new AuctionBuyNowEvent(
+                auctionId,
+                buyerId,
+                auctionItem.getBuyNowPrice(),
+                orderId,
+                LocalDateTime.now()
+        ));
+        
+        log.info("즉시구매 처리 완료: auctionId={}, buyerId={}, orderId={}", auctionId, buyerId, orderId);
+        
         // 7. orderId 반환 (결제 프로세스로 전달)
-        return null;
+        return orderId;
     }
 
     /**
      * 즉시구매 가능 여부 검증
      */
     private void validateBuyNowAvailable(AuctionItem auctionItem, Long buyerId) {
-        // TODO: 구현 필요
-        // - buyNowEnabled = true 인지
-        // - status = ACTIVE 인지
-        // - buyNowPrice != null 인지
-        // - 본인이 판매자가 아닌지
-        // - 경매 시작 시간이 되었는지
+        // 1. buyNowEnabled = true 인지
+        if (!auctionItem.getBuyNowEnabled()) {
+            throw new BusinessException(ErrorCode.BUY_NOW_NOT_ENABLED);
+        }
+        
+        // 2. buyNowPrice != null 인지
+        if (auctionItem.getBuyNowPrice() == null) {
+            throw new BusinessException(ErrorCode.BUY_NOW_PRICE_NOT_SET);
+        }
+        
+        // 3. status = ACTIVE 인지
+        if (auctionItem.getStatus() != AuctionStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.AUCTION_NOT_ACTIVE);
+        }
+        
+        // 4. 본인이 판매자가 아닌지
+        if (auctionItem.getSellerId().equals(buyerId)) {
+            throw new BusinessException(ErrorCode.CANNOT_BUY_OWN_ITEM);
+        }
     }
 
 }

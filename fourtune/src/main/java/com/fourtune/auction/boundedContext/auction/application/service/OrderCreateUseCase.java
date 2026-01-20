@@ -52,23 +52,17 @@ public class OrderCreateUseCase {
 
     /**
      * 즉시구매 주문 생성
+     * 경매 상태 변경은 AuctionBuyNowUseCase에서 처리함
      */
     @Transactional
     public String createBuyNowOrder(Long auctionId, Long buyerId, BigDecimal buyNowPrice) {
         // 1. 경매 조회
         AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
         
-        // 2. 즉시구매 가능 여부 확인 (엔티티 메서드)
-        if (!auctionItem.canAddToCart()) {
-            throw new com.fourtune.auction.global.error.exception.BusinessException(
-                    com.fourtune.auction.global.error.ErrorCode.BUY_NOW_NOT_ENABLED
-            );
-        }
-        
-        // 3. 주문명 생성
+        // 2. 주문명 생성
         String orderName = "[즉시구매] " + auctionItem.getTitle();
         
-        // 4. Order 엔티티 생성
+        // 3. Order 엔티티 생성
         Order order = Order.create(
                 auctionId,
                 buyerId,
@@ -77,13 +71,10 @@ public class OrderCreateUseCase {
                 orderName
         );
         
-        // 5. 경매 상태 변경 (ACTIVE -> SOLD_BY_BUY_NOW)
-        auctionItem.executeBuyNow();
-        
-        // 6. DB 저장
+        // 4. DB 저장
         Order savedOrder = orderSupport.save(order);
         
-        // 7. orderId 반환
+        // 5. orderId 반환
         return savedOrder.getOrderId();
     }
 
