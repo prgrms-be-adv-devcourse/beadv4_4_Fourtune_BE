@@ -1,6 +1,6 @@
 package com.fourtune.auction.boundedContext.watchList.application.service;
 
-import com.fourtune.auction.boundedContext.notification.domain.NotificationUser;
+//import com.fourtune.auction.boundedContext.notification.domain.NotificationUser;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchList;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchListAuctionItem;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchListUser;
