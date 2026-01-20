@@ -27,34 +27,54 @@ public class AuctionExtendUseCase {
      */
     @Transactional
     public void extendAuction(Long auctionId) {
-        // TODO: 구현 필요
         // 1. 경매 조회
+        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        
         // 2. 연장 가능 여부 확인
-        //    - 종료 5분 전인지
-        //    - 연장 횟수 제한 확인
-        // 3. 경매 시간 연장 (AuctionPolicy.EXTENSION_MINUTES 만큼)
-        // 4. 연장 횟수 증가
-        // 5. 이벤트 발행 (AuctionExtendedEvent)
+        validateExtendable(auctionItem);
+        
+        // 3. 경매 시간 연장 (3분 연장)
+        auctionItem.extend(AuctionPolicy.AUTO_EXTEND_MINUTES);
+        
+        // 4. DB 저장 (dirty checking)
+        
+        // 5. 이벤트 발행
+        eventPublisher.publish(new AuctionExtendedEvent(
+                auctionId,
+                auctionItem.getAuctionEndTime()  // 새로운 종료 시간
+        ));
     }
 
     /**
      * 자동 연장 필요 여부 확인
      */
     public boolean needsExtension(Long auctionId, LocalDateTime bidTime) {
-        // TODO: 구현 필요
         // 1. 경매 조회
+        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        
         // 2. 종료 시간과 입찰 시간 차이 계산
-        // 3. AuctionPolicy.EXTENSION_THRESHOLD_MINUTES 이내면 true
-        return false;
+        java.time.Duration remaining = java.time.Duration.between(
+                bidTime, 
+                auctionItem.getAuctionEndTime()
+        );
+        
+        // 3. AuctionPolicy.AUTO_EXTEND_THRESHOLD_MINUTES (5분) 이내면 true
+        return remaining.toMinutes() <= AuctionPolicy.AUTO_EXTEND_THRESHOLD_MINUTES;
     }
 
     /**
      * 연장 가능 여부 검증
      */
     private void validateExtendable(AuctionItem auctionItem) {
-        // TODO: 구현 필요
-        // - ACTIVE 상태인지
-        // - 연장 횟수가 최대 횟수 미만인지
+        // ACTIVE 상태인지 확인
+        if (auctionItem.getStatus() != com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.ACTIVE) {
+            throw new com.fourtune.auction.global.error.exception.BusinessException(
+                    com.fourtune.auction.global.error.ErrorCode.AUCTION_NOT_ACTIVE
+            );
+        }
+        
+        // TODO: 연장 횟수 제한 추가 (선택사항)
+        // 현재는 무제한 연장 가능
     }
 
 }

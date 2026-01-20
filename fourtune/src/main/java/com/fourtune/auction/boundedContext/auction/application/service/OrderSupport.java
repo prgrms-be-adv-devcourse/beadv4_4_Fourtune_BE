@@ -1,6 +1,5 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
-import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Order;
 import com.fourtune.auction.boundedContext.auction.port.out.OrderRepository;
 import com.fourtune.auction.global.error.ErrorCode;
@@ -26,76 +25,68 @@ public class OrderSupport {
      * ID로 주문 조회 (Optional)
      */
     public Optional<Order> findById(Long orderId) {
-        // TODO: 구현 필요
-        return Optional.empty();
+        return orderRepository.findById(orderId);
     }
 
     /**
      * ID로 주문 조회 (예외 발생)
      */
     public Order findByIdOrThrow(Long orderId) {
-        // TODO: 구현 필요
-        // return orderRepository.findById(orderId)
-        //         .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
-        return null;
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
     }
 
     /**
      * 주문번호로 주문 조회
      */
     public Optional<Order> findByOrderId(String orderId) {
-        // TODO: 구현 필요
-        return Optional.empty();
+        return orderRepository.findByOrderId(orderId);
     }
 
     /**
      * 주문번호로 주문 조회 (예외 발생)
      */
     public Order findByOrderIdOrThrow(String orderId) {
-        // TODO: 구현 필요
-        return null;
+        return orderRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
     }
 
     /**
      * 주문 저장
      */
     public Order save(Order order) {
-        // TODO: 구현 필요
-        return null;
+        return orderRepository.save(order);
     }
 
     /**
      * 경매 ID로 주문 조회
      */
     public Optional<Order> findByAuctionId(Long auctionId) {
-        // TODO: 구현 필요
-        return Optional.empty();
+        return orderRepository.findByAuctionId(auctionId);
     }
 
     /**
      * 낙찰자 ID로 주문 목록 조회
      */
     public List<Order> findByWinnerId(Long winnerId) {
-        // TODO: 구현 필요
-        return null;
+        return orderRepository.findByWinnerIdOrderByCreatedAtDesc(winnerId);
     }
 
     /**
      * 경매에 주문이 이미 존재하는지 확인
      */
     public boolean existsByAuctionId(Long auctionId) {
-        // TODO: 구현 필요
-        return false;
+        return orderRepository.existsByAuctionId(auctionId);
     }
 
     /**
      * 주문 생성 가능 여부 검증
+     * 이미 주문이 존재하면 생성 불가
      */
     public void validateOrderCreatable(Long auctionId) {
-        // TODO: 구현 필요
-        // if (existsByAuctionId(auctionId)) {
-        //     throw new BusinessException(ErrorCode.ORDER_ALREADY_EXISTS);
-        // }
+        if (existsByAuctionId(auctionId)) {
+            throw new BusinessException(ErrorCode.ORDER_ALREADY_EXISTS);
+        }
     }
 
 }

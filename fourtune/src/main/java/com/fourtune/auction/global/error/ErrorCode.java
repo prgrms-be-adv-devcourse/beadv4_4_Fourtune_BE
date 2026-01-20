@@ -11,6 +11,7 @@ public enum ErrorCode {
     INVALID_INPUT_VALUE(400, "C001", "입력값이 올바르지 않습니다."),
     METHOD_NOT_ALLOWED(405, "C002", "허용되지 않은 메서드입니다."),
     INTERNAL_SERVER_ERROR(500, "C003", "서버 내부 오류가 발생했습니다."),
+    FORBIDDEN(403, "C004", "권한이 없습니다."),
 
     //User(유저 관련)
     USER_NOT_FOUND(404, "U001", "존재하지 않는 사용자입니다."),
@@ -32,6 +33,8 @@ public enum ErrorCode {
     AUCTION_ALREADY_ENDED(400, "A004", "이미 종료된 경매입니다."),
     AUCTION_INVALID_PRICE(400, "A005", "유효하지 않은 가격입니다."),
     AUCTION_INVALID_DURATION(400, "A006", "유효하지 않은 경매 기간입니다."),
+    AUCTION_HAS_BIDS(400, "A007", "입찰이 있는 경매는 삭제할 수 없습니다."),
+    AUCTION_IN_PROGRESS(400, "A008", "진행중인 경매는 삭제할 수 없습니다."),
     
     //Bid(입찰 관련)
     BID_NOT_FOUND(404, "B001", "존재하지 않는 입찰입니다."),

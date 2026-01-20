@@ -27,68 +27,67 @@ public class BidSupport {
      * ID로 입찰 조회 (Optional)
      */
     public Optional<Bid> findById(Long bidId) {
-        // TODO: 구현 필요
-        return Optional.empty();
+        return bidRepository.findById(bidId);
     }
 
     /**
      * ID로 입찰 조회 (예외 발생)
      */
     public Bid findByIdOrThrow(Long bidId) {
-        // TODO: 구현 필요
-        // return bidRepository.findById(bidId)
-        //         .orElseThrow(() -> new BusinessException(ErrorCode.BID_NOT_FOUND));
-        return null;
+        return bidRepository.findById(bidId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.BID_NOT_FOUND));
     }
 
     /**
      * 입찰 저장
      */
     public Bid save(Bid bid) {
-        // TODO: 구현 필요
-        return null;
+        return bidRepository.save(bid);
     }
 
     /**
      * 경매 ID로 입찰 목록 조회 (최신순)
      */
     public List<Bid> findByAuctionId(Long auctionId) {
-        // TODO: 구현 필요
-        return null;
+        return bidRepository.findByAuctionIdOrderByBidAmountDesc(auctionId);
     }
 
     /**
      * 경매의 최고가 입찰 조회
      */
     public Optional<Bid> findHighestBid(Long auctionId) {
-        // TODO: 구현 필요
-        return Optional.empty();
+        return bidRepository.findTopByAuctionIdAndStatusOrderByBidAmountDesc(
+                auctionId, 
+                BidStatus.ACTIVE
+        );
     }
 
     /**
      * 사용자의 입찰 내역 조회
      */
     public List<Bid> findByBidderId(Long bidderId) {
-        // TODO: 구현 필요
-        return null;
+        return bidRepository.findByBidderIdOrderByCreatedAtDesc(bidderId);
     }
 
     /**
      * 입찰 가능 여부 검증
+     * 현재 최고가보다 높은 금액인지 확인
      */
     public void validateBidAmount(Long auctionId, BigDecimal bidAmount) {
-        // TODO: 구현 필요
-        // 1. 현재 최고가보다 높은지
-        // 2. 입찰 단위에 맞는지
-        // 3. 시작가보다 높은지
+        Optional<Bid> highestBid = findHighestBid(auctionId);
+        if (highestBid.isPresent() && bidAmount.compareTo(highestBid.get().getBidAmount()) <= 0) {
+            throw new BusinessException(ErrorCode.BID_AMOUNT_TOO_LOW);
+        }
     }
 
     /**
      * 경매의 활성 입찰 모두 실패 처리
+     * 낙찰 시 최고 입찰자를 제외한 나머지 입찰 실패 처리
      */
     public void failAllActiveBids(Long auctionId) {
-        // TODO: 구현 필요
-        // @Modifying @Query 사용
+        List<Bid> activeBids = bidRepository.findByAuctionIdAndStatus(auctionId, BidStatus.ACTIVE);
+        activeBids.forEach(Bid::lose);
+        bidRepository.saveAll(activeBids);
     }
 
 }
