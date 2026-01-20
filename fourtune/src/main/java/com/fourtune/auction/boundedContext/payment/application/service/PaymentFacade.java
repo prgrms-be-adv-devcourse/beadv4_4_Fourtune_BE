@@ -18,7 +18,7 @@ public class PaymentFacade {
     private final PaymentSupport paymentSupport;
     private final PaymentConfirmUseCase paymentConfirmUseCase;
     private final CompleteSettlementUseCase completeSettlementUseCase;
-    private final SyncUserUseCase syncUserUseCase;
+    private final PaymentSyncUserUseCase paymentSyncUserUseCase;
     private final CreateWalletUseCase createWalletUseCase;
 
 
@@ -79,6 +79,6 @@ public class PaymentFacade {
 
     @Transactional
     public PaymentUser createPaymentUser(PaymentUserDto dto){
-        return syncUserUseCase.syncUser(dto);
+        return paymentSyncUserUseCase.syncUser(dto);
     }
 }
