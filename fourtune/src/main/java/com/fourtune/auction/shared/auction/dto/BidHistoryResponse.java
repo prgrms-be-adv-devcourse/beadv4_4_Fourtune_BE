@@ -1,5 +1,8 @@
 package com.fourtune.auction.shared.auction.dto;
 
+import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
+import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
+
 import java.util.List;
 
 /**
@@ -11,5 +14,19 @@ public record BidHistoryResponse(
     Integer totalBidCount,
     List<BidResponse> bids
 ) {
-    // TODO: from(AuctionItem, List<Bid>) 정적 팩토리 메서드 구현
+    /**
+     * AuctionItem과 Bid 목록으로 BidHistoryResponse 생성
+     */
+    public static BidHistoryResponse from(AuctionItem auctionItem, List<Bid> bids) {
+        List<BidResponse> bidResponses = bids.stream()
+                .map(BidResponse::from)
+                .toList();
+        
+        return new BidHistoryResponse(
+                auctionItem.getId(),
+                auctionItem.getTitle(),
+                auctionItem.getBidCount(),
+                bidResponses
+        );
+    }
 }

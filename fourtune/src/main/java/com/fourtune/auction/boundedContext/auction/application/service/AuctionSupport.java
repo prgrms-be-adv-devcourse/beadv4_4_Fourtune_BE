@@ -109,6 +109,16 @@ public class AuctionSupport {
                 AuctionStatus.ACTIVE
         );
     }
+    
+    /**
+     * 시작 시간이 되었지만 아직 시작되지 않은 경매 목록 조회
+     */
+    public List<AuctionItem> findScheduledAuctionsToStart(java.time.LocalDateTime now) {
+        return auctionItemRepository.findByAuctionStartTimeBeforeAndStatus(
+                now,
+                AuctionStatus.SCHEDULED
+        );
+    }
 
     /**
      * 경매 삭제 가능 여부 검증

@@ -34,10 +34,13 @@ public class ApiV1BidController {
         @AuthenticationPrincipal UserContext user,
         @RequestBody @Valid BidPlaceRequest request
     ) {
-        // TODO: 구현 필요
-        // 1. bidFacade.placeBid(request.auctionId(), user.id(), request.bidAmount()) 호출
-        // 2. 응답 반환
-        return null;
+        BidDetailResponse response = bidFacade.placeBid(
+                request.auctionId(), 
+                user.id(), 
+                request.bidAmount()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(response));
     }
     
     /**
@@ -48,9 +51,8 @@ public class ApiV1BidController {
         @AuthenticationPrincipal UserContext user,
         @PathVariable Long bidId
     ) {
-        // TODO: 구현 필요
-        // 1. bidFacade.cancelBid(bidId, user.id()) 호출
-        return null;
+        bidFacade.cancelBid(bidId, user.id());
+        return ResponseEntity.noContent().build();
     }
     
     /**
@@ -60,9 +62,8 @@ public class ApiV1BidController {
     public ResponseEntity<ApiResponse<BidHistoryResponse>> getAuctionBids(
         @PathVariable Long auctionId
     ) {
-        // TODO: 구현 필요
-        // 1. bidFacade.getAuctionBids(auctionId) 호출
-        return null;
+        BidHistoryResponse response = bidFacade.getAuctionBids(auctionId);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
     
     /**
@@ -72,9 +73,8 @@ public class ApiV1BidController {
     public ResponseEntity<ApiResponse<List<BidResponse>>> getMyBids(
         @AuthenticationPrincipal UserContext user
     ) {
-        // TODO: 구현 필요
-        // 1. bidFacade.getUserBids(user.id()) 호출
-        return null;
+        List<BidResponse> response = bidFacade.getUserBids(user.id());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
     
     /**
@@ -84,8 +84,18 @@ public class ApiV1BidController {
     public ResponseEntity<ApiResponse<BidResponse>> getHighestBid(
         @PathVariable Long auctionId
     ) {
-        // TODO: 구현 필요
-        // 1. bidFacade.getHighestBid(auctionId) 호출
-        return null;
+        BidResponse response = bidFacade.getHighestBid(auctionId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+    
+    /**
+     * 입찰 상세 조회
+     */
+    @GetMapping("/{bidId}")
+    public ResponseEntity<ApiResponse<BidDetailResponse>> getBidDetail(
+        @PathVariable Long bidId
+    ) {
+        BidDetailResponse response = bidFacade.getBidDetail(bidId);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
