@@ -1,4 +1,3 @@
-/*
 package com.fourtune.auction.boundedContext.watchList.adapter.in.event;
 
 import com.fourtune.auction.boundedContext.watchList.application.service.WatchListService;
@@ -38,4 +37,4 @@ public class WatchListEventListener {
     }
 
 }
-*/
+
