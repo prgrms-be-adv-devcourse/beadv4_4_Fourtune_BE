@@ -40,4 +40,21 @@ public abstract class ReplicaUser extends BaseUser {
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
     }
+
+    public ReplicaUser(
+            Long id,
+            String email,
+            String nickname,
+            String password,
+            String phoneNumber,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt,
+            LocalDateTime deletedAt
+    ){
+        super(email, nickname, password, phoneNumber);
+        this.id = id;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.deletedAt = deletedAt;
+    }
 }
