@@ -62,6 +62,8 @@ public class AuctionCloseUseCase {
             // 이벤트 발행
             eventPublisher.publish(new AuctionClosedEvent(
                     auctionId,
+                    auctionItem.getTitle(),
+                    auctionItem.getSellerId(),
                     winningBid.getBidderId(),
                     winningBid.getBidAmount(),
                     orderId
@@ -73,6 +75,8 @@ public class AuctionCloseUseCase {
             // 이벤트 발행
             eventPublisher.publish(new AuctionClosedEvent(
                     auctionId,
+                    auctionItem.getTitle(),
+                    auctionItem.getSellerId(),
                     null,  // 낙찰자 없음
                     null,  // 낙찰가 없음
                     null   // 주문번호 없음

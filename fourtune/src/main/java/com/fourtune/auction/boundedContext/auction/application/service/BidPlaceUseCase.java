@@ -75,10 +75,14 @@ public class BidPlaceUseCase {
         checkAndExtendAuction(auctionItem);
         
         // 7. 이벤트 발행 (실시간 알림 등에 사용)
+        Long previousBidderId = previousHighestBid.map(Bid::getBidderId).orElse(null);
         eventPublisher.publish(new BidPlacedEvent(
                 savedBid.getId(),
                 auctionId,
+                auctionItem.getTitle(),
+                auctionItem.getSellerId(),
                 bidderId,
+                previousBidderId,
                 bidAmount,
                 LocalDateTime.now()
         ));

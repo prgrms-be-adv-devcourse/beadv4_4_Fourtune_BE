@@ -122,10 +122,9 @@ public class AuctionFacade {
      * 즉시구매 처리 (경매 상세 페이지에서 "즉시구매" 버튼)
      */
     public String executeBuyNow(Long auctionId, Long buyerId) {
-        // TODO: 구현 필요
-        // 1. AuctionBuyNowUseCase.executeBuyNow 호출
-        // 2. orderId 반환 (결제 페이지로 리다이렉트)
-        return null;
+        // AuctionBuyNowUseCase.executeBuyNow 호출
+        // orderId 반환 (결제 페이지로 리다이렉트)
+        return auctionBuyNowUseCase.executeBuyNow(auctionId, buyerId);
     }
 
     /**
