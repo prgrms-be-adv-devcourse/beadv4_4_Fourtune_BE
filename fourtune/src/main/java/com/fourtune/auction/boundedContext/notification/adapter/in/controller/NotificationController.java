@@ -3,6 +3,9 @@ package com.fourtune.auction.boundedContext.notification.adapter.in.controller;
 import com.fourtune.auction.boundedContext.notification.application.NotificationFacade;
 import com.fourtune.auction.shared.auth.dto.UserContext;
 import com.fourtune.auction.shared.notification.dto.NotificationResponseDto;
+import com.fourtune.auction.shared.notification.dto.NotificationSettingsResponse;
+import com.fourtune.auction.shared.notification.dto.NotificationSettingsUpdateRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +53,20 @@ public class NotificationController {
 
         notificationFacade.deleteNotification(userContext.id(), notificationId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/settings")
+    public ResponseEntity<NotificationSettingsResponse> getSettings(@AuthenticationPrincipal UserContext userContext) {
+        return ResponseEntity.ok(notificationFacade.getSettings(userContext.id()));
+    }
+
+    @PatchMapping("/settings")
+    public ResponseEntity<Void> updateSettings(
+            @AuthenticationPrincipal UserContext userContext,
+            @RequestBody @Valid NotificationSettingsUpdateRequest request
+    ) {
+        notificationFacade.updateSettings(userContext.id(), request);
+        return ResponseEntity.ok().build();
     }
 
 }
