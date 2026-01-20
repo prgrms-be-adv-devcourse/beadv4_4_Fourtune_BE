@@ -8,11 +8,10 @@ import com.fourtune.auction.boundedContext.payment.domain.entity.CashLog;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
 import com.fourtune.auction.global.common.ApiResponse;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.payment.event.PaymentCashFailedEvent;
+import com.fourtune.auction.shared.payment.event.PaymentFailedEvent;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -56,7 +55,7 @@ public class PaymentController {
             response.sendRedirect("http://localhost:3000/order/fail?message=" + e.getMessage());
 
             eventPublisher.publish(
-                    new PaymentCashFailedEvent(
+                    new PaymentFailedEvent(
                             "400-1",
                             "결제 승인 실패 : %번 주문이 결제 내역과 일치하지 않습니다.".formatted(orderId),
                             null,

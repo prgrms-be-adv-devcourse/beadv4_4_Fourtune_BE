@@ -4,8 +4,8 @@ import com.fourtune.auction.shared.payment.dto.OrderDto;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.payment.event.PaymentCashFailedEvent;
-import com.fourtune.auction.shared.payment.event.PaymentCashSucceededEvent;
+import com.fourtune.auction.shared.payment.event.PaymentFailedEvent;
+import com.fourtune.auction.shared.payment.event.PaymentSucceededEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,14 +49,14 @@ public class PaymentCashCompleteUseCase {
             );
 
             eventPublisher.publish(
-                    new PaymentCashSucceededEvent(
+                    new PaymentSucceededEvent(
                             orderDto,
                             amount
                     )
             );
         } else {
             eventPublisher.publish(
-                    new PaymentCashFailedEvent(
+                    new PaymentFailedEvent(
                             "400-1",
                             "충전은 완료했지만 %번 주문을 결제완료처리를 하기에는 예치금이 부족합니다.".formatted(orderDto.getOrderId()),
                             orderDto,

@@ -4,7 +4,7 @@ import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionRes
 import com.fourtune.auction.boundedContext.payment.port.out.AuctionPort;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentGatewayPort;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
-import com.fourtune.auction.shared.payment.event.PaymentCashFailedEvent;
+import com.fourtune.auction.shared.payment.event.PaymentFailedEvent;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class PaymentConfirmUseCase {
                         paymentGatewayPort.cancel(paymentKey, "System Logic Failed: " + e.getMessage());
 
                         // 실패 이벤트 발행
-                        eventPublisher.publish(new PaymentCashFailedEvent(
+                        eventPublisher.publish(new PaymentFailedEvent(
                                 "500", "내부 시스템 오류로 결제가 취소되었습니다.", null, amount, 0L
                         ));
 
