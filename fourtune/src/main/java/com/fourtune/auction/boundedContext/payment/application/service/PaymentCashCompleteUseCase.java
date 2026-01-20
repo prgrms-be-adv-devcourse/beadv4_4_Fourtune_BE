@@ -14,13 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaymentCashCompleteUseCase {
 
-    private final PaymentFacade paymentFacade;
+    private final PaymentSupport paymentSupport;
     private final EventPublisher eventPublisher;
 
     @Transactional
     public void cashComplete(OrderDto orderDto, Long pgAmount) {
-        Wallet customerWallet = paymentFacade.findWalletByUserId(orderDto.getUserId()).orElseThrow();
-        Wallet systemWallet = paymentFacade.findSystemWallet().orElseThrow();
+        Wallet customerWallet = paymentSupport.findWalletByUserId(orderDto.getUserId()).orElseThrow();
+        Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow();
 
         if (pgAmount > 0) {
             customerWallet.credit(

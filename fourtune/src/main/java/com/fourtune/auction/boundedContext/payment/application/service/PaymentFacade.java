@@ -2,6 +2,7 @@ package com.fourtune.auction.boundedContext.payment.application.service;
 
 import com.fourtune.auction.boundedContext.payment.domain.entity.*;
 import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionResult;
+import com.fourtune.auction.shared.settlement.dto.SettlementDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +16,7 @@ public class PaymentFacade {
 
     private final PaymentSupport paymentSupport;
     private final PaymentConfirmUseCase paymentConfirmUseCase;
-    private final PaymentCashCompleteUseCase paymentCashCompleteUseCase;
+    private final CompleteSettlementUseCase completeSettlementUseCase;
 
 
     @Transactional(readOnly = true)
@@ -61,5 +62,10 @@ public class PaymentFacade {
 
     public List<Refund> findRefundListByUserId(Long userId){
         return paymentSupport.findRefundListByUserId(userId);
+    }
+
+    @Transactional
+    public Wallet completeSettlement(SettlementDto dto){
+        return completeSettlementUseCase.settlementCashComplete(dto);
     }
 }
