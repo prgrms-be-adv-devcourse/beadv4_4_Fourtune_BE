@@ -13,10 +13,6 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class AuctionAdapter implements AuctionPort {
 
-    // 만약 경매 모듈이 같은 서버 내의 다른 패키지(Service)라면 그것을 주입받아 사용하고,
-    // MSA 환경이라서 HTTP 통신을 해야 한다면 RestTemplate이나 FeignClient를 사용합니다.
-    // 여기서는 질문 주신 내용("API로 조회")에 맞춰 HTTP 통신 스타일로 예시를 작성합니다.
-
     private final WebClientConfig webclient;
 
     // 경매 모듈 API 주소 (application.yml 등에서 관리하는 것이 좋음)
