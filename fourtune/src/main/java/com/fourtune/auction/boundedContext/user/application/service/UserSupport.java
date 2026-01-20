@@ -20,8 +20,8 @@ public class UserSupport {
         return userRepository.count();
     }
 
-    public Optional<User> findByUserNickname(String nickname){
-        return userRepository.findByNickname(nickname);
+    public Optional<User> findByEmail(String email){
+        return userRepository.findByEmail(email);
     }
 
     public User findByIdOrThrow(long id){
