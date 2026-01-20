@@ -31,9 +31,10 @@ public abstract class ReplicaUser extends BaseUser {
             String phoneNumber,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
-            LocalDateTime deletedAt
+            LocalDateTime deletedAt,
+            String status
     ) {
-        super(email, nickname, password, phoneNumber);
+        super(email, nickname, password, phoneNumber, status);
         this.id = id;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
