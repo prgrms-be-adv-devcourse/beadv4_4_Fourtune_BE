@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.payment.adapter.in.event;
+package com.fourtune.auction.shared.payment.event;
 
 import com.fourtune.auction.shared.payment.dto.PaymentUserDto;
 import lombok.AllArgsConstructor;
