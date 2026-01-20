@@ -42,8 +42,8 @@ public enum ErrorCode {
 
     //Notification(알림 관련)
     NOTIFICATION_NOT_FOUND(404, "N001", "존재하지 않는 알림입니다."),
-    NOT_NOTIFICATION_OWNER(403, "N002", "해당 알림에 대한 접근 권한이 없습니다.");
-
+    NOT_NOTIFICATION_OWNER(403, "N002", "해당 알림에 대한 접근 권한이 없습니다."),
+    SETTING_NOT_FOUND(404, "N003", "알림 설정이 존재하지 않습니다.");
     private final int status;
     private final String code;
     private final String message;
