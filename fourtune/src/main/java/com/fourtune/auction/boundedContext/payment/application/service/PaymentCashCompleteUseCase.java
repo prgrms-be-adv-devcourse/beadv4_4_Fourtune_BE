@@ -18,13 +18,13 @@ public class PaymentCashCompleteUseCase {
     private final EventPublisher eventPublisher;
 
     @Transactional
-    public void cashComplete(OrderDto orderDto, Long amount) {
+    public void cashComplete(OrderDto orderDto, Long pgAmount) {
         Wallet customerWallet = paymentFacade.findWalletByUserId(orderDto.getUserId()).orElseThrow();
         Wallet systemWallet = paymentFacade.findSystemWallet().orElseThrow();
 
-        if (amount > 0) {
+        if (pgAmount > 0) {
             customerWallet.credit(
-                    amount,
+                    pgAmount,
                     CashEventType.충전__PG결제_토스페이먼츠,
                     "Order",
                     orderDto.getOrderId()
@@ -51,7 +51,7 @@ public class PaymentCashCompleteUseCase {
             eventPublisher.publish(
                     new PaymentSucceededEvent(
                             orderDto,
-                            amount
+                            pgAmount
                     )
             );
         } else {
@@ -60,8 +60,8 @@ public class PaymentCashCompleteUseCase {
                             "400-1",
                             "충전은 완료했지만 %번 주문을 결제완료처리를 하기에는 예치금이 부족합니다.".formatted(orderDto.getOrderId()),
                             orderDto,
-                            amount,
-                            amount - customerWallet.getBalance()
+                            pgAmount,
+                            orderDto.getPrice() - customerWallet.getBalance()
                     )
             );
         }
