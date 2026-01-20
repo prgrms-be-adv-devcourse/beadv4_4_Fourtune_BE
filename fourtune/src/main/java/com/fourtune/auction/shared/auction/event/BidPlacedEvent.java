@@ -11,11 +11,11 @@ import java.time.LocalDateTime;
 public record BidPlacedEvent(
     Long bidId,
     Long auctionId,
+    String auctionTitle,
+    Long sellerId,
     Long bidderId,
+    Long previousBidderId,  // 이전 최고 입찰자 (알림용)
     BigDecimal bidAmount,
     LocalDateTime bidTime
 ) {
-    // TODO: 이벤트 핸들러 구현
-    // - AuctionEventListener.handleBidPlaced()
-    // - NotificationEventListener.handleBidPlaced() (알림 전송)
 }
