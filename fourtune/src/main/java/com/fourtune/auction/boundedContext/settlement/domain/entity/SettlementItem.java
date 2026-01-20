@@ -3,9 +3,7 @@ package com.fourtune.auction.boundedContext.settlement.domain.entity;
 import com.fourtune.auction.boundedContext.settlement.domain.constant.SettlementEventType;
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -36,4 +34,24 @@ public class SettlementItem extends BaseIdAndTime {
     private SettlementUser payee;
 
     private Long amount;
+
+    @Builder
+    public SettlementItem(
+            Settlement settlement,
+            SettlementEventType settlementEventType,
+            String relTypeCode,
+            Long relId,
+            LocalDateTime paymentDate,
+            SettlementUser payer,
+            SettlementUser payee,
+            Long amount
+            ){
+        this.settlement = settlement;
+        this.settlementEventType = settlementEventType;
+        this.relTypeCode = relTypeCode;
+        this.relId = relId;
+        this.payer = payer;
+        this.payee = payee;
+        this.amount = amount;
+    }
 }
