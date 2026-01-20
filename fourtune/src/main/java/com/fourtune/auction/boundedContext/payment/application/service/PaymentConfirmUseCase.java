@@ -1,75 +1,66 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
+import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionResult;
+import com.fourtune.auction.boundedContext.payment.port.out.AuctionPort;
+import com.fourtune.auction.boundedContext.payment.port.out.PaymentGatewayPort;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
+import com.fourtune.auction.shared.payment.event.PaymentFailedEvent;
+import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentConfirmUseCase {
 
-        final private PaymentCashCompleteUseCase paymentCashCompleteUseCase;
-        @Value("${payment.toss.secret-key}")
-        private String tossSecretKey;
+        private final PaymentGatewayPort paymentGatewayPort;     // 외부: Toss
+        private final AuctionPort auctionPort;                   // 외부/내부: 경매 모듈 정보 조회
+        private final PaymentCashCompleteUseCase paymentCashCompleteUseCase;  // 내부: 지갑 로직 (기존 로직 활용)
+        private final EventPublisher eventPublisher;
 
-        private final RestTemplate restTemplate = new RestTemplate();
+        public PaymentExecutionResult confirmPayment(String paymentKey, Long orderId, Long pgAmount) {
 
-        public void confirmPayment(String paymentKey, Long orderId, Long amount) {
-                // 1. 헤더 설정
-                String secretKey = tossSecretKey + ":";
-                String encodedAuth = Base64.getEncoder().encodeToString(secretKey.getBytes(StandardCharsets.UTF_8));
+                // 1. [외부] Toss 결제 승인 요청 (트랜잭션 밖에서 수행 권장)
+                // 여기가 실패하면 그냥 에러 던지고 끝남 (돈 안 나감)
+                PaymentExecutionResult result = paymentGatewayPort.confirm(paymentKey, String.valueOf(orderId), pgAmount);
 
-                HttpHeaders headers = new HttpHeaders();
-                headers.set("Authorization", "Basic " + encodedAuth);
-                headers.setContentType(MediaType.APPLICATION_JSON);
+                // 2. [내부] 시스템 검증 및 자산 이동 (보상 트랜잭션 필요 구간)
+                try {
+                        processInternalSystemLogic(orderId, pgAmount);
+                } catch (Exception e) {
+                        log.error("내부 시스템 처리 실패. 결제 승인 취소를 진행합니다. orderId={}, error={}", orderId, e.getMessage());
 
-                // 2. 바디 설정
-                Map<String, Object> body = new HashMap<>();
-                body.put("paymentKey", paymentKey);
-                body.put("orderId", orderId);
-                body.put("amount", amount);
+                        // 3. [보상 트랜잭션] 내부 로직 실패 시 Toss 결제 취소
+                        paymentGatewayPort.cancel(paymentKey, "System Logic Failed: " + e.getMessage());
 
-                // Spring의 HttpEntity 사용
-                HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+                        // 실패 이벤트 발행
+                        eventPublisher.publish(new PaymentFailedEvent(
+                                "500", "내부 시스템 오류로 결제가 취소되었습니다.", null, pgAmount, 0L
+                        ));
 
-                // 3. 토스 API 호출
-                String url = "https://api.tosspayments.com/v1/payments/confirm";
-
-                ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
-
-                // 4. 응답 확인
-                if (response.getStatusCode() != HttpStatus.OK) {
-                        throw new RuntimeException("토스 결제 승인 실패: " + response.getBody());
+                        throw e; // 컨트롤러에게 예외 다시 던짐
                 }
-
-                if(response.getStatusCode().equals(HttpStatus.OK)){
-                        // 주문/결제 검증, cash log 생성(구매자 지갑 -> 시스템 지갑으로 현금 이동)
-                        log.info("주문 확인 응답: "+response.getStatusCode().toString());
-
-                        OrderDto orderDto = getOrdrerDto(orderId);
-                        if(orderDto.getPrice() == amount){// 존재하고 같은 주문인지 판단
-                                // 현금이동
-                                paymentCashCompleteUseCase.cashComplete(orderDto, amount);
-                        }
-
-                }
+                return result;
         }
 
-        private OrderDto getOrdrerDto(Long orderId) {
-                return new OrderDto();//TODO: auction에서 주문데이터 API로 요청 받아오기
+        // 내부 로직은 데이터 정합성을 위해 트랜잭션으로 묶음
+        // 현재: 충전결제x, 주문금액 = pg결제금액
+        protected void processInternalSystemLogic(Long orderId, Long pgAmount) {
+                // 2-1. 경매 주문 정보 확인
+                OrderDto orderDto = auctionPort.getOrder(orderId); // AuctionPort 인터페이스 필요
+
+                if (orderDto == null) {
+                        throw new IllegalArgumentException("존재하지 않는 주문입니다.");
+                }
+
+                if (orderDto.getPrice() != pgAmount) { // 가격 불일치
+                        throw new IllegalArgumentException("주문 금액과 결제 금액이 일치하지 않습니다.");
+                }
+
+                // 2-2. 지갑 충전 및 시스템 이동 (기존 로직 재사용)
+                // 이 안에서 예외가 터지면 위쪽 catch 블록으로 이동 -> Toss Cancel 호출됨
+                paymentCashCompleteUseCase.cashComplete(orderDto, pgAmount);
         }
 }
