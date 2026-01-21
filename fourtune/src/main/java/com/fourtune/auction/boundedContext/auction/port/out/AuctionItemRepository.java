@@ -18,6 +18,16 @@ public interface AuctionItemRepository extends JpaRepository<AuctionItem, Long> 
         Pageable pageable
     );
     
+    Page<AuctionItem> findByStatus(
+        AuctionStatus status, 
+        Pageable pageable
+    );
+    
+    Page<AuctionItem> findBySellerIdOrderByCreatedAtDesc(
+        Long sellerId,
+        Pageable pageable
+    );
+    
     List<AuctionItem> findByAuctionEndTimeBeforeAndStatus(
         LocalDateTime endTime, 
         AuctionStatus status
@@ -26,4 +36,12 @@ public interface AuctionItemRepository extends JpaRepository<AuctionItem, Long> 
     List<AuctionItem> findBySellerId(Long sellerId);
     
     List<AuctionItem> findByStatus(AuctionStatus status);
+    
+    /**
+     * 시작 시간이 지났고 SCHEDULED 상태인 경매 조회 (자동 시작용)
+     */
+    List<AuctionItem> findByAuctionStartTimeBeforeAndStatus(
+        LocalDateTime startTime,
+        AuctionStatus status
+    );
 }

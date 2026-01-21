@@ -35,3 +35,8 @@ jwt:
 # 암호화 키 (변수명이 encryption-key라고 가정)
 encryption:
   key: "dummy-encryption-key-for-test" # ${ENCRYPTION_KEY} 대체
+
+payment:
+  toss:
+    client-key: "test_toss_client_key"
+    secret-key: "test_toss_secret_key"
