@@ -3,10 +3,14 @@ package com.fourtune.auction.boundedContext.notification.application;
 import com.fourtune.auction.boundedContext.notification.domain.constant.NotificationType;
 import com.fourtune.auction.boundedContext.notification.domain.Notification;
 import com.fourtune.auction.boundedContext.notification.domain.NotificationUser;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -16,14 +20,39 @@ public class NotificationCreateUseCase {
     private final NotificationSupport notificationSupport;
 
     @Transactional
-    public void createNotification(Long receiverId, NotificationType type, String title, String content, String relatedUrl){
+    public void bidPlaceToSeller(Long sellerId, Long bidderId, Long auctionId, NotificationType type){
+        if (!sellerId.equals(bidderId)) {
+            String relatedUrl = "/auctions/" + auctionId;
+            createNotification(sellerId, relatedUrl, type);
+        }
+
+        throw new BusinessException(ErrorCode.SELF_BIDDING_NOT_ALLOWED);
+    }
+
+    @Transactional
+    public void createNotificationWithUrl(Long receiverId, Long auctionId, NotificationType type){
+        String relatedUrl = "/auctions/" + auctionId;
+
+        createNotification(receiverId, relatedUrl, type);
+    }
+
+    @Transactional
+    public void createGroupNotification(List<Long> userIds, Long auctionId, NotificationType type) {
+        String relatedUrl = "/auctions/" + auctionId;
+
+        for (Long userId : userIds) {
+            createNotification(userId, relatedUrl, type);
+        }
+    }
+
+    private void createNotification(Long receiverId, String relatedUrl, NotificationType type){
         NotificationUser user = notificationSupport.findByUserId(receiverId);
 
         Notification notification = Notification.builder()
                 .user(user)
                 .type(type)
-                .title(title)
-                .content(content)
+                .title(type.getTitleTemplate())
+                .content(type.getContentTemplate())
                 .relatedUrl(relatedUrl)
                 .build();
 

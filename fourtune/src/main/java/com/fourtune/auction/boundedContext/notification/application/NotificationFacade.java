@@ -20,10 +20,6 @@ public class NotificationFacade {
     private final NotificationSyncUserUseCase notificationSyncUserUseCase;
     private final NotificationSettingsService notificationSettingsService;
 
-    public void createNotification(Long receiverId, NotificationType type, String title, String content, String relatedUrl) {
-        notificationCreateUseCase.createNotification(receiverId, type, title, content, relatedUrl);
-    }
-
     public List<NotificationResponseDto> getMyNotifications(Long userId) {
         return notificationReadUseCase.readNotifications(userId);
     }
@@ -46,6 +42,18 @@ public class NotificationFacade {
 
     public NotificationSettingsResponse getSettings(Long userId){
         return notificationSettingsService.getSettings(userId);
+    }
+
+    public void bidPlaceToSeller(Long sellerId, Long bidderId, Long auctionId, NotificationType type) {
+        notificationCreateUseCase.bidPlaceToSeller(sellerId, bidderId, auctionId, type);
+    }
+
+    public void createNotification(Long receiverId, Long auctionId, NotificationType type){
+        notificationCreateUseCase.createNotificationWithUrl(receiverId, auctionId, type);
+    }
+
+    public void createGroupNotification(List<Long> users, Long auctionItemId, NotificationType type){
+        notificationCreateUseCase.createGroupNotification(users, auctionItemId, type);
     }
 
 }
