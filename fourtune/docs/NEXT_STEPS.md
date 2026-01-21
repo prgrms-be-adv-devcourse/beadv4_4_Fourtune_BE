@@ -57,10 +57,11 @@ fourtune/src/main/java/com/fourtune/auction/domain/
 - sellerId (Long)
 - startPrice (BigDecimal)          // 시작가
 - bidUnit (Integer = 1000)         // 입찰 단위
-- buyNowPrice (BigDecimal)         // 즉시구매가 (nullable)
+- buyNowPrice (BigDecimal)         // 즉시구매가 (nullable) 🆕
+- buyNowEnabled (Boolean = false)  // 즉시구매 가능 여부 🆕
 - auctionStartTime (LocalDateTime)
 - auctionEndTime (LocalDateTime)
-- status (AuctionStatus)           // SCHEDULED, ACTIVE, ENDED
+- status (AuctionStatus)           // SCHEDULED, ACTIVE, ENDED, SOLD, SOLD_BY_BUY_NOW
 - viewCount (Long)
 - watchlistCount (Integer)
 - bidCount (Integer)
@@ -172,23 +173,67 @@ global/config/
 
 ---
 
-### 3순위: 입찰 시스템 (2.3)
+### 3순위: 입찰 + 즉시구매 + 장바구니 시스템 (경매 도메인 내 통합)
+
+> **참고**: 입찰, 즉시구매, 장바구니는 경매 도메인 안에 통합되었습니다 (DDD Aggregate Root)
 
 ```
-domain/bid/
-├── entity/
-│   └── Bid.java                      ✏️ 작성 필요
-├── repository/
-│   └── BidRepository.java            ✏️ 작성 필요
-├── service/
-│   └── BidService.java               ✏️ 작성 필요 (분산 락 구현)
-└── dto/
+boundedContext/auction/
+├── domain/entity/
+│   ├── Bid.java                      ✏️ 작성 필요
+│   ├── Cart.java                     ✏️ 작성 필요 🆕
+│   └── CartItem.java                 ✏️ 작성 필요 🆕
+├── port/out/
+│   ├── BidRepository.java            ✏️ 작성 필요
+│   ├── CartRepository.java           ✏️ 작성 필요 🆕
+│   └── CartItemRepository.java       ✏️ 작성 필요 🆕
+├── application/service/
+│   ├── BidFacade.java                ✏️ 작성 필요
+│   ├── BidPlaceUseCase.java          ✏️ 작성 필요 (분산 락 구현)
+│   ├── BidCancelUseCase.java         ✏️ 작성 필요
+│   ├── BidSupport.java               ✏️ 작성 필요
+│   │
+│   ├── AuctionBuyNowUseCase.java     ✏️ 작성 필요 🆕
+│   │
+│   ├── CartFacade.java               ✏️ 작성 필요 🆕
+│   ├── CartAddItemUseCase.java       ✏️ 작성 필요 🆕
+│   ├── CartRemoveItemUseCase.java    ✏️ 작성 필요 🆕
+│   ├── CartQueryUseCase.java         ✏️ 작성 필요 🆕
+│   ├── CartBuyNowUseCase.java        ✏️ 작성 필요 🆕
+│   └── CartSupport.java              ✏️ 작성 필요 🆕
+├── adapter/in/web/
+│   ├── ApiV1BidController.java       ✏️ 작성 필요
+│   └── ApiV1CartController.java      ✏️ 작성 필요 🆕
+└── adapter/out/
+    └── BidCacheAdapter.java          ✏️ 작성 필요 (Redis 분산 락)
 ```
 
 **핵심 기능:**
-- 분산 락을 이용한 동시 입찰 처리
+
+**입찰 시스템:**
+- 분산 락을 이용한 동시 입찰 처리 (Redis)
 - 입찰가 검증 (현재가 + 입찰단위 이상)
 - 자동 연장 처리 (종료 5분 전 입찰 시 3분 연장)
+- WebSocket 실시간 입찰 알림
+
+**즉시구매 시스템:** 🆕
+- 즉시구매 가능 여부 검증 (buyNowEnabled = true)
+- 즉시구매 시 경매 즉시 종료 (SOLD_BY_BUY_NOW)
+- Order 자동 생성
+- 이벤트 발행 (AuctionBuyNowEvent)
+
+**장바구니 시스템:** 🆕
+- 즉시구매 가능한 경매 상품만 추가 가능
+- 경매 종료 시 자동 만료 처리
+- 장바구니에서 즉시구매 가능
+- 담았을 때 가격 추적 (가격 변동 확인)
+
+**왜 경매 도메인에 통합?**
+- 경매와 입찰은 트랜잭션 일관성 필요 (ACID)
+- 즉시구매는 경매의 다른 구매 방식 (eBay Buy It Now)
+- 장바구니는 즉시구매 전용 관심 목록
+- DDD Aggregate 원칙: 하나의 일관성 경계
+- 경매 상태와 강하게 결합 (즉시구매 시 경매 종료)
 
 ---
 
