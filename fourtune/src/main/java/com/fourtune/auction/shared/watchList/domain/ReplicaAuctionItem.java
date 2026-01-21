@@ -44,10 +44,9 @@ public class ReplicaAuctionItem extends BaseEntity {
         this.thumbnailImageUrl = thumbnailImageUrl;
     }
 
-    public void updateInfo(String title, BigDecimal currentPrice, BigDecimal buyNowPrice, String thumbnailImageUrl){
+    public void updateInfo(String title, BigDecimal currentPrice, String thumbnailImageUrl){
         this.title = title;
         this.currentPrice = currentPrice;
-        this.buyNowPrice = buyNowPrice;
         this.thumbnailImageUrl = thumbnailImageUrl;
     }
 

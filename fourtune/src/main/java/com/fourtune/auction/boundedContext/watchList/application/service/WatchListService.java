@@ -3,6 +3,7 @@
 //import com.fourtune.auction.boundedContext.watchList.domain.WatchList;
 //import com.fourtune.auction.boundedContext.watchList.domain.WatchListAuctionItem;
 //import com.fourtune.auction.boundedContext.watchList.domain.WatchListUser;
+//import com.fourtune.auction.shared.auction.dto.AuctionItemResponse;
 //import com.fourtune.auction.shared.user.dto.UserResponse;
 //import com.fourtune.auction.shared.watchList.dto.WatchListResponseDto;
 //import lombok.RequiredArgsConstructor;
@@ -19,6 +20,8 @@
 //
 //    private final WatchListSupport watchListSupport;
 //    private final WatchListSyncUserUseCase watchListSyncUserUseCase;
+//    private final WatchListSyncAuctionItemUseCase watchListSyncAuctionItemUseCase;
+//    private final WatchListAuctionUseCase watchListAuctionUseCase;
 //
 //    @Transactional
 //    public boolean toggleWatchList(Long userId, Long auctionItemId) {
@@ -46,12 +49,26 @@
 //                .collect(Collectors.toList());
 //    }
 //
-//    private boolean isExistWatchList(Long userId, Long itemId) {
-//        return watchListSupport.existsByUserIdAndAuctionItemId(userId, itemId);
-//    }
-//
+//    @Transactional
 //    public void syncUser(UserResponse userResponse){
 //        watchListSyncUserUseCase.syncUser(userResponse);
+//    }
+//
+//    @Transactional
+//    public void syncAuctionItem(AuctionItemResponse auctionItemResponse){
+//        watchListSyncAuctionItemUseCase.syncAuctionItem(auctionItemResponse);
+//    }
+//
+//    public void findAllByAuctionStartItemId(Long auctionItemId){
+//        watchListAuctionUseCase.findAllByAuctionStartItemId(auctionItemId);
+//    }
+//
+//    public void findAllByAuctionEndItemId(Long auctionItemId){
+//        watchListAuctionUseCase.findAllByAuctionEndItemId(auctionItemId);
+//    }
+//
+//    private boolean isExistWatchList(Long userId, Long itemId) {
+//        return watchListSupport.existsByUserIdAndAuctionItemId(userId, itemId);
 //    }
 //
 //}

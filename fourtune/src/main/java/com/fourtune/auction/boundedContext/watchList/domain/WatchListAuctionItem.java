@@ -31,4 +31,10 @@ public class WatchListAuctionItem extends ReplicaAuctionItem {
         super(id, title, currentPrice, buyNowPrice, thumbnailImageUrl);
     }
 
+    public void updateSync(String title, BigDecimal currentPrice, String thumbnailImageUrl) {
+        this.itemName = title;
+        this.currentPrice = currentPrice;
+        super.updateInfo(title, currentPrice, thumbnailImageUrl);
+    }
+
 }

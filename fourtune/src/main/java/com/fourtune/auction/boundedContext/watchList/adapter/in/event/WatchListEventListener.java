@@ -36,6 +36,29 @@ public class WatchListEventListener {
     public void handleUserDeletedEvent(UserDeletedEvent event){
         watchListService.syncUser(event.getUser());
     }
+/*
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleAuctionItemCreatedEvent(AuctionItemCreatedEvent event){
+        watchListService.syncAuctionItem(event.getAuctionItem());
+    }
 
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleAuctionItemModifiedEvent(AuctionItemModifiedEvent event){
+        watchListService.syncAuctionItem(event.getAuctionItem());
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleWatchListItemStartedEvent(AuctionStartedEvent event){
+        watchListService.findAllByAuctionStartItemId(event.auctionId());
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleWatchListItemEndedEvent(AuctionEndedEvent event){
+        watchListService.findAllByAuctionEndItemId(event.auctionId());
+    }
 }
 */
