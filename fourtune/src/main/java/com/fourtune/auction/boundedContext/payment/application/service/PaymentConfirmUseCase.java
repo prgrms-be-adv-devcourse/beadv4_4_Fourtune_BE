@@ -69,7 +69,7 @@ public class PaymentConfirmUseCase {
                         throw new BusinessException(ErrorCode.PAYMENT_AUCTION_ORDER_NOT_FOUND);
                 }
 
-                if (orderDto.getPrice() != pgAmount) { // 가격 불일치
+                if (!orderDto.getPrice().equals(pgAmount)) { // 가격 불일치
                         throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
                 }
 
