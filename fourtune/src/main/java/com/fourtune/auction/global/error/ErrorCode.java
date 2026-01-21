@@ -76,17 +76,11 @@ public enum ErrorCode {
     SEARCH_DEEP_PAGING_NOT_ALLOWED(400, "S002", "너무 깊은 페이지는 조회할 수 없습니다."),
     SEARCH_ENGINE_ERROR(500, "S003", "검색 처리 중 오류가 발생했습니다."),
     
-    //Notification(알림 관련)
-    NOTIFICATION_NOT_FOUND(404, "N001", "존재하지 않는 알림입니다."),
-    NOTIFICATION_ALREADY_READ(400, "N002", "이미 읽은 알림입니다."),
-    
     //JwtToken(토큰 관련)
     EXPIRED_ACCESS_TOKEN(401, "T001", "ACCESS 토큰이 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(401, "TOO2", "REFRESH 토큰이 만료되었습니다."),
     INVALID_REFRESH_TOKEN(401, "T003", "유효하지 않은 REFRESH 토큰입니다."),
     REFRESH_TOKEN_MISMATCH(401, "T004", "리프레시 토큰이 일치하지 않습니다.(해킹 의심)");
-
-    //WatchList(관심상품 관련)
 
 
     private final int status;
