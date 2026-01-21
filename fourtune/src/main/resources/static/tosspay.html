@@ -5,21 +5,18 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Tailwind v4 CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- TossPayments JS SDK v2 -->
     <script src="https://js.tosspayments.com/v2/standard"></script>
 
-    <title>TossPayments 결제 데모</title>
+    <title>TossPayments 결제 승인 테스트</title>
 </head>
 
 <body class="bg-slate-50">
 <div class="mx-auto max-w-2xl p-6">
-    <h1 class="text-xl font-semibold text-slate-900">결제 요청 폼</h1>
-    <p class="mt-1 text-sm text-slate-600">기본 결제수단: 카드(CARD)</p>
+    <h1 class="text-xl font-semibold text-slate-900">결제 요청 & 서버 승인 (Void Return)</h1>
+    <p class="mt-1 text-sm text-slate-600">리다이렉트 후 서버(Void 반환)로 승인 요청</p>
 
-    <!-- 결제수단 -->
     <div class="mt-6 rounded-xl border bg-white p-4 shadow-sm">
         <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold text-slate-900">결제수단</h2>
@@ -33,75 +30,72 @@
         </div>
     </div>
 
-    <!-- 입력 폼 -->
     <div class="mt-4 rounded-xl border bg-white p-4 shadow-sm">
         <h2 class="text-base font-semibold text-slate-900">요청 파라미터</h2>
 
         <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <!-- clientKey -->
+
+            <label class="block sm:col-span-2">
+                <span class="text-sm font-medium text-blue-700">Access Token (Authorization 헤더)</span>
+                <input id="accessToken" type="text" class="mt-1 w-full rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm outline-none focus:ring focus:ring-blue-500" placeholder="필요시 입력 (Bearer 토큰)" />
+            </label>
+
+            <label class="block sm:col-span-2">
+                <span class="text-sm font-medium text-green-700">Server Confirm URL (POST)</span>
+                <input id="serverConfirmUrl" class="mt-1 w-full rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm outline-none focus:ring focus:ring-green-500" placeholder="http://localhost:8080/api/payments/toss/confirm" />
+                <p class="mt-1 text-xs text-slate-500">인증 성공 후 이 주소로 결제 정보를 POST 전송합니다.</p>
+            </label>
+
+            <div class="col-span-full h-px bg-slate-100 my-2"></div>
+
             <label class="block">
                 <span class="text-sm font-medium text-slate-700">clientKey</span>
-                <input id="clientKey" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="resetDefaults()로 기본값 세팅" />
+                <input id="clientKey" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" />
             </label>
 
-            <!-- customerKey -->
             <label class="block">
                 <span class="text-sm font-medium text-slate-700">customerKey</span>
-                <input id="customerKey" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="resetDefaults()로 기본값 세팅" />
+                <input id="customerKey" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" />
             </label>
 
-            <!-- currency -->
             <label class="block">
                 <span class="text-sm font-medium text-slate-700">amount.currency</span>
                 <input id="currency" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="KRW" />
             </label>
 
-            <!-- value -->
             <label class="block">
                 <span class="text-sm font-medium text-slate-700">amount.value</span>
                 <input id="value" type="number" min="1" step="1" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="2000" />
             </label>
 
-            <!-- orderNo: 숫자만 입력 -->
             <label class="block">
                 <span class="text-sm font-medium text-slate-700">orderNo (숫자만)</span>
-                <input id="orderNo" inputmode="numeric" autocomplete="off" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="예: 2" oninput="handleOrderNoInput(this)" />
+                <input id="orderNo" inputmode="numeric" autocomplete="off" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" oninput="handleOrderNoInput(this)" />
             </label>
 
-            <!-- orderId 미리보기(읽기 전용) -->
             <label class="block">
-                <span class="text-sm font-medium text-slate-700">orderId 미리보기</span>
-                <input id="orderIdPreview" class="mt-1 w-full rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none" readonly placeholder="ORDER-2-1234567890" />
+                <span class="text-sm font-medium text-slate-700">orderId (String 전송됨)</span>
+                <input id="orderIdPreview" class="mt-1 w-full rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none" readonly />
             </label>
 
-            <!-- orderName -->
-            <label class="block">
+            <label class="block sm:col-span-2">
                 <span class="text-sm font-medium text-slate-700">orderName</span>
-                <input id="orderName" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="상품 N건" />
+                <input id="orderName" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" />
             </label>
 
-            <!-- successUrl -->
             <label class="block sm:col-span-2">
-                <span class="text-sm font-medium text-slate-700">successUrl</span>
-                <input id="successUrl" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="https://..." />
+                <span class="text-sm font-medium text-slate-700">Redirect URL (자동설정)</span>
+                <input id="redirectUrl" class="mt-1 w-full rounded-lg border bg-slate-100 px-3 py-2 text-sm text-slate-500 outline-none" readonly />
             </label>
 
-            <!-- failUrl -->
-            <label class="block sm:col-span-2">
-                <span class="text-sm font-medium text-slate-700">failUrl</span>
-                <input id="failUrl" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="https://..." />
-            </label>
-
-            <!-- customerEmail -->
             <label class="block">
                 <span class="text-sm font-medium text-slate-700">customerEmail</span>
-                <input id="customerEmail" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="customer123@gmail.com" />
+                <input id="customerEmail" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" />
             </label>
 
-            <!-- customerName -->
             <label class="block">
                 <span class="text-sm font-medium text-slate-700">customerName</span>
-                <input id="customerName" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="김토스" />
+                <input id="customerName" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" />
             </label>
         </div>
 
@@ -111,213 +105,199 @@
             </button>
 
             <button type="button" class="rounded-lg border bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" onclick="resetDefaults()">
-                기본값으로 리셋
+                기본값 리셋
             </button>
 
-            <!-- ✅ "orderId 다시 만들기" 버튼 제거 -->
-
-            <span id="status" class="ml-auto text-sm text-slate-600"></span>
+            <span id="status" class="ml-auto text-sm text-slate-600 font-medium"></span>
         </div>
     </div>
 
-    <!-- 디버그 -->
     <div class="mt-4 rounded-xl border bg-white p-4 shadow-sm">
-        <h2 class="text-base font-semibold text-slate-900">디버그</h2>
-        <pre id="debug" class="mt-2 overflow-auto rounded-lg bg-slate-900 p-3 text-xs text-slate-100"></pre>
+        <h2 class="text-base font-semibold text-slate-900">디버그 / 서버 응답</h2>
+        <pre id="debug" class="mt-2 overflow-auto rounded-lg bg-slate-900 p-3 text-xs text-slate-100 min-h-[100px] whitespace-pre-wrap"></pre>
     </div>
 </div>
 
 <script>
     // -----------------------------
-    // 결제수단 기본값: CARD
+    // 초기화 및 유틸리티
     // -----------------------------
     let selectedPaymentMethod = "CARD";
-    // -----------------------------
-    // ✅ 브라우저 로딩 시 딱 1번만 결정되는 "숫자 랜덤"
-    // - 이후에는 절대 바뀌지 않음
-    // -----------------------------
-    const SESSION_RANDOM_NUM = generateRandomDigits(10); // 길이는 마음대로(예: 10자리)
-    // -----------------------------
-    // Tailwind 클래스 토글(선택/비선택)
-    // -----------------------------
-    function renderPaymentMethodUI() {
-        const allMethodIds = ["CARD"]; // 결제수단 늘리면 여기에 추가
-        for (const id of allMethodIds) {
-            const el = document.getElementById(id);
-            if (!el) continue;
-            const isSelected = id === selectedPaymentMethod;
-            el.className =
-                "rounded-lg border px-4 py-2 text-sm font-medium transition " +
-                (isSelected ?
-                    "border-blue-300 bg-blue-50 text-blue-800" :
-                    "border-slate-200 bg-white text-slate-800 hover:bg-slate-50");
-        }
-        const badge = document.getElementById("selectedBadge");
-        if (badge) badge.textContent = `${selectedPaymentMethod} 선택됨`;
-    }
+    const SESSION_RANDOM_NUM = generateRandomDigits(8); // 유니크한 orderId를 위한 랜덤값
 
-    function selectPaymentMethod(method) {
-        selectedPaymentMethod = method;
-        renderPaymentMethodUI();
-    }
-    // -----------------------------
-    // 입력값 읽기 헬퍼
-    // -----------------------------
-    function v(id) {
-        return document.getElementById(id)?.value ?? "";
-    }
+    function v(id) { return document.getElementById(id)?.value ?? ""; }
+    function n(id) { return Number(document.getElementById(id)?.value ?? "0"); }
 
-    function n(id) {
-        const raw = document.getElementById(id)?.value ?? "0";
-        const num = Number(raw);
-        return Number.isFinite(num) ? num : 0;
-    }
-    // -----------------------------
-    // ✅ 숫자 랜덤 생성
-    // - Math.random 기반이지만 "숫자만" 뽑아서 씀
-    // -----------------------------
     function generateRandomDigits(len) {
-        // len 만큼의 숫자를 만들어 붙이기
         let out = "";
-        for (let i = 0; i < len; i++) {
-            out += String(Math.floor(Math.random() * 10));
-        }
-        // 맨 앞자리가 0이면 보기 안좋을 수 있어서 1~9로 강제(원하면 제거)
-        if (out[0] === "0") out = String(Math.floor(Math.random() * 9) + 1) + out.slice(1);
+        for (let i = 0; i < len; i++) out += String(Math.floor(Math.random() * 10));
         return out;
     }
-    // -----------------------------
-    // ✅ orderNo 입력을 "숫자만" 유지시키는 핸들러
-    // - 붙여넣기/한글/특수문자 들어와도 모두 제거
-    // - 입력될 때마다 orderId 미리보기 실시간 갱신
-    // -----------------------------
+
+    function renderPaymentMethodUI() {
+        const el = document.getElementById("CARD");
+        if (el) {
+            el.className = "rounded-lg border px-4 py-2 text-sm font-medium transition border-blue-300 bg-blue-50 text-blue-800";
+        }
+    }
+
     function handleOrderNoInput(inputEl) {
-        // 숫자만 남기기
-        const digitsOnly = String(inputEl.value).replace(/\D+/g, "");
-        if (inputEl.value !== digitsOnly) inputEl.value = digitsOnly;
-        // 실시간 미리보기 갱신
+        inputEl.value = inputEl.value.replace(/\D+/g, ""); // 숫자만
         updateOrderIdPreview();
     }
-    // -----------------------------
-    // ✅ orderId 미리보기 갱신
-    // - orderNo가 바뀌면 즉시 "ORDER-{NO}-{RANDOM}" 형태로 반영
-    // - RANDOM은 SESSION_RANDOM_NUM(로딩 때 1번 결정) 고정
-    // -----------------------------
+
     function updateOrderIdPreview() {
         const no = v("orderNo").trim();
         const preview = document.getElementById("orderIdPreview");
-        if (!preview) return;
-        // orderNo가 비어있으면 placeholder처럼 빈 값 유지(원하면 기본값 넣어도 됨)
-        if (!no) {
-            preview.value = "";
-            return;
-        }
-        preview.value = `ORDER-${no}-${SESSION_RANDOM_NUM}`;
+        if(preview) preview.value = no ? `ORDER-${no}-${SESSION_RANDOM_NUM}` : "";
     }
+
     // -----------------------------
-    // TossPayments 인스턴스(입력값 기반으로 매번 생성)
+    // TossPayments 클라이언트 생성 (수정됨)
     // -----------------------------
     function createPaymentClient() {
-        const clientKey = v("clientKey").trim();
-        const customerKey = v("customerKey").trim();
-        const tossPayments = TossPayments(clientKey);
-        const payment = tossPayments.payment({
-            customerKey
-        });
-        return {
-            payment
-        };
+        // TossPayments 초기화 후 payment 객체 반환
+        const tossPayments = TossPayments(v("clientKey").trim());
+        return tossPayments.payment({ customerKey: v("customerKey").trim() });
     }
+
     // -----------------------------
-    // 결제 요청 payload 만들기
-    // - ✅ orderId: ORDER-{NO}-{RANDOM} (RANDOM은 로딩 시 1회 결정)
-    // -----------------------------
-    function buildRequestPayload() {
-        const amount = {
-            currency: v("currency").trim(),
-            value: n("value"),
-        };
-        const no = v("orderNo").trim();
-        // ✅ orderNo 비어있으면 결제 요청 막기(원하면 기본값을 넣어도 됨)
-        if (!no) {
-            throw new Error("orderNo(숫자)를 입력해 주세요.");
-        }
-        const orderId = `ORDER-${no}-${SESSION_RANDOM_NUM}`;
-        const payload = {
-            method: selectedPaymentMethod,
-            amount,
-            orderId,
-            orderName: v("orderName").trim(),
-            successUrl: v("successUrl").trim(),
-            failUrl: v("failUrl").trim(),
-            customerEmail: v("customerEmail").trim(),
-            customerName: v("customerName").trim(),
-        };
-        if (selectedPaymentMethod === "CARD") {
-            payload.card = {
-                useEscrow: false,
-                flowMode: "DEFAULT",
-                useCardPoint: false,
-                useAppCardOnly: false,
-            };
-        }
-        return payload;
-    }
-    // -----------------------------
-    // 결제 요청
+    // 1. 결제 요청 (수정됨)
     // -----------------------------
     async function requestPayment() {
         const status = document.getElementById("status");
         const debug = document.getElementById("debug");
+
         try {
+            const no = v("orderNo").trim();
+            if (!no) throw new Error("orderNo를 입력해주세요.");
+
+            // Redirect 후 복구를 위해 LocalStorage 저장
+            localStorage.setItem("tp_accessToken", v("accessToken"));
+            localStorage.setItem("tp_serverConfirmUrl", v("serverConfirmUrl"));
+
             status.textContent = "요청 준비중...";
-            const {
-                payment
-            } = createPaymentClient();
-            // ✅ 최신 orderNo 기준으로 미리보기 동기화
-            updateOrderIdPreview();
-            const payload = buildRequestPayload();
-            debug.textContent = JSON.stringify(payload, null, 2);
-            status.textContent = "결제창 여는중...";
+
+            const currentUrl = window.location.href.split('?')[0];
+            const orderId = `ORDER-${no}-${SESSION_RANDOM_NUM}`;
+
+            const payload = {
+                method: "CARD",
+                amount: { currency: v("currency"), value: n("value") },
+                orderId: orderId,
+                orderName: v("orderName"),
+                successUrl: currentUrl,
+                failUrl: currentUrl,
+                customerEmail: v("customerEmail"),
+                customerName: v("customerName"),
+                card: { useEscrow: false, flowMode: "DEFAULT", useCardPoint: false, useAppCardOnly: false }
+            };
+
+            debug.textContent = `[Request Payload]\n${JSON.stringify(payload, null, 2)}`;
+
+            // ✅ [수정된 부분] 중괄호 {} 제거
+            // createPaymentClient()가 바로 payment 객체를 줍니다.
+            const payment = createPaymentClient();
+
             await payment.requestPayment(payload);
-            status.textContent = "요청 완료";
+
         } catch (e) {
             status.textContent = "에러 발생";
-            debug.textContent =
-                "[ERROR]\n" + (e?.message ? String(e.message) : JSON.stringify(e, null, 2));
+            debug.textContent = `[Error] ${e.message}`;
             console.error(e);
         }
     }
+
     // -----------------------------
-    // 기본값 리셋
-    // - ✅ 랜덤은 절대 재생성하지 않음(SESSION_RANDOM_NUM 고정)
-    // - ✅ orderNo만 기본값 세팅(원하면 빈 값으로 둬도 됨)
+    // 2. 리다이렉트 후 서버 승인 요청
+    // -----------------------------
+    async function checkRedirectParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const statusEl = document.getElementById("status");
+        const debugEl = document.getElementById("debug");
+
+        if (urlParams.has("paymentKey") && urlParams.has("orderId") && urlParams.has("amount")) {
+
+            const paymentKey = urlParams.get("paymentKey");
+            const orderId = urlParams.get("orderId");
+            const amount = urlParams.get("amount");
+
+            const savedToken = localStorage.getItem("tp_accessToken") || "";
+            const savedServerUrl = localStorage.getItem("tp_serverConfirmUrl") || "";
+
+            // UI 복구
+            if(document.getElementById("accessToken")) document.getElementById("accessToken").value = savedToken;
+            if(document.getElementById("serverConfirmUrl")) document.getElementById("serverConfirmUrl").value = savedServerUrl;
+
+            statusEl.textContent = "인증 성공! 서버 승인 요청 중...";
+            debugEl.textContent = `[Redirected Params]\npaymentKey: ${paymentKey}\norderId: ${orderId}\namount: ${amount}\n\n>> 서버(${savedServerUrl})로 POST 요청을 보냅니다...`;
+
+            try {
+                const requestBody = {
+                    paymentKey: paymentKey,
+                    orderId: orderId,
+                    amount: Number(amount)
+                };
+
+                const response = await fetch(savedServerUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(savedToken ? { "Authorization": `Bearer ${savedToken}` } : {})
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                // Controller void 반환 대응
+                if (response.ok) {
+                    statusEl.textContent = "최종 승인 성공 (200 OK)";
+                    debugEl.textContent += `\n\n[Success]\n서버가 성공적으로 처리했습니다. (Status: ${response.status})`;
+
+                    const text = await response.text();
+                    if(text) debugEl.textContent += `\nResponse Body: ${text}`;
+
+                } else {
+                    statusEl.textContent = "서버 승인 실패";
+                    const errorText = await response.text();
+                    debugEl.textContent += `\n\n[Server Error (${response.status})]\n${errorText}`;
+                }
+
+            } catch (err) {
+                statusEl.textContent = "네트워크 에러";
+                debugEl.textContent += `\n\n[Fetch Error] ${err.message}`;
+            }
+        }
+    }
+
+    // -----------------------------
+    // 기본값 설정
     // -----------------------------
     function resetDefaults() {
         document.getElementById("clientKey").value = "test_ck_5OWRapdA8dwjJb9WO69Bro1zEqZK";
         document.getElementById("customerKey").value = "MEMBER-5";
         document.getElementById("currency").value = "KRW";
-        document.getElementById("value").value = 2000;
-        // ✅ 이제 orderIdPrefix 대신 orderNo만 받음(숫자만)
-        document.getElementById("orderNo").value = "2";
-        document.getElementById("orderName").value = "상품 3건";
-        document.getElementById("successUrl").value = "http://localhost:8080/api/payments/toss/success";
-        document.getElementById("failUrl").value = "https://cdpn.io/pen/debug/NPNOYLb";
-        document.getElementById("customerEmail").value = "customer123@gmail.com";
+        document.getElementById("value").value = 5000;
+        document.getElementById("orderNo").value = "99";
+        document.getElementById("orderName").value = "테스트 상품";
+        document.getElementById("customerEmail").value = "test@example.com";
         document.getElementById("customerName").value = "김토스";
-        selectedPaymentMethod = "CARD";
-        renderPaymentMethodUI();
-        // ✅ orderNo 기준으로 미리보기 즉시 갱신(랜덤은 고정)
+
+        // ✅ [변경됨] 요청하신 URL 반영
+        document.getElementById("serverConfirmUrl").value = "http://localhost:8080/api/payments/toss/confirm";
+        document.getElementById("accessToken").value = "";
+
+        document.getElementById("redirectUrl").value = window.location.href.split('?')[0];
+
         updateOrderIdPreview();
         document.getElementById("status").textContent = "";
         document.getElementById("debug").textContent = "";
     }
-    // -----------------------------
-    // 최초 로드시: 카드 기본 선택 + 기본값 주입
-    // -----------------------------
+
+    // 실행
     renderPaymentMethodUI();
     resetDefaults();
+    checkRedirectParams();
+
 </script>
 </body>
-
 </html>
