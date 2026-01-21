@@ -28,6 +28,7 @@ public record UserSignUpRequest(
                 .email(email)
                 .nickname(nickname)
                 .password(encodedPassword)
+                .phoneNumber(phoneNumber)
                 .role(Role.USER)
                 .status(Status.ACTIVE)
                 .build();

@@ -20,6 +20,7 @@ public class UserPasswordChangeUseCase {
     public void userChangePassword(Long userId, UserPasswordChangeRequest request) {
         User user = userSupport.findByIdOrThrow(userId);
 
+        isActiveUser(user);
         validateCurrentPassword(request.currentPassword(), user.getPassword());
 
         if (request.currentPassword().equals(request.newPassword())) {
@@ -34,6 +35,10 @@ public class UserPasswordChangeUseCase {
         if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
             throw new BusinessException(ErrorCode.PASSWORD_NOT_MATCH);
         }
+    }
+
+    private void isActiveUser(User user){
+        if(!user.isAvailableUser()) throw new BusinessException(ErrorCode.ALREADY_WITHDRAWN);
     }
 
 }
