@@ -16,6 +16,7 @@ public enum NotificationType {
     // 경매 관련
     AUCTION_WON("낙찰 알림", "축하합니다! 경매에 낙찰되었습니다."),
     AUCTION_ENDED("경매 종료 알림", "등록하신 경매가 종료되었습니다."),
+    AUCTION_STARTED("경매 시작 알림", "관심 경매가 시작되었습니다."),
     AUCTION_SOON_END("경매 마감 임박", "관심 경매가 곧 종료됩니다."),
     
     // 결제/주문 관련
