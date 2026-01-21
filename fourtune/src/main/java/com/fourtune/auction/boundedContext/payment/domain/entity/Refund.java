@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class Refund extends BaseIdAndTime {
 
     // 어떤 결제에 대한 취소인지 연결 (Payment : PaymentCancel = 1 : N)
-    // 하나의 결제에 대해 여러 번 부분 취소가 가능하므로 다대일 관계입니다.
+    // 하나의 결제에 대해 여러 번 부분 취소가 가능하므로 다대일 관계
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", nullable = false)
     private Payment payment;
