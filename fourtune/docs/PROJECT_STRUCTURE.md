@@ -25,9 +25,8 @@ src/main/java/com/fourtune/auction/
 │
 ├── boundedContext/                  # 도메인 경계 (Bounded Context)
 │   ├── user/                        # 사용자 도메인
-│   ├── auction/                     # 경매 도메인
-│   ├── bid/                         # 입찰 도메인
-│   ├── payment/                     # 결제 도메인
+│   ├── auction/                     # 경매 + 입찰 + 주문 도메인 (Aggregate Root)
+│   ├── payment/                     # 결제 도메인 (Toss Payments 연동)
 │   ├── refund/                      # 환불 도메인
 │   ├── settlement/                  # 정산 도메인
 │   ├── notification/                # 알림 도메인
@@ -35,8 +34,7 @@ src/main/java/com/fourtune/auction/
 │
 ├── shared/                          # 도메인 간 공유 (Anti-Corruption Layer)
 │   ├── user/
-│   ├── auction/
-│   ├── bid/
+│   ├── auction/                     # 경매, 입찰, 주문 DTO & Event
 │   ├── payment/
 │   ├── settlement/
 │   └── notification/
@@ -125,107 +123,143 @@ boundedContext/user/
 
 ---
 
-### 2.3 Auction 도메인 (경매 관리)
+### 2.3 Auction 도메인 (경매 + 입찰 + 주문 + 즉시구매 + 장바구니 관리)
 
 ```
 boundedContext/auction/
 │
-├── app/
+├── application/service/                    # Application 계층
+│   │
 │   ├── AuctionFacade.java                  # 경매 생성, 종료, 연장 등 복잡한 플로우 조율
 │   ├── AuctionSupport.java                 # 경매 조회, 검증 공통 기능
 │   ├── AuctionCreateUseCase.java           # 경매 생성 (이미지 업로드 포함)
 │   ├── AuctionUpdateUseCase.java           # 경매 정보 수정
 │   ├── AuctionDeleteUseCase.java           # 경매 삭제
-│   ├── AuctionCloseUseCase.java            # 경매 종료 처리 (낙찰자 결정)
+│   ├── AuctionCloseUseCase.java            # 경매 종료 처리 (낙찰자 결정 + Order 생성)
 │   ├── AuctionExtendUseCase.java           # 경매 자동 연장
 │   ├── AuctionQueryUseCase.java            # 경매 조회 (상세, 목록)
-│   └── AuctionSearchUseCase.java           # 경매 검색 (Elasticsearch)
-│
-├── domain/
-│   ├── AuctionItem.java                    # 경매 아이템 엔티티
-│   ├── AuctionPolicy.java                  # 경매 정책 (최소 금액, 연장 규칙 등)
-│   ├── ItemImage.java                      # 이미지 엔티티 (URL, 순서)
-│   ├── Money.java                          # 금액 값 객체 (통화 단위 포함)
-│   ├── AuctionPeriod.java                  # 기간 값 객체 (시작일, 종료일)
-│   ├── AuctionStatus.java                  # 상태 Enum (대기, 진행중, 종료, 낙찰)
-│   └── Category.java                       # 카테고리 Enum (전자제품, 의류, 도서 등)
-│
-├── in/
-│   ├── ApiV1AuctionController.java         # 경매 REST API (CRUD, 검색)
-│   ├── AuctionEventListener.java           # 입찰 완료 이벤트 수신
-│   ├── AuctionScheduler.java               # 경매 종료 스케줄러 (매 분 실행)
-│   └── AuctionDataInit.java                # 테스트용 경매 데이터 생성
-│
-└── out/
-    ├── AuctionItemRepository.java          # 경매 데이터 저장/조회
-    └── AuctionSearchAdapter.java           # Elasticsearch 검색 어댑터
-```
-
----
-
-### 2.4 Bid 도메인 (입찰 관리)
-
-```
-boundedContext/bid/
-│
-├── app/
+│   ├── AuctionSearchUseCase.java           # 경매 검색 (Elasticsearch)
+│   ├── AuctionBuyNowUseCase.java           # 즉시구매 처리 (경매 즉시 종료)
+│   │
 │   ├── BidFacade.java                      # 입찰 처리, 취소 등 복잡한 플로우 조율
 │   ├── BidSupport.java                     # 입찰 조회, 검증 공통 기능
 │   ├── BidPlaceUseCase.java                # 입찰하기 (분산 락 적용, 동시성 제어)
 │   ├── BidCancelUseCase.java               # 입찰 취소
 │   ├── BidQueryUseCase.java                # 입찰 내역 조회
-│   └── BidValidateUseCase.java             # 입찰 검증 (최소 금액, 자격 등)
+│   ├── BidValidateUseCase.java             # 입찰 검증 (최소 금액, 자격 등)
+│   │
+│   ├── OrderCreateUseCase.java             # 주문 생성 (낙찰 시 or 즉시구매 시)
+│   ├── OrderQueryUseCase.java              # 주문 조회
+│   ├── OrderCompleteUseCase.java           # 주문 완료 처리 (결제 완료 후)
+│   ├── OrderSupport.java                   # 주문 조회, 검증 공통 기능
+│   │
+│   ├── CartFacade.java                     # 장바구니 추가, 제거, 즉시구매 플로우 조율
+│   ├── CartSupport.java                    # 장바구니 조회, 검증 공통 기능
+│   ├── CartAddItemUseCase.java             # 장바구니에 경매 상품 추가
+│   ├── CartRemoveItemUseCase.java          # 장바구니에서 상품 제거
+│   ├── CartQueryUseCase.java               # 장바구니 조회
+│   └── CartBuyNowUseCase.java              # 장바구니에서 즉시구매 처리
 │
 ├── domain/
-│   ├── Bid.java                            # 입찰 엔티티
-│   ├── BidPolicy.java                      # 입찰 정책 (최소 단위, 자동 입찰 규칙)
-│   ├── BidAmount.java                      # 입찰가 값 객체
-│   └── BidStatus.java                      # 입찰 상태 Enum (진행중, 낙찰, 패찰, 취소)
+│   ├── entity/
+│   │   ├── AuctionItem.java                # 경매 아이템 엔티티 (buyNowPrice 포함)
+│   │   ├── ItemImage.java                  # 이미지 엔티티 (URL, 순서)
+│   │   ├── Bid.java                        # 입찰 엔티티
+│   │   ├── Order.java                      # 주문 엔티티 (낙찰 or 즉시구매 정보)
+│   │   ├── Cart.java                       # 장바구니 엔티티
+│   │   └── CartItem.java                   # 장바구니 아이템 엔티티
+│   │
+│   ├── constant/
+│   │   ├── AuctionStatus.java              # 경매 상태 Enum (대기, 진행중, 종료, 낙찰, 즉시구매완료)
+│   │   ├── BidStatus.java                  # 입찰 상태 Enum (진행중, 낙찰, 패찰, 취소)
+│   │   ├── OrderStatus.java                # 주문 상태 Enum (대기, 완료, 취소)
+│   │   ├── CartItemStatus.java             # 장바구니 상태 Enum (활성, 구매완료, 만료)
+│   │   ├── Category.java                   # 카테고리 Enum (전자제품, 의류, 도서 등)
+│   │   ├── AuctionPolicy.java              # 경매 정책 (최소 금액, 연장 규칙 등)
+│   │   └── BidPolicy.java                  # 입찰 정책 (최소 단위, 자동 입찰 규칙)
+│   │
+│   └── vo/
+│       ├── Money.java                      # 금액 값 객체 (통화 단위 포함)
+│       ├── BidAmount.java                  # 입찰가 값 객체
+│       └── AuctionPeriod.java              # 기간 값 객체 (시작일, 종료일)
 │
-├── in/
-│   ├── ApiV1BidController.java             # 입찰 REST API
-│   ├── BidWebSocketHandler.java            # WebSocket 실시간 입찰 알림
-│   ├── BidEventListener.java               # 경매 종료 이벤트 수신
-│   └── BidDataInit.java                    # 테스트용 입찰 데이터 생성
+├── adapter/
+│   ├── in/
+│   │   ├── web/
+│   │   │   ├── ApiV1AuctionController.java # 경매 REST API (CRUD, 검색, 즉시구매)
+│   │   │   ├── ApiV1BidController.java     # 입찰 REST API
+│   │   │   ├── ApiV1OrderController.java   # 주문 REST API (조회, 결제 완료 알림)
+│   │   │   └── ApiV1CartController.java    # 장바구니 REST API
+│   │   │
+│   │   ├── event/
+│   │   │   └── AuctionEventListener.java   # 외부 도메인 이벤트 수신
+│   │   │
+│   │   ├── websocket/
+│   │   │   └── BidWebSocketHandler.java    # WebSocket 실시간 입찰 알림
+│   │   │
+│   │   ├── scheduler/
+│   │   │   └── AuctionScheduler.java       # 경매 종료 스케줄러 (매 분 실행)
+│   │   │
+│   │   └── init/
+│   │       └── AuctionDataInit.java        # 테스트용 경매 데이터 생성
+│   │
+│   └── out/
+│       ├── PaymentApiClient.java           # Payment 도메인 API 호출
+│       └── BidCacheAdapter.java            # Redis 분산 락 어댑터
 │
-└── out/
+└── port/out/
+    ├── AuctionItemRepository.java          # 경매 데이터 저장/조회
     ├── BidRepository.java                  # 입찰 데이터 저장/조회
-    └── BidCacheAdapter.java                # Redis 분산 락 어댑터
+    ├── OrderRepository.java                # 주문 데이터 저장/조회
+    ├── CartRepository.java                 # 장바구니 데이터 저장/조회
+    ├── CartItemRepository.java             # 장바구니 아이템 저장/조회
+    ├── ItemImageRepository.java            # 이미지 데이터 저장/조회
+    └── AuctionSearchPort.java              # Elasticsearch 검색 포트
 ```
+
+**역할:**
+- 경매 생성, 수정, 조회, 종료, 자동 연장
+- 입찰 처리 (동시성 제어, 실시간 알림)
+- 즉시구매 처리 (Buy It Now)
+- 장바구니 관리 (즉시구매 전용 관심 목록)
+- 낙찰 정보 관리 (Order)
+- 결제 프로세스 시작점
 
 ---
 
-### 2.5 Payment 도메인 (결제 관리)
+### 2.4 Payment 도메인 (결제 처리 - Toss Payments 연동)
 
 ```
 boundedContext/payment/
 │
 ├── app/
-│   ├── PaymentFacade.java                  # 결제 처리, 취소, 환불 플로우 조율
+│   ├── PaymentFacade.java                  # 결제 처리, 취소 플로우 조율
 │   ├── PaymentSupport.java                 # 결제 조회, 검증 공통 기능
-│   ├── PaymentProcessUseCase.java          # 결제 처리 (PG 연동)
+│   ├── PaymentConfirmUseCase.java          # 결제 승인 (Toss API 호출)
 │   ├── PaymentCancelUseCase.java           # 결제 취소
-│   ├── PaymentRefundUseCase.java           # 환불 처리
 │   ├── PaymentQueryUseCase.java            # 결제 내역 조회
 │   └── PaymentVerifyUseCase.java           # 결제 검증 (위변조 방지)
 │
 ├── domain/
-│   ├── Payment.java                        # 결제 엔티티
+│   ├── Payment.java                        # 결제 엔티티 (paymentKey, orderId 저장)
 │   ├── PaymentPolicy.java                  # 결제 정책 (최소 금액, 수수료 등)
-│   ├── PaymentMethod.java                  # 결제 수단 Enum (카드, 계좌이체, 포인트)
+│   ├── PaymentMethod.java                  # 결제 수단 Enum (카드, 계좌이체, 간편결제)
 │   └── PaymentStatus.java                  # 결제 상태 Enum (대기, 완료, 실패, 취소)
 │
 ├── in/
-│   ├── ApiV1PaymentController.java         # 결제 REST API
-│   ├── PaymentWebhookController.java       # PG사 웹훅 수신 (결제 완료 알림)
-│   ├── PaymentEventListener.java           # 경매 낙찰 이벤트 수신
+│   ├── ApiV1PaymentController.java         # 결제 승인 REST API (/confirm)
 │   └── PaymentDataInit.java                # 테스트용 결제 데이터 생성
 │
 └── out/
     ├── PaymentRepository.java              # 결제 데이터 저장/조회
     ├── TossPaymentAdapter.java             # Toss Payments API 어댑터
-    └── KakaoPayAdapter.java                # Kakao Pay API 어댑터
+    └── AuctionApiClient.java               # Auction 도메인 API 호출 (결제 완료 알림)
 ```
+
+**역할:**
+- Toss Payments API 연동 (결제 승인, 취소)
+- 결제 정보 저장 (paymentKey, orderId, amount)
+- 결제 완료 후 Auction 도메인에 알림
 
 ---
 
@@ -260,7 +294,7 @@ boundedContext/settlement/
 
 ---
 
-### 2.7 Notification 도메인 (알림 관리)
+### 2.6 Notification 도메인 (알림 관리)
 
 ```
 boundedContext/notification/
@@ -319,7 +353,7 @@ boundedContext/watchlist/
 
 ---
 
-### 2.9 Refund 도메인 (환불 관리)
+### 2.8 Refund 도메인 (환불 관리)
 
 ```
 boundedContext/refund/
@@ -466,11 +500,14 @@ shared/
 ├── auction/
 │   ├── dto/
 │   │   ├── AuctionDto.java                 # 경매 정보 DTO
-│   │   └── AuctionSummaryDto.java          # 경매 요약 DTO (목록용)
+│   │   ├── AuctionSummaryDto.java          # 경매 요약 DTO (목록용)
+│   │   ├── CartDto.java                    # 장바구니 DTO
+│   │   └── CartItemDto.java                # 장바구니 아이템 DTO
 │   ├── event/
 │   │   ├── AuctionCreatedEvent.java        # 경매 생성 이벤트
 │   │   ├── AuctionClosedEvent.java         # 경매 종료 이벤트
-│   │   └── AuctionExtendedEvent.java       # 경매 연장 이벤트
+│   │   ├── AuctionExtendedEvent.java       # 경매 연장 이벤트
+│   │   └── AuctionBuyNowEvent.java         # 즉시구매 이벤트
 │   └── out/
 │       └── AuctionApiClient.java           # 다른 도메인에서 Auction 조회 시 사용
 │
@@ -661,7 +698,46 @@ Outbound Adapter (Repository, External API)
 
 ---
 
-### 7.3 데이터 흐름 예시 (입찰 처리)
+### 7.3 도메인 간 통신 방식
+
+#### **🔄 경매 낙찰 → 결제 플로우**
+
+```
+1. 경매 낙찰 (Auction 도메인)
+   ├─> AuctionCloseUseCase.close()
+   ├─> Order 생성 (UUID orderId)
+   └─> Order 저장
+   
+2. 프론트 → 경매 API 호출
+   GET /api/v1/auctions/{auctionId}/order
+   ← orderId, amount 조회
+   
+3. 프론트 → Toss Payments 결제
+   토스 결제 완료 → paymentKey 생성
+   
+4. 프론트 → 결제 API 호출 (Payment 도메인)
+   POST /api/v1/payments/confirm
+   { paymentKey, orderId, amount }
+   ├─> PaymentConfirmUseCase.confirm()
+   ├─> Toss API 승인 요청
+   ├─> Payment 저장
+   └─> AuctionApiClient.notifyPaymentCompleted(orderId)
+   
+5. 결제 완료 알림 (Payment → Auction)
+   POST /api/v1/orders/{orderId}/payment-completed
+   ├─> OrderCompleteUseCase.complete()
+   ├─> Order 상태 업데이트
+   └─> 지갑 처리, 정산 등
+```
+
+#### **📌 통신 원칙**
+- **API 호출**: 도메인 간 동기 통신 (RestTemplate/WebClient)
+- **프론트 매개**: 프론트가 도메인 간 데이터 전달
+- **느슨한 결합**: orderId로만 참조 (엔티티 직접 참조 X)
+
+---
+
+### 7.4 데이터 흐름 예시 (입찰 처리)
 
 ```
 1. Client
@@ -688,8 +764,7 @@ Outbound Adapter (Repository, External API)
 ```
 fourtune-app.jar
 ├── boundedContext/user/
-├── boundedContext/auction/
-├── boundedContext/bid/
+├── boundedContext/auction/      # 경매 + 입찰 + 주문
 └── boundedContext/payment/
 ```
 
@@ -719,9 +794,7 @@ fourtune/
 ├── fourtune-user/
 │   └── src/main/java/.../boundedContext/user/
 ├── fourtune-auction/
-│   └── src/main/java/.../boundedContext/auction/
-├── fourtune-bid/
-│   └── src/main/java/.../boundedContext/bid/
+│   └── src/main/java/.../boundedContext/auction/  # 경매 + 입찰 + 주문
 ├── fourtune-payment/
 │   └── src/main/java/.../boundedContext/payment/
 └── fourtune-common/
@@ -734,8 +807,7 @@ fourtune/
 
 ```
 fourtune-user-service/       (독립 프로젝트, 독립 DB)
-fourtune-auction-service/    (독립 프로젝트, 독립 DB)
-fourtune-bid-service/        (독립 프로젝트, 독립 DB)
+fourtune-auction-service/    (독립 프로젝트, 독립 DB) # 경매 + 입찰 + 주문
 fourtune-payment-service/    (독립 프로젝트, 독립 DB)
 ```
 
