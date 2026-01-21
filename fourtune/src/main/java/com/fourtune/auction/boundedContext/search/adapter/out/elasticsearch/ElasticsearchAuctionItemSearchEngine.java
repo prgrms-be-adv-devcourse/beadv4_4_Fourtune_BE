@@ -1,7 +1,5 @@
 package com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch;
 
-import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
-import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.document.SearchAuctionItemDocument;
 import com.fourtune.auction.boundedContext.search.application.service.AuctionItemSearchEngine;
 import com.fourtune.auction.boundedContext.search.application.service.SearchProperties;
@@ -33,9 +31,12 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
 
     // 검색 필터로 허용할 상태(요구사항 3개만)
     private static final Set<String> ALLOWED_STATUSES = Set.of(
-            AuctionStatus.SCHEDULED.name(),
-            AuctionStatus.ACTIVE.name(),
-            AuctionStatus.ENDED.name()
+            "SCHEDULED","ACTIVE","ENDED"
+    );
+
+    // 카테고리 필터로 허용할 카테고리
+    private static final Set<String> ALLOWED_CATEGORIES = Set.of(
+            "ELECTRONICS","CLOTHING","POTTERY","APPLIANCES","BEDDING","BOOKS","COLLECTIBLES","ETC"
     );
 
     @Override
@@ -162,19 +163,8 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
     }
 
     private Set<String> filterAllowedCategories(Set<String> normalized) {
-        if (normalized.isEmpty()) return Set.of();
-        Set<String> allowed = Set.of(
-                Category.ELECTRONICS.name(),
-                Category.CLOTHING.name(),
-                Category.POTTERY.name(),
-                Category.APPLIANCES.name(),
-                Category.BEDDING.name(),
-                Category.BOOKS.name(),
-                Category.COLLECTIBLES.name(),
-                Category.ETC.name()
-        );
         return normalized.stream()
-                .filter(allowed::contains)
+                .filter(ALLOWED_CATEGORIES::contains)
                 .collect(Collectors.toSet());
     }
 }
