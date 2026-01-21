@@ -21,6 +21,7 @@ public class WatchListService {
     private final WatchListSupport watchListSupport;
     private final WatchListSyncUserUseCase watchListSyncUserUseCase;
     private final WatchListSyncAuctionItemUseCase watchListSyncAuctionItemUseCase;
+    private final WatchListAuctionUseCase watchListAuctionUseCase;
 
     @Transactional
     public boolean toggleWatchList(Long userId, Long auctionItemId) {
@@ -48,10 +49,6 @@ public class WatchListService {
                 .collect(Collectors.toList());
     }
 
-    private boolean isExistWatchList(Long userId, Long itemId) {
-        return watchListSupport.existsByUserIdAndAuctionItemId(userId, itemId);
-    }
-
     @Transactional
     public void syncUser(UserResponse userResponse){
         watchListSyncUserUseCase.syncUser(userResponse);
@@ -60,6 +57,18 @@ public class WatchListService {
     @Transactional
     public void syncAuctionItem(AuctionItemResponse auctionItemResponse){
         watchListSyncAuctionItemUseCase.syncAuctionItem(auctionItemResponse);
+    }
+
+    public void findAllByAuctionStartItemId(Long auctionItemId){
+        watchListAuctionUseCase.findAllByAuctionStartItemId(auctionItemId);
+    }
+
+    public void findAllByAuctionEndItemId(Long auctionItemId){
+        watchListAuctionUseCase.findAllByAuctionEndItemId(auctionItemId);
+    }
+
+    private boolean isExistWatchList(Long userId, Long itemId) {
+        return watchListSupport.existsByUserIdAndAuctionItemId(userId, itemId);
     }
 
 }
