@@ -1,6 +1,7 @@
 package com.fourtune.auction.shared.user.domain;
 
 
+import com.fourtune.auction.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
@@ -11,9 +12,8 @@ import static lombok.AccessLevel.PROTECTED;
 
 @MappedSuperclass
 @Getter
-@Setter(value = PROTECTED)
 @NoArgsConstructor
-public abstract class BaseUser {
+public abstract class BaseUser extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -34,7 +34,4 @@ public abstract class BaseUser {
         this.phoneNumber = phoneNumber;
     }
 
-    public boolean isSystemUser() {
-        return "system".equalsIgnoreCase(this.nickname);
-    }
 }

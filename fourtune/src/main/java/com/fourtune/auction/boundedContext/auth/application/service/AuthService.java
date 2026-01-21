@@ -51,7 +51,6 @@ public class AuthService {
         User user = userSupport.findByIdOrThrow(Long.parseLong(id));
 
         isCorrectRequestRefreshToken(user, refreshToken);
-        isRefreshTokenSame(user, refreshToken);
 
         String newAccessToken = jwtTokenProvider.createAccessToken(user);
         String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getId());
@@ -71,12 +70,6 @@ public class AuthService {
     private void validatePassword(String rawPassword, String encodedPassword) {
         if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
             throw new BusinessException(ErrorCode.PASSWORD_NOT_MATCH);
-        }
-    }
-
-    private void isRefreshTokenSame(User user, String refreshToken){
-        if (user.getRefreshToken() == null || !user.getRefreshToken().equals(refreshToken)) {
-            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
     }
 
