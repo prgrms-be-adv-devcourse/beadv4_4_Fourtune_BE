@@ -70,10 +70,6 @@ public enum ErrorCode {
     CANNOT_ADD_TO_CART(400, "BN004", "장바구니에 담을 수 없는 경매 상품입니다."),
     CANNOT_BUY_OWN_ITEM(400, "BN005", "자신의 상품은 구매할 수 없습니다."),
     
-    //Notification(알림 관련)
-    NOTIFICATION_NOT_FOUND(404, "N001", "존재하지 않는 알림입니다."),
-    NOTIFICATION_ALREADY_READ(400, "N002", "이미 읽은 알림입니다."),
-    
     //JwtToken(토큰 관련)
     EXPIRED_ACCESS_TOKEN(401, "T001", "ACCESS 토큰이 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(401, "TOO2", "REFRESH 토큰이 만료되었습니다."),
