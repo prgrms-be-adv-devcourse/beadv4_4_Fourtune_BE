@@ -2,6 +2,7 @@ package com.fourtune.auction.boundedContext.payment.application.service;
 
 import com.fourtune.auction.boundedContext.payment.domain.entity.*;
 import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionResult;
+import com.fourtune.auction.boundedContext.payment.port.out.CashLogRepository;
 import com.fourtune.auction.shared.payment.dto.PaymentUserDto;
 import com.fourtune.auction.shared.settlement.dto.SettlementDto;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class PaymentFacade {
     private final CompleteSettlementUseCase completeSettlementUseCase;
     private final PaymentSyncUserUseCase paymentSyncUserUseCase;
     private final CreateWalletUseCase createWalletUseCase;
+    private final CashLogRepository cashLogRepository;
 
 
     @Transactional(readOnly = true)
@@ -57,6 +59,14 @@ public class PaymentFacade {
 
     public List<CashLog> getCashLogList(Long userId) {
         return paymentSupport.getCashLogList(userId);
+    }
+
+    public List<CashLog> getRecentCashLogs(Long userId, int size){
+        return paymentSupport.findSliceCashLogs(userId, 0, size);
+    }
+
+    public List<CashLog> findSliceCashLogs(Long userId, int page, int size){
+        return paymentSupport.findSliceCashLogs(userId, page, size);
     }
 
     public List<Payment> findPaymentListByUserId(Long userId){

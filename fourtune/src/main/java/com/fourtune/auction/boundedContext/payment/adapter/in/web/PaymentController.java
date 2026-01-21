@@ -92,20 +92,21 @@ public class PaymentController {
     }
 
     /**
-     * 지갑 상세 내역 조히 API TODO: 무한 스크롤/페이징 API
+     * 지갑 상세 내역 조히 API
      */
     @GetMapping("/wallets/{userId}/history")
     public ApiResponse<WalletResponse> getWalletHistory(@PathVariable("userId") Long userId) {
-        List<CashLog> cashLogs = paymentFacade.getCashLogList(userId);
+        List<CashLog> cashLogs = paymentFacade.getRecentCashLogs(userId, 10);
         return ApiResponse.success(WalletResponse.of(cashLogs));
     }
 
     /**
-     * 지갑 잔액 + 상세 내역 조히 API TODO: 최신 10개 로그만
+     * 지갑 잔액 + 상세 내역 조히 API
      */
     @GetMapping("/wallets/{userId}/summary")
     public ApiResponse<WalletResponse> getWalletSummary(@PathVariable("userId") Long userId) {
         Wallet wallet = paymentFacade.findWalletByUserId(userId).orElseThrow();
-        return ApiResponse.success(WalletResponse.of(wallet.getBalance(), wallet.getCashLogs()));
+        List<CashLog> cashLogs = paymentFacade.getRecentCashLogs(userId, 10);
+        return ApiResponse.success(WalletResponse.of(wallet.getBalance(), cashLogs));
     }
 }
