@@ -28,7 +28,7 @@ public class PaymentConfirmUseCase {
 
                 // 2. [내부] 시스템 검증 및 자산 이동 (보상 트랜잭션 필요 구간)
                 try {
-                        processInternalSystemLogic(orderId, pgAmount);
+                        processInternalSystemLogic(orderId, pgAmount, paymentKey);
                 } catch (Exception e) {
                         log.error("내부 시스템 처리 실패. 결제 승인 취소를 진행합니다. orderId={}, error={}", orderId, e.getMessage());
 
@@ -47,7 +47,7 @@ public class PaymentConfirmUseCase {
 
         // 내부 로직은 데이터 정합성을 위해 트랜잭션으로 묶음
         // 현재: 충전결제x, 주문금액 = pg결제금액
-        protected void processInternalSystemLogic(Long orderId, Long pgAmount) {
+        protected void processInternalSystemLogic(Long orderId, Long pgAmount, String paymentKey) {
                 // 2-1. 경매 주문 정보 확인
                 OrderDto orderDto = auctionPort.getOrder(orderId); // AuctionPort 인터페이스 필요
 
@@ -61,6 +61,6 @@ public class PaymentConfirmUseCase {
 
                 // 2-2. 지갑 충전 및 시스템 이동 (기존 로직 재사용)
                 // 이 안에서 예외가 터지면 위쪽 catch 블록으로 이동 -> Toss Cancel 호출됨
-                paymentCashCompleteUseCase.cashComplete(orderDto, pgAmount);
+                paymentCashCompleteUseCase.cashComplete(orderDto, pgAmount, paymentKey);
         }
 }

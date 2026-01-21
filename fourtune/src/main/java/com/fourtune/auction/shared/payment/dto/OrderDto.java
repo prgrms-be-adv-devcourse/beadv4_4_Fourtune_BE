@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderDto {
     private Long orderId;
+    private String orderNo;
     private Long price;   // 전체 결제 총액 (Total Amount)
     private Long userId;  // 구매자 ID (Buyer)
     private LocalDateTime paymentDate;

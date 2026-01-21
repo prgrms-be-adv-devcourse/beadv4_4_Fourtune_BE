@@ -1,5 +1,9 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
+import com.fourtune.auction.boundedContext.payment.domain.constant.PaymentStatus;
+import com.fourtune.auction.boundedContext.payment.domain.entity.Payment;
+import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
+import com.fourtune.auction.boundedContext.payment.port.out.PaymentRepository;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
@@ -16,9 +20,10 @@ public class PaymentCashCompleteUseCase {
 
     private final PaymentSupport paymentSupport;
     private final EventPublisher eventPublisher;
+    private final PaymentRepository paymentRepository;
 
     @Transactional
-    public void cashComplete(OrderDto orderDto, Long pgAmount) {
+    public void cashComplete(OrderDto orderDto, Long pgAmount, String paymentKey) {
         Wallet customerWallet = paymentSupport.findWalletByUserId(orderDto.getUserId()).orElseThrow();
         Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow();
 
@@ -46,6 +51,20 @@ public class PaymentCashCompleteUseCase {
                     CashEventType.임시보관__주문결제,
                     "Order",
                     orderDto.getOrderId()
+            );
+
+            // 결제 정보 저장
+            PaymentUser paymentUser = customerWallet.getPaymentUser();
+            Payment payment = paymentRepository.save(
+                    Payment.builder()
+                        .paymentKey(paymentKey)
+                        .orderId(orderDto.getOrderId())
+                        .orderNo(orderDto.getOrderNo())
+                        .paymentUser(paymentUser)
+                        .amount(orderDto.getPrice())
+                        .pgPaymentAmount(pgAmount)
+                        .status(PaymentStatus.APPROVED)
+                        .build()
             );
 
             eventPublisher.publish(
