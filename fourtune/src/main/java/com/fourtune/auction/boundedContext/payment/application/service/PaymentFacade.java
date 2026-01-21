@@ -88,7 +88,7 @@ public class PaymentFacade {
     }
 
     @Transactional
-    public PaymentUser createPaymentUser(PaymentUserDto dto){
+    public PaymentUser syncUser(PaymentUserDto dto){
         return paymentSyncUserUseCase.syncUser(dto);
     }
 }
