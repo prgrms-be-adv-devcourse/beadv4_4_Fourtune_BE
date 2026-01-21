@@ -8,7 +8,7 @@ import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
-@Table(name = "item_images")
+@Table(name = "auction_item_images")
 @Builder
 @Getter
 @AllArgsConstructor

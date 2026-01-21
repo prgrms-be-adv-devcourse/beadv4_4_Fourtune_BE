@@ -38,4 +38,5 @@ public class NotificationSettings extends BaseTimeEntity {
         this.isPaymentPushEnabled = isPaymentPushEnabled;
         this.isWatchListPushEnabled = isWatchListPushEnabled;
     }
+
 }
