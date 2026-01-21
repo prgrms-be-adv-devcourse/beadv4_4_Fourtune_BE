@@ -1,0 +1,59 @@
+package com.fourtune.auction.boundedContext.payment.application.service;
+
+import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
+import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
+import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
+import com.fourtune.auction.shared.settlement.dto.SettlementDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class CompleteSettlementUseCase {
+        private final PaymentSupport paymentSupport;
+
+        public Wallet settlementCashComplete(SettlementDto dto){
+                // payee가 이번달 정산받을 금액이 들어있는 dto를 참고하여 현금 이동해주기
+                Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow();
+
+                if(dto.getPayeeEmail().equals(CashPolicy.PLATFORM_REVENUE_USER_EMAIL)){
+                        Wallet platformWallet = paymentSupport.findPlatformWallet().orElseThrow();
+
+
+                        systemWallet.debit(
+                                dto.getAmount(),
+                                CashEventType.정산지급__상품판매_수수료,
+                                "settlement",
+                                dto.getId()
+                        );
+
+                        platformWallet.credit(
+                                dto.getAmount(),
+                                CashEventType.정산수령__상품판매_수수료,
+                                "settlement",
+                                dto.getId()
+                        );
+
+                        return platformWallet;
+                }
+                else{
+                        Wallet payeeWallet = paymentSupport.findWalletByUserEmail(dto.getPayeeEmail()).orElseThrow();
+
+                        systemWallet.debit(
+                                dto.getAmount(),
+                                CashEventType.정산지급__상품판매_대금,
+                                "settlement",
+                                dto.getId()
+                        );
+
+                        payeeWallet.credit(
+                                dto.getAmount(),
+                                CashEventType.정산수령__상품판매_대금,
+                                "settlement",
+                                dto.getId()
+                        );
+
+                        return payeeWallet;
+                }
+        }
+}

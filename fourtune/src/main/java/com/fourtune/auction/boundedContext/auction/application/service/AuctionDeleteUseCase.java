@@ -24,20 +24,39 @@ public class AuctionDeleteUseCase {
      */
     @Transactional
     public void deleteAuction(Long auctionId, Long userId) {
-        // TODO: 구현 필요
         // 1. 경매 조회
+        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        
         // 2. 판매자 권한 확인
-        // 3. 삭제 가능 여부 확인 (입찰이 있으면 삭제 불가)
-        // 4. 삭제 처리 (soft delete: status = CANCELLED or hard delete)
+        auctionSupport.validateSeller(auctionItem, userId);
+        
+        // 3. 삭제 가능 여부 확인
+        auctionSupport.validateDeletable(auctionItem);
+        
+        // 4. 삭제 처리 (hard delete)
+        auctionItemRepository.delete(auctionItem);
     }
 
     /**
-     * 삭제 가능 여부 검증
+     * 경매 취소 (soft delete)
      */
-    private void validateDeletable(AuctionItem auctionItem) {
-        // TODO: 구현 필요
-        // - 입찰이 있으면 삭제 불가
-        // - ACTIVE 상태면 삭제 불가 (먼저 취소 처리 필요)
+    @Transactional
+    public void cancelAuction(Long auctionId, Long userId) {
+        // 1. 경매 조회
+        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        
+        // 2. 판매자 권한 확인
+        auctionSupport.validateSeller(auctionItem, userId);
+        
+        // 3. 취소 가능 여부 확인 (입찰이 있으면 취소 불가)
+        if (auctionItem.getBidCount() > 0) {
+            throw new com.fourtune.auction.global.error.exception.BusinessException(
+                    com.fourtune.auction.global.error.ErrorCode.AUCTION_HAS_BIDS
+            );
+        }
+        
+        // 4. 상태 변경 (CANCELLED)
+        auctionItem.cancel();
     }
 
 }

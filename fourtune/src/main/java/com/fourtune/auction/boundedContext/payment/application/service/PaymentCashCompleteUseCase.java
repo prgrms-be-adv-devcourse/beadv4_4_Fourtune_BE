@@ -4,8 +4,8 @@ import com.fourtune.auction.shared.payment.dto.OrderDto;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.payment.event.PaymentCashFailedEvent;
-import com.fourtune.auction.shared.payment.event.PaymentCashSucceededEvent;
+import com.fourtune.auction.shared.payment.event.PaymentFailedEvent;
+import com.fourtune.auction.shared.payment.event.PaymentSucceededEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,17 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaymentCashCompleteUseCase {
 
-    private final PaymentFacade paymentFacade;
+    private final PaymentSupport paymentSupport;
     private final EventPublisher eventPublisher;
 
     @Transactional
-    public void cashComplete(OrderDto orderDto, Long amount) {
-        Wallet customerWallet = paymentFacade.findWalletByUserId(orderDto.getUserId()).orElseThrow();
-        Wallet systemWallet = paymentFacade.findSystemWallet().orElseThrow();
+    public void cashComplete(OrderDto orderDto, Long pgAmount) {
+        Wallet customerWallet = paymentSupport.findWalletByUserId(orderDto.getUserId()).orElseThrow();
+        Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow();
 
-        if (amount > 0) {
+        if (pgAmount > 0) {
             customerWallet.credit(
-                    amount,
+                    pgAmount,
                     CashEventType.충전__PG결제_토스페이먼츠,
                     "Order",
                     orderDto.getOrderId()
@@ -49,19 +49,19 @@ public class PaymentCashCompleteUseCase {
             );
 
             eventPublisher.publish(
-                    new PaymentCashSucceededEvent(
+                    new PaymentSucceededEvent(
                             orderDto,
-                            amount
+                            pgAmount
                     )
             );
         } else {
             eventPublisher.publish(
-                    new PaymentCashFailedEvent(
+                    new PaymentFailedEvent(
                             "400-1",
                             "충전은 완료했지만 %번 주문을 결제완료처리를 하기에는 예치금이 부족합니다.".formatted(orderDto.getOrderId()),
                             orderDto,
-                            amount,
-                            amount - customerWallet.getBalance()
+                            pgAmount,
+                            orderDto.getPrice() - customerWallet.getBalance()
                     )
             );
         }

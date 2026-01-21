@@ -33,40 +33,54 @@ public class AuctionFacade {
     /**
      * 경매 생성
      */
-    public AuctionItemResponse createAuction(AuctionItemCreateRequest request, List<?> images) {
-        // TODO: 구현 필요
-        // 1. 이미지 업로드 (S3Service)
+    public AuctionItemResponse createAuction(Long sellerId, AuctionItemCreateRequest request, List<?> images) {
+        // 1. 이미지 업로드는 MVP에서 제외 (Mock URL 사용)
+        // TODO: S3Service로 이미지 업로드 추가 필요
+        
         // 2. AuctionCreateUseCase 호출
-        // 3. DTO 변환 후 반환
-        return null;
+        Long auctionId = auctionCreateUseCase.createAuction(sellerId, request);
+        
+        // 3. 생성된 경매 조회 및 DTO 변환
+        return auctionQueryUseCase.getAuctionById(auctionId);
     }
 
     /**
      * 경매 수정
      */
     public AuctionItemResponse updateAuction(Long auctionId, Long userId, AuctionItemUpdateRequest request) {
-        // TODO: 구현 필요
         // 1. AuctionUpdateUseCase 호출
-        // 2. DTO 변환 후 반환
-        return null;
+        auctionUpdateUseCase.updateAuction(auctionId, userId, request);
+        
+        // 2. 수정된 경매 조회 및 DTO 변환
+        return auctionQueryUseCase.getAuctionById(auctionId);
     }
 
     /**
      * 경매 삭제
      */
     public void deleteAuction(Long auctionId, Long userId) {
-        // TODO: 구현 필요
-        return;
+        // AuctionDeleteUseCase 호출
+        auctionDeleteUseCase.deleteAuction(auctionId, userId);
     }
 
     /**
      * 경매 종료 처리 (스케줄러에서 호출)
      */
     public void closeExpiredAuctions() {
-        // TODO: 구현 필요
         // 1. 종료 시간이 지난 경매 목록 조회
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.util.List<com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem> expiredAuctions =
+                auctionQueryUseCase.findExpiredAuctions(now);
+        
         // 2. 각 경매마다 AuctionCloseUseCase 호출
-        return;
+        for (com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem auction : expiredAuctions) {
+            try {
+                auctionCloseUseCase.closeAuction(auction.getId());
+            } catch (Exception e) {
+                // 로깅만 하고 계속 진행 (한 경매 실패가 전체에 영향 없도록)
+                // TODO: 로깅 추가
+            }
+        }
     }
 
     /**
@@ -74,10 +88,13 @@ public class AuctionFacade {
      */
     @Transactional(readOnly = true)
     public AuctionItemDetailResponse getAuctionDetail(Long auctionId) {
-        // TODO: 구현 필요
         // 1. AuctionQueryUseCase.getAuctionDetail 호출
-        // 2. 조회수 증가 (비동기)
-        return null;
+        AuctionItemDetailResponse response = auctionQueryUseCase.getAuctionDetail(auctionId);
+        
+        // 2. 조회수 증가는 별도 엔드포인트에서 처리 (PATCH /auctions/{id}/view)
+        // TODO: 비동기 처리로 변경 고려
+        
+        return response;
     }
 
     /**
@@ -88,10 +105,8 @@ public class AuctionFacade {
             com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus status,
             com.fourtune.auction.boundedContext.auction.domain.constant.Category category,
             Pageable pageable) {
-        // TODO: 구현 필요
-        // 1. AuctionQueryUseCase 호출
-        // 2. status, category 필터링 적용
-        return null;
+        // AuctionQueryUseCase 호출 (status, category 필터링 적용)
+        return auctionQueryUseCase.getAuctionList(status, category, pageable);
     }
 
     /**
@@ -99,27 +114,26 @@ public class AuctionFacade {
      */
     @Transactional(readOnly = true)
     public Page<AuctionItemResponse> getSellerAuctions(Long sellerId, Pageable pageable) {
-        // TODO: 구현 필요
-        return null;
+        // AuctionQueryUseCase 호출
+        return auctionQueryUseCase.getSellerAuctions(sellerId, pageable);
     }
 
     /**
      * 즉시구매 처리 (경매 상세 페이지에서 "즉시구매" 버튼)
      */
     public String executeBuyNow(Long auctionId, Long buyerId) {
-        // TODO: 구현 필요
-        // 1. AuctionBuyNowUseCase.executeBuyNow 호출
-        // 2. orderId 반환 (결제 페이지로 리다이렉트)
-        return null;
+        // AuctionBuyNowUseCase.executeBuyNow 호출
+        // orderId 반환 (결제 페이지로 리다이렉트)
+        return auctionBuyNowUseCase.executeBuyNow(auctionId, buyerId);
     }
 
     /**
      * 조회수 증가
      */
     public void increaseViewCount(Long auctionId) {
-        // TODO: 구현 필요
-        // 1. AuctionQueryUseCase.increaseViewCount 호출
-        // 2. 비동기 처리 (Redis)
+        // AuctionQueryUseCase.increaseViewCount 호출
+        auctionQueryUseCase.increaseViewCount(auctionId);
+        // TODO: Redis 캐싱 및 비동기 처리는 나중에 추가
     }
 
 }

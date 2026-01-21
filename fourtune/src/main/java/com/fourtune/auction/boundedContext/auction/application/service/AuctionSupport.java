@@ -28,77 +28,118 @@ public class AuctionSupport {
      * ID로 경매 조회 (Optional)
      */
     public Optional<AuctionItem> findById(Long auctionId) {
-        // TODO: 구현 필요
-        return Optional.empty();
+        return auctionItemRepository.findById(auctionId);
     }
 
     /**
      * ID로 경매 조회 (예외 발생)
      */
     public AuctionItem findByIdOrThrow(Long auctionId) {
-        // TODO: 구현 필요
-        // return auctionItemRepository.findById(auctionId)
-        //         .orElseThrow(() -> new BusinessException(ErrorCode.AUCTION_NOT_FOUND));
-        return null;
+        return auctionItemRepository.findById(auctionId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.AUCTION_NOT_FOUND));
     }
 
     /**
      * 경매 저장
      */
     public AuctionItem save(AuctionItem auctionItem) {
-        // TODO: 구현 필요
-        return null;
+        return auctionItemRepository.save(auctionItem);
     }
 
     /**
      * 판매자 ID로 경매 목록 조회
      */
     public List<AuctionItem> findBySellerId(Long sellerId) {
-        // TODO: 구현 필요
-        return null;
+        return auctionItemRepository.findBySellerId(sellerId);
+    }
+
+    /**
+     * 상태, 카테고리별 경매 목록 조회 (페이징)
+     */
+    public Page<AuctionItem> findByStatusAndCategory(
+            AuctionStatus status,
+            com.fourtune.auction.boundedContext.auction.domain.constant.Category category,
+            Pageable pageable
+    ) {
+        return auctionItemRepository.findByStatusAndCategory(status, category, pageable);
     }
 
     /**
      * 상태별 경매 목록 조회 (페이징)
      */
     public Page<AuctionItem> findByStatus(AuctionStatus status, Pageable pageable) {
-        // TODO: 구현 필요
-        return null;
+        return auctionItemRepository.findByStatus(status, pageable);
+    }
+    
+    /**
+     * 전체 경매 목록 조회 (페이징)
+     */
+    public Page<AuctionItem> findAll(Pageable pageable) {
+        return auctionItemRepository.findAll(pageable);
+    }
+    
+    /**
+     * 판매자별 경매 목록 조회 (페이징)
+     */
+    public Page<AuctionItem> findBySellerIdPaged(Long sellerId, Pageable pageable) {
+        return auctionItemRepository.findBySellerIdOrderByCreatedAtDesc(sellerId, pageable);
     }
 
     /**
      * 진행중인 경매 목록 조회
      */
     public List<AuctionItem> findActiveAuctions() {
-        // TODO: 구현 필요
-        return null;
+        return auctionItemRepository.findByStatus(AuctionStatus.ACTIVE);
     }
 
     /**
      * 종료 예정 경매 목록 조회 (자동 연장 체크용)
      */
     public List<AuctionItem> findEndingSoonAuctions() {
-        // TODO: 구현 필요
-        return null;
+        // TODO: Repository에 findEndingSoonAuctions() 메서드 추가 필요
+        return List.of();
+    }
+    
+    /**
+     * 종료 시간이 지난 경매 목록 조회
+     */
+    public List<AuctionItem> findExpiredAuctions(java.time.LocalDateTime now) {
+        return auctionItemRepository.findByAuctionEndTimeBeforeAndStatus(
+                now,
+                AuctionStatus.ACTIVE
+        );
+    }
+    
+    /**
+     * 시작 시간이 되었지만 아직 시작되지 않은 경매 목록 조회
+     */
+    public List<AuctionItem> findScheduledAuctionsToStart(java.time.LocalDateTime now) {
+        return auctionItemRepository.findByAuctionStartTimeBeforeAndStatus(
+                now,
+                AuctionStatus.SCHEDULED
+        );
     }
 
     /**
      * 경매 삭제 가능 여부 검증
+     * 입찰이 있거나 진행중인 경매는 삭제 불가
      */
     public void validateDeletable(AuctionItem auctionItem) {
-        // TODO: 구현 필요
-        // 입찰이 있으면 삭제 불가
-        // 진행중인 경매는 삭제 불가
+        if (auctionItem.getBidCount() > 0) {
+            throw new BusinessException(ErrorCode.AUCTION_HAS_BIDS);
+        }
+        if (auctionItem.getStatus() == AuctionStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.AUCTION_IN_PROGRESS);
+        }
     }
 
     /**
      * 판매자 권한 검증
      */
     public void validateSeller(AuctionItem auctionItem, Long userId) {
-        // TODO: 구현 필요
-        // if (!auctionItem.getSellerId().equals(userId)) {
-        //     throw new BusinessException(ErrorCode.FORBIDDEN);
-        // }
+        if (!auctionItem.getSellerId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
     }
 
 }

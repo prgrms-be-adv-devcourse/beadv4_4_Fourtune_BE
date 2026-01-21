@@ -1,13 +1,15 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
-import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
+import com.fourtune.auction.boundedContext.payment.domain.entity.*;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
-import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
+import com.fourtune.auction.boundedContext.payment.port.out.PaymentRepository;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentUserRepository;
+import com.fourtune.auction.boundedContext.payment.port.out.RefundRepository;
 import com.fourtune.auction.boundedContext.payment.port.out.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -15,6 +17,8 @@ import java.util.Optional;
 public class PaymentSupport {
     private final PaymentUserRepository paymentUserRepository;
     private final WalletRepository walletRepository;
+    private final PaymentRepository paymentRepository;
+    private final RefundRepository refundRepository;
 
     public Optional<PaymentUser> findUserByEmail(String email) {
         return paymentUserRepository.findByEmail(email);
@@ -27,11 +31,41 @@ public class PaymentSupport {
         return walletRepository.findWalletByPaymentUser(paymentUser);
     }
 
+    public Optional<Wallet> findWalletByUserEmail(String email){
+        PaymentUser user = findUserByEmail(email).orElseThrow();
+        return findWalletByUser(user);
+    }
+
     public Optional<Wallet> findWalletByUserId(Long userId) {
-        return walletRepository.findWalletById(userId);
+        PaymentUser user = findUserByUserId(userId).orElseThrow();
+        return findWalletByUser(user);
     }
 
     public Optional<Wallet> findSystemWallet() {
-        return walletRepository.findWalletById(CashPolicy.SYSTEM_MEMBER_ID);
+        PaymentUser systemUser = paymentUserRepository.findByEmail(CashPolicy.SYSTEM_HOLDING_USER_EMAIL).orElseThrow();
+        return walletRepository.findWalletByPaymentUser(systemUser);
+    }
+
+    public Optional<Wallet> findPlatformWallet() {
+        PaymentUser systemUser = paymentUserRepository.findByEmail(CashPolicy.PLATFORM_REVENUE_USER_EMAIL).orElseThrow();
+        return walletRepository.findWalletByPaymentUser(systemUser);
+    }
+
+    public Long getWalletBalanceByUserId(Long userId) {
+        Wallet wallet = findWalletByUserId(userId).orElseThrow();
+        return wallet.getBalance();
+    }
+
+    public List<CashLog> getCashLogList(Long userId) {
+        Wallet wallet = findWalletByUserId(userId).orElseThrow();
+        return wallet.getCashLogs();
+    }
+
+    public List<Payment> findPaymentListByUserId(Long userId){
+        return paymentRepository.findPaymentsByPaymentUserId(userId);
+    }
+
+    public List<Refund> findRefundListByUserId(Long userId){
+        return refundRepository.findRefundsByPayment_PaymentUser_Id(userId);
     }
 }

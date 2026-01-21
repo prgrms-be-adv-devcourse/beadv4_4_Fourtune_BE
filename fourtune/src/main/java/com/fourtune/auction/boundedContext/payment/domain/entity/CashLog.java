@@ -3,6 +3,7 @@ package com.fourtune.auction.boundedContext.payment.domain.entity;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import static jakarta.persistence.FetchType.LAZY;
@@ -10,6 +11,7 @@ import static jakarta.persistence.FetchType.LAZY;
 @Entity
 @Table(name = "PAYMENT_CASH_LOG")
 @NoArgsConstructor
+@Getter
 public class CashLog extends BaseIdAndTime {
 
     @Enumerated(EnumType.STRING)

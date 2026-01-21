@@ -32,9 +32,8 @@ public class ApiV1CartController {
     public ResponseEntity<ApiResponse<CartResponse>> getCart(
         @AuthenticationPrincipal UserContext user
     ) {
-        // TODO: 구현 필요
-        // 1. cartFacade.getUserCart(user.id()) 호출
-        return null;
+        CartResponse response = cartFacade.getUserCart(user.id());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
     
     /**
@@ -45,8 +44,7 @@ public class ApiV1CartController {
         @AuthenticationPrincipal UserContext user,
         @RequestBody @Valid CartAddItemRequest request
     ) {
-        // TODO: 구현 필요
-        // 1. cartFacade.addItemToCart(user.id(), request.auctionId()) 호출
+        cartFacade.addItemToCart(user.id(), request.auctionId());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     
@@ -58,8 +56,7 @@ public class ApiV1CartController {
         @AuthenticationPrincipal UserContext user,
         @PathVariable Long cartItemId
     ) {
-        // TODO: 구현 필요
-        // 1. cartFacade.removeItemFromCart(user.id(), cartItemId) 호출
+        cartFacade.removeItemFromCart(user.id(), cartItemId);
         return ResponseEntity.noContent().build();
     }
     
@@ -71,10 +68,8 @@ public class ApiV1CartController {
         @AuthenticationPrincipal UserContext user,
         @RequestBody @Valid CartBuyNowRequest request
     ) {
-        // TODO: 구현 필요
-        // 1. cartFacade.buyNowFromCart(user.id(), request.cartItemIds()) 호출
-        // 2. 생성된 주문 ID 목록 반환
-        return null;
+        List<String> orderIds = cartFacade.buyNowFromCart(user.id(), request.cartItemIds());
+        return ResponseEntity.ok(ApiResponse.success(orderIds));
     }
     
     /**
@@ -84,10 +79,8 @@ public class ApiV1CartController {
     public ResponseEntity<ApiResponse<List<String>>> buyNowAllCart(
         @AuthenticationPrincipal UserContext user
     ) {
-        // TODO: 구현 필요
-        // 1. cartFacade.buyNowAllCart(user.id()) 호출
-        // 2. 생성된 주문 ID 목록 반환
-        return null;
+        List<String> orderIds = cartFacade.buyNowAllCart(user.id());
+        return ResponseEntity.ok(ApiResponse.success(orderIds));
     }
     
     /**
@@ -97,8 +90,18 @@ public class ApiV1CartController {
     public ResponseEntity<Void> clearExpiredItems(
         @AuthenticationPrincipal UserContext user
     ) {
-        // TODO: 구현 필요
-        // 1. cartFacade.clearExpiredItems(user.id()) 호출
+        cartFacade.clearExpiredItems(user.id());
         return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * 장바구니 아이템 개수 조회
+     */
+    @GetMapping("/count")
+    public ResponseEntity<ApiResponse<Integer>> getCartItemCount(
+        @AuthenticationPrincipal UserContext user
+    ) {
+        int count = cartFacade.getActiveItemCount(user.id());
+        return ResponseEntity.ok(ApiResponse.success(count));
     }
 }

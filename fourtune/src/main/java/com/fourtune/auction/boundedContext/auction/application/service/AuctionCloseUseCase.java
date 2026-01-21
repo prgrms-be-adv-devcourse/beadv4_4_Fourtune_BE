@@ -29,26 +29,78 @@ public class AuctionCloseUseCase {
      */
     @Transactional
     public void closeAuction(Long auctionId) {
-        // TODO: 구현 필요
         // 1. 경매 조회
-        // 2. 종료 가능 여부 확인 (이미 종료되었는지)
+        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        
+        // 2. 종료 가능 여부 확인
+        validateCloseable(auctionItem);
+        
         // 3. 최고가 입찰 조회
-        // 4. 낙찰자가 있으면:
-        //    - 경매 상태 변경 (ENDED -> SOLD)
-        //    - Order 생성 (OrderCreateUseCase 호출)
-        //    - 실패한 입찰들 처리 (BidSupport.failAllActiveBids)
-        // 5. 낙찰자가 없으면:
-        //    - 경매 상태 변경 (ENDED)
-        // 6. 이벤트 발행 (AuctionClosedEvent)
+        java.util.Optional<Bid> highestBidOpt = bidSupport.findHighestBid(auctionId);
+        
+        if (highestBidOpt.isPresent()) {
+            // 4-1. 낙찰자가 있는 경우
+            Bid winningBid = highestBidOpt.get();
+            
+            // 경매 상태 변경 (ACTIVE -> SOLD)
+            auctionItem.sell();
+            
+            // 낙찰 입찰 처리
+            winningBid.win();
+            bidSupport.save(winningBid);
+            
+            // Order 생성
+            String orderId = orderCreateUseCase.createWinningOrder(
+                    auctionId,
+                    winningBid.getBidderId(),
+                    winningBid.getBidAmount()
+            );
+            
+            // 실패한 입찰들 처리
+            bidSupport.failAllActiveBids(auctionId);
+            
+            // 이벤트 발행
+            eventPublisher.publish(new AuctionClosedEvent(
+                    auctionId,
+                    auctionItem.getTitle(),
+                    auctionItem.getSellerId(),
+                    winningBid.getBidderId(),
+                    winningBid.getBidAmount(),
+                    orderId
+            ));
+        } else {
+            // 4-2. 낙찰자가 없는 경우 (입찰이 없었음)
+            auctionItem.close();
+            
+            // 이벤트 발행
+            eventPublisher.publish(new AuctionClosedEvent(
+                    auctionId,
+                    auctionItem.getTitle(),
+                    auctionItem.getSellerId(),
+                    null,  // 낙찰자 없음
+                    null,  // 낙찰가 없음
+                    null   // 주문번호 없음
+            ));
+        }
     }
 
     /**
      * 종료 가능 여부 검증
      */
     private void validateCloseable(AuctionItem auctionItem) {
-        // TODO: 구현 필요
-        // - ACTIVE 상태인지 확인
-        // - 종료 시간이 지났는지 확인
+        // ACTIVE 상태인지 확인
+        if (auctionItem.getStatus() != com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.ACTIVE) {
+            throw new com.fourtune.auction.global.error.exception.BusinessException(
+                    com.fourtune.auction.global.error.ErrorCode.AUCTION_NOT_ACTIVE
+            );
+        }
+        
+        // 종료 시간이 지났는지 확인
+        if (java.time.LocalDateTime.now().isBefore(auctionItem.getAuctionEndTime())) {
+            throw new com.fourtune.auction.global.error.exception.BusinessException(
+                    com.fourtune.auction.global.error.ErrorCode.AUCTION_NOT_MODIFIABLE
+            );
+        }
     }
 
 }

@@ -3,10 +3,7 @@ package com.fourtune.auction.boundedContext.settlement.domain.entity;
 import com.fourtune.auction.boundedContext.settlement.domain.constant.SettlementEventType;
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -17,9 +14,6 @@ import static jakarta.persistence.FetchType.LAZY;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class SettlementCandidatedItem extends BaseIdAndTime {
-
-    @ManyToOne(fetch = LAZY)
-    private Settlement settlement;
 
     @Enumerated(EnumType.STRING)
     private SettlementEventType settlementEventType;
@@ -41,5 +35,24 @@ public class SettlementCandidatedItem extends BaseIdAndTime {
     @OneToOne(fetch = LAZY)
     @Setter
     private SettlementItem settlementItem;
+
+    @Builder
+    public SettlementCandidatedItem(
+            SettlementEventType settlementEventType,
+            String relTypeCode,
+            Long relId,
+            LocalDateTime paymentDate,
+            SettlementUser payer,
+            SettlementUser payee,
+            Long amount
+            ){
+        this.amount = amount;
+        this.settlementEventType = settlementEventType;
+        this.relTypeCode = relTypeCode;
+        this.relId = relId;
+        this.paymentDate = paymentDate;
+        this.payer = payer;
+        this.payee = payee;
+    }
 
 }

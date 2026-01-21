@@ -25,42 +25,57 @@ public class OrderCreateUseCase {
      */
     @Transactional
     public String createWinningOrder(Long auctionId, Long winnerId, BigDecimal finalPrice) {
-        // TODO: 구현 필요
         // 1. 경매 조회
+        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        
         // 2. 이미 주문이 있는지 확인
-        // 3. Order 엔티티 생성
-        //    - orderId 생성 (UUID or 시간 기반)
-        //    - orderType = "AUCTION_WIN"
-        //    - status = "PENDING_PAYMENT"
-        // 4. DB 저장
-        // 5. orderId 반환 (결제 프로세스로 전달)
-        return null;
+        orderSupport.validateOrderCreatable(auctionId);
+        
+        // 3. 주문명 생성
+        String orderName = "[낙찰] " + auctionItem.getTitle();
+        
+        // 4. Order 엔티티 생성 (정적 팩토리 메서드)
+        Order order = Order.create(
+                auctionId,
+                winnerId,
+                auctionItem.getSellerId(),
+                finalPrice,
+                orderName
+        );
+        
+        // 5. DB 저장
+        Order savedOrder = orderSupport.save(order);
+        
+        // 6. orderId 반환 (UUID)
+        return savedOrder.getOrderId();
     }
 
     /**
      * 즉시구매 주문 생성
+     * 경매 상태 변경은 AuctionBuyNowUseCase에서 처리함
      */
     @Transactional
     public String createBuyNowOrder(Long auctionId, Long buyerId, BigDecimal buyNowPrice) {
-        // TODO: 구현 필요
         // 1. 경매 조회
-        // 2. 즉시구매 가능 여부 확인
+        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        
+        // 2. 주문명 생성
+        String orderName = "[즉시구매] " + auctionItem.getTitle();
+        
         // 3. Order 엔티티 생성
-        //    - orderType = "BUY_NOW"
-        //    - status = "PENDING_PAYMENT"
-        // 4. 경매 상태 변경 (ACTIVE -> SOLD_BY_BUY_NOW)
-        // 5. DB 저장
-        // 6. orderId 반환
-        return null;
-    }
-
-    /**
-     * 주문번호 생성
-     */
-    private String generateOrderId() {
-        // TODO: 구현 필요
-        // 예: ORD_20260116_123456789
-        return null;
+        Order order = Order.create(
+                auctionId,
+                buyerId,
+                auctionItem.getSellerId(),
+                buyNowPrice,
+                orderName
+        );
+        
+        // 4. DB 저장
+        Order savedOrder = orderSupport.save(order);
+        
+        // 5. orderId 반환
+        return savedOrder.getOrderId();
     }
 
 }

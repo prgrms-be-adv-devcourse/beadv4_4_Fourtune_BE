@@ -1,6 +1,9 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
+import com.fourtune.auction.boundedContext.auction.domain.constant.BidStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,23 +25,42 @@ public class BidCancelUseCase {
      */
     @Transactional
     public void cancelBid(Long bidId, Long bidderId) {
-        // TODO: 구현 필요
         // 1. 입찰 조회
-        // 2. 본인의 입찰인지 확인
-        // 3. 취소 가능 여부 확인
-        //    - 최고가 입찰자가 아닌 경우에만 가능
-        //    - 이미 FAILED 상태가 아닌지
-        // 4. 입찰 상태 변경 (ACTIVE -> CANCELLED)
+        Bid bid = bidSupport.findByIdOrThrow(bidId);
+        
+        // 2. 취소 가능 여부 검증
+        validateCancellable(bid, bidderId);
+        
+        // 3. 입찰 상태 변경 (ACTIVE -> CANCELLED)
+        bid.cancel();
+        
+        // 4. 저장
+        bidSupport.save(bid);
     }
 
     /**
      * 취소 가능 여부 검증
      */
     private void validateCancellable(Bid bid, Long bidderId) {
-        // TODO: 구현 필요
-        // - 본인의 입찰인지
-        // - 최고가 입찰자가 아닌지
-        // - ACTIVE 상태인지
+        // 1. 본인의 입찰인지 확인
+        if (!bid.getBidderId().equals(bidderId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        
+        // 2. ACTIVE 상태인지 확인
+        if (bid.getStatus() != BidStatus.ACTIVE) {
+            throw new BusinessException(ErrorCode.BID_CANCELLED_NOT_ALLOWED);
+        }
+        
+        // 3. 최고가 입찰자가 아닌지 확인
+        if (bid.getIsWinning()) {
+            throw new BusinessException(ErrorCode.BID_CANCELLED_NOT_ALLOWED);
+        }
+        
+        // 4. 입찰 후 5분 이내인지 확인 (Bid 엔티티의 canCancel() 메서드 활용)
+        if (!bid.canCancel()) {
+            throw new BusinessException(ErrorCode.BID_CANCELLED_NOT_ALLOWED);
+        }
     }
 
 }
