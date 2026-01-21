@@ -19,5 +19,23 @@ public record AuctionItemResponse(
     Integer bidCount,
     String thumbnailUrl
 ) {
-    // TODO: from() 메서드 구현
+    public static AuctionItemResponse from(com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem auctionItem) {
+        String thumbnailUrl = auctionItem.getImages() != null && !auctionItem.getImages().isEmpty()
+                ? auctionItem.getImages().get(0).getImageUrl()
+                : null;
+        
+        return new AuctionItemResponse(
+                auctionItem.getId(),
+                auctionItem.getSellerId(),
+                auctionItem.getTitle(),
+                auctionItem.getCategory(),
+                auctionItem.getStartPrice(),
+                auctionItem.getCurrentPrice(),
+                auctionItem.getStatus(),
+                auctionItem.getAuctionEndTime(),
+                auctionItem.getViewCount(),
+                auctionItem.getBidCount(),
+                thumbnailUrl
+        );
+    }
 }

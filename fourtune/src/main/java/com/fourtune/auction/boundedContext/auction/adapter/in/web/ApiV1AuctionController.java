@@ -34,8 +34,7 @@ public class ApiV1AuctionController {
         @RequestPart(required = false) List<MultipartFile> images
     ) {
         Long sellerId = user.id();
-        // TODO: request에 sellerId 설정
-        AuctionItemResponse response = auctionFacade.createAuction(request, images);
+        AuctionItemResponse response = auctionFacade.createAuction(sellerId, request, images);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     

@@ -1,24 +1,80 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
+import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionPolicy;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
-import jakarta.transaction.Transactional;
+import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.shared.auction.event.AuctionExtendedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
+/**
+ * 경매 자동 연장 UseCase
+ * - 종료 5분 전 입찰 시 자동 연장
+ * - 연장 횟수 제한
+ */
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AuctionExtendUseCase {
-    
+
     private final AuctionSupport auctionSupport;
-    
-    public void extend(Long auctionId) {
-        // TODO: 경매 자동 연장 로직 구현
+    private final EventPublisher eventPublisher;
+
+    /**
+     * 경매 자동 연장
+     */
+    @Transactional
+    public void extendAuction(Long auctionId) {
         // 1. 경매 조회
-        // 2. 종료 시간 3분 연장
-        // 3. 이벤트 발행
-        AuctionItem auction = auctionSupport.findByIdOrThrow(auctionId);
-        // auction.extend(Duration.ofMinutes(3));
-        auctionSupport.save(auction);
+        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        
+        // 2. 연장 가능 여부 확인
+        validateExtendable(auctionItem);
+        
+        // 3. 경매 시간 연장 (3분 연장)
+        auctionItem.extend(AuctionPolicy.AUTO_EXTEND_MINUTES);
+        
+        // 4. DB 저장 (dirty checking)
+        
+        // 5. 이벤트 발행
+        eventPublisher.publish(new AuctionExtendedEvent(
+                auctionId,
+                auctionItem.getAuctionEndTime()  // 새로운 종료 시간
+        ));
     }
+
+    /**
+     * 자동 연장 필요 여부 확인
+     */
+    public boolean needsExtension(Long auctionId, LocalDateTime bidTime) {
+        // 1. 경매 조회
+        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        
+        // 2. 종료 시간과 입찰 시간 차이 계산
+        java.time.Duration remaining = java.time.Duration.between(
+                bidTime, 
+                auctionItem.getAuctionEndTime()
+        );
+        
+        // 3. AuctionPolicy.AUTO_EXTEND_THRESHOLD_MINUTES (5분) 이내면 true
+        return remaining.toMinutes() <= AuctionPolicy.AUTO_EXTEND_THRESHOLD_MINUTES;
+    }
+
+    /**
+     * 연장 가능 여부 검증
+     */
+    private void validateExtendable(AuctionItem auctionItem) {
+        // ACTIVE 상태인지 확인
+        if (auctionItem.getStatus() != com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.ACTIVE) {
+            throw new com.fourtune.auction.global.error.exception.BusinessException(
+                    com.fourtune.auction.global.error.ErrorCode.AUCTION_NOT_ACTIVE
+            );
+        }
+        
+        // TODO: 연장 횟수 제한 추가 (선택사항)
+        // 현재는 무제한 연장 가능
+    }
+
 }
