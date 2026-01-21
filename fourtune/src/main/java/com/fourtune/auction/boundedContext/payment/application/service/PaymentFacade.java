@@ -49,8 +49,8 @@ public class PaymentFacade {
         return paymentSupport.findPlatformWallet();
     }
 
-    public PaymentExecutionResult confirmPayment(String paymentKey, Long orderId, Long amount) {
-        return paymentConfirmUseCase.confirmPayment(paymentKey, orderId, amount);
+    public PaymentExecutionResult confirmPayment(String paymentKey, String orderNo, Long amount) {
+        return paymentConfirmUseCase.confirmPayment(paymentKey, orderNo, amount);
     }
 
     public Long getBalance(Long userId) {

@@ -2,6 +2,8 @@ package com.fourtune.auction.boundedContext.payment.adapter.out.external;
 
 import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionResult;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentGatewayPort;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,11 +56,11 @@ public class TossPaymentAdapter implements PaymentGatewayPort {
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 return new PaymentExecutionResult(paymentKey, orderId, amount, true);
             } else {
-                throw new RuntimeException("Toss 결제 승인 실패: " + response.getStatusCode());
+                throw new BusinessException(ErrorCode.PAYMENT_PG_FAILED);
             }
         } catch (Exception e) {
             log.error("Toss Confirm API 호출 중 에러 발생: {}", e.getMessage());
-            throw new RuntimeException("PG사 연동 오류: " + e.getMessage());
+            throw new BusinessException(ErrorCode.PAYMENT_PG_SERVER_ERROR);
         }
     }
 
@@ -86,7 +88,7 @@ public class TossPaymentAdapter implements PaymentGatewayPort {
             log.info("Toss 결제 취소 성공: paymentKey={}, reason={}", paymentKey, reason);
         } catch (Exception e) {
             log.error("CRITICAL: Toss 결제 취소 실패 (수동 확인 필요). paymentKey={}, error={}", paymentKey, e.getMessage());
-            throw new RuntimeException("PG사 취소 연동 오류");
+            throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
         }
     }
 

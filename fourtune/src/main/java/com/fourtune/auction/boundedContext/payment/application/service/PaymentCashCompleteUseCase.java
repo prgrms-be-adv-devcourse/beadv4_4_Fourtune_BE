@@ -4,6 +4,8 @@ import com.fourtune.auction.boundedContext.payment.domain.constant.PaymentStatus
 import com.fourtune.auction.boundedContext.payment.domain.entity.Payment;
 import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentRepository;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
@@ -24,8 +26,12 @@ public class PaymentCashCompleteUseCase {
 
     @Transactional
     public void cashComplete(OrderDto orderDto, Long pgAmount, String paymentKey) {
-        Wallet customerWallet = paymentSupport.findWalletByUserId(orderDto.getUserId()).orElseThrow();
-        Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow();
+        Wallet customerWallet = paymentSupport.findWalletByUserId(orderDto.getUserId()).orElseThrow(
+                () -> new BusinessException(ErrorCode.PAYMENT_WALLET_NOT_FOUND)
+        );
+        Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow(
+                () -> new BusinessException(ErrorCode.PAYMENT_SYSTEM_WALLET_NOT_FOUND)
+        );
 
         if (pgAmount > 0) {
             customerWallet.credit(
@@ -83,6 +89,7 @@ public class PaymentCashCompleteUseCase {
                             orderDto.getPrice() - customerWallet.getBalance()
                     )
             );
+            throw new BusinessException(ErrorCode.PAYMENT_WALLET_INSUFFICIENT_BALANCE);
         }
     }
 }

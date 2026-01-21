@@ -3,6 +3,8 @@ package com.fourtune.auction.boundedContext.payment.application.service;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.shared.settlement.dto.SettlementDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,10 +16,14 @@ public class CompleteSettlementUseCase {
 
         public Wallet settlementCashComplete(SettlementDto dto){
                 // payee가 이번달 정산받을 금액이 들어있는 dto를 참고하여 현금 이동해주기
-                Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow();
+                Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow(
+                        () -> new BusinessException(ErrorCode.PAYMENT_SYSTEM_WALLET_NOT_FOUND)
+                );
 
                 if(dto.getPayeeEmail().equals(CashPolicy.PLATFORM_REVENUE_USER_EMAIL)){
-                        Wallet platformWallet = paymentSupport.findPlatformWallet().orElseThrow();
+                        Wallet platformWallet = paymentSupport.findPlatformWallet().orElseThrow(
+                                () -> new BusinessException(ErrorCode.PAYMENT_PLATFORM_WALLET_NOT_FOUND)
+                        );
 
 
                         systemWallet.debit(
@@ -37,7 +43,9 @@ public class CompleteSettlementUseCase {
                         return platformWallet;
                 }
                 else{
-                        Wallet payeeWallet = paymentSupport.findWalletByUserEmail(dto.getPayeeEmail()).orElseThrow();
+                        Wallet payeeWallet = paymentSupport.findWalletByUserEmail(dto.getPayeeEmail()).orElseThrow(
+                                () -> new BusinessException(ErrorCode.PAYMENT_WALLET_NOT_FOUND)
+                        );
 
                         systemWallet.debit(
                                 dto.getAmount(),

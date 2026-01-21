@@ -80,7 +80,33 @@ public enum ErrorCode {
     WATCHLIST_LIMIT_EXCEEDED(400, "W003", "관심상품 최대 등록 개수를 초과했습니다."),
     CANNOT_ADD_OWN_AUCTION(400, "W004", "본인 경매는 관심상품에 등록할 수 없습니다."),
     WATCHLIST_AUCTION_NOT_ACTIVE(400, "W005", "진행 중인 경매만 관심상품에 등록할 수 있습니다."),
-    
+
+// [1] Wallet Group (지갑 관련) - Code Range: P1xx
+    PAYMENT_WALLET_NOT_FOUND(404, "P101", "존재하지 않는 지갑입니다."),
+    PAYMENT_WALLET_INSUFFICIENT_BALANCE(400, "P102", "지갑 잔액이 부족합니다."),
+// [2] User Group (결제 사용자 관련) - Code Range: P2xx
+    PAYMENT_USER_NOT_FOUND(404, "P201", "결제 사용자 정보를 찾을 수 없습니다."),
+    PAYMENT_USER_BLOCKED(403, "P202", "결제가 차단된 사용자입니다."),
+    PAYMENT_USER_WITHDRAWN(400, "P203", "탈퇴한 사용자입니다."),
+// [3] Payment Core Group (결제 트랜잭션, PG) - Code Range: P3xx
+// 3-1. 요청 검증
+    PAYMENT_NOT_FOUND(404, "P301", "존재하지 않는 결제 정보입니다."),
+    PAYMENT_AMOUNT_MISMATCH(400, "P302", "주문 금액과 결제 금액이 일치하지 않습니다."),
+    PAYMENT_INVALID_CURRENCY(400, "P303", "지원하지 않는 통화입니다."),
+    // 3-2. 상태 처리
+    PAYMENT_ALREADY_PROCESSED(409, "P304", "이미 처리된 결제 건입니다."),
+    PAYMENT_ALREADY_CANCELED(409, "P305", "이미 취소된 결제 건입니다."),
+    PAYMENT_NOT_PAID_YET(400, "P306", "아직 결제가 완료되지 않은 상태입니다."),
+
+    PAYMENT_SYSTEM_WALLET_NOT_FOUND(500, "P105", "시스템 지갑을 찾을 수 없습니다. (관리자 문의 필요)"),
+    PAYMENT_PLATFORM_WALLET_NOT_FOUND(500, "P106", "플랫폼 지갑을 찾을 수 없습니다. (관리자 문의 필요)"),
+    // 3-3. PG사 외부 연동
+    PAYMENT_PG_FAILED(502, "P307", "PG사 결제 승인에 실패했습니다."),
+    PAYMENT_PG_SERVER_ERROR(502, "P308", "PG사 시스템 장애로 결제를 진행할 수 없습니다."),
+    PAYMENT_PG_REFUND_FAILED(502, "P504", "PG사 결제 취소 요청에 실패했습니다."),
+    PAYMENT_AUCTION_ORDER_NOT_FOUND(404, "P312", "해당 경매(주문) 정보를 찾을 수 없습니다."),
+    PAYMENT_AUCTION_SERVICE_ERROR(502, "P313", "경매 서비스와의 통신에 실패하여 주문 정보를 가져올 수 없습니다."),
+
     //JwtToken(토큰 관련)
     EXPIRED_ACCESS_TOKEN(401, "T001", "ACCESS 토큰이 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(401, "TOO2", "REFRESH 토큰이 만료되었습니다."),
