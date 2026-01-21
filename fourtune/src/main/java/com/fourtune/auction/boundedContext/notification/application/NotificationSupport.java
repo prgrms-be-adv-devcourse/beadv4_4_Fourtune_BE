@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -36,8 +37,16 @@ public class NotificationSupport {
         return notificationRepository.save(notification);
     }
 
+    public NotificationUser saveNotificationUser(NotificationUser notificationUser){
+        return notificationUserRepository.save(notificationUser);
+    }
+
     public void delete(Notification notification){
         notificationRepository.delete(notification);
+    }
+
+    public Optional<NotificationUser> findOptionalByUserId(Long userId) {
+        return notificationUserRepository.findById(userId);
     }
 
 }

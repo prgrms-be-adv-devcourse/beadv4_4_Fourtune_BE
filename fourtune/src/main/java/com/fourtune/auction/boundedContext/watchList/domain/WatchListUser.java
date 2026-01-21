@@ -4,6 +4,7 @@ import com.fourtune.auction.shared.user.domain.ReplicaUser;
 import com.fourtune.auction.shared.watchList.dto.WatchListUserDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class WatchListUser extends ReplicaUser {
 
+    @Builder
     public WatchListUser(
             Long id,
             String email,
@@ -23,9 +25,10 @@ public class WatchListUser extends ReplicaUser {
             String phoneNumber,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
-            LocalDateTime deletedAt
+            LocalDateTime deletedAt,
+            String status
     ){
-        super(id, email, nickname, password, phoneNumber, createdAt, updatedAt, deletedAt);
+        super(id, email, nickname, password, phoneNumber, createdAt, updatedAt, deletedAt, status);
     }
 
     public WatchListUserDto toDto(){
@@ -35,6 +38,10 @@ public class WatchListUser extends ReplicaUser {
                 getUpdatedAt(),
                 getNickname()
         );
+    }
+
+    public void syncProfile(String nickname, String email, String status) {
+        super.updateInfo(nickname, email, status);
     }
 
 }

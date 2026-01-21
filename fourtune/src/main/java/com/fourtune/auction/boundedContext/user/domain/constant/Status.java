@@ -11,4 +11,8 @@ public enum Status {
     SUSPENDED("탈퇴");
 
     private final String description;
+
+    public String parseToString(){
+        return description;
+    }
 }
