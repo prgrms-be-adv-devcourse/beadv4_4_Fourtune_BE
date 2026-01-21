@@ -4,6 +4,8 @@ import com.fourtune.auction.boundedContext.auction.application.service.AuctionFa
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionSupport;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
+import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.shared.auction.event.AuctionStartedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,6 +26,7 @@ public class AuctionScheduler {
 
     private final AuctionFacade auctionFacade;
     private final AuctionSupport auctionSupport;
+    private final EventPublisher eventPublisher;
 
     /**
      * 만료된 경매 종료 처리
@@ -58,6 +61,16 @@ public class AuctionScheduler {
                 try {
                     auction.start();
                     auctionSupport.save(auction);
+                    
+                    // 경매 시작 이벤트 발행 (관심상품 알림용)
+                    eventPublisher.publish(new AuctionStartedEvent(
+                            auction.getId(),
+                            auction.getTitle(),
+                            auction.getSellerId(),
+                            auction.getStartPrice(),
+                            auction.getAuctionEndTime()
+                    ));
+                    
                     startedCount++;
                     log.debug("경매 ID {} 시작 처리 완료", auction.getId());
                 } catch (Exception e) {
