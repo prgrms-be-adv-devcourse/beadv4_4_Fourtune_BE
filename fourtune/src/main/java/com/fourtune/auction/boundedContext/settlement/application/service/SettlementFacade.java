@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.settlement.application.service;
 
 import com.fourtune.auction.boundedContext.settlement.domain.entity.Settlement;
+import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementCandidatedItem;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
 import com.fourtune.auction.shared.settlement.dto.SettlementUserDto;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -59,5 +61,9 @@ public class SettlementFacade {
     @Transactional
     public int completeSettlementsChunk(int size){
         return completeSettlementChunkUseCase.completeSettlementsChunk(size);
+    }
+
+    public List<SettlementCandidatedItem> findSettlementCandidatedItems(Long payeeId) {
+        return settlementSupport.findSettlementCandidatedItems(payeeId);
     }
 }
