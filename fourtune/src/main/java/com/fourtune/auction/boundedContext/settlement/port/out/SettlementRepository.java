@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface SettlementRepository extends JpaRepository<Settlement, Long> {
     List<Settlement> findAllByPayee(SettlementUser payee);
 
+    List<Settlement> findSettlementsByPayee_IdOrderBySettledAtDesc(Long userId);
+
     List<Settlement> findFirstByPayeeIdAndSettledAtIsNotNullOrderByCreatedAtDesc(Long payeeId);
 
     Optional<Settlement> findByPayeeAndSettledAtIsNull(SettlementUser payee);

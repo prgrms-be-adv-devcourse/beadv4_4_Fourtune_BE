@@ -8,6 +8,8 @@ import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUs
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementCandidatedItemRepository;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementRepository;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementUserRepository;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -50,7 +52,9 @@ public class CollectSettlementItemChunkUseCase {
             List<SettlementCandidatedItem> candidateItems = entry.getValue();
 
             // 해당 유저의 활성 정산서(Settlement) 조회
-            Settlement settlement = findActiveSettlement(payeeUser).orElseThrow();
+            Settlement settlement = findActiveSettlement(payeeUser).orElseThrow(
+                    () -> new BusinessException(ErrorCode.SETTLEMENT_ACTIVE_NOT_FOUND)
+                    );
 
             // 아이템 리스트를 순회하며 SettlementItem 생성 및 연결
             for (SettlementCandidatedItem item : candidateItems) {
@@ -84,12 +88,19 @@ public class CollectSettlementItemChunkUseCase {
                 .minusDays(SettlementPolicy.SETTLEMENT_WAITING_DAYS.getValue())
                 .toLocalDate()
                 .atStartOfDay();
-
+        // 아직 정산과 연결되지 않고, 결제일 =< (현재-구매확정소요일) 구매확정일이 지나거나 된, 정산 후보를 payee와 id 오름차순
         return settlementCandidatedItemRepository
                 .findBySettlementItemIsNullAndPaymentDateIsBeforeOrderByPayeeAscIdAsc(
                         minDate,
                         PageRequest.of(0, size)
                 );
+
+//        return settlementCandidatedItemRepository
+//                .findBySettlementItemIsNullAndPaymentDateIsBeforeOrderByPayeeAscIdAsc(
+//                        LocalDateTime.now(),
+//                        PageRequest.of(0, size)
+//                );
+
     }
 
 

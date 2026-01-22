@@ -1,19 +1,13 @@
 package com.fourtune.auction.boundedContext.settlement.application.service;
 
-import com.fourtune.auction.boundedContext.auction.domain.entity.Order;
-import com.fourtune.auction.boundedContext.settlement.adapter.in.web.dto.SettlementDto;
 import com.fourtune.auction.boundedContext.settlement.domain.constant.SettlementEventType;
 import com.fourtune.auction.boundedContext.settlement.domain.constant.SettlementPolicy;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementCandidatedItem;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementCandidatedItemRepository;
-import com.fourtune.auction.boundedContext.settlement.port.out.SettlementUserRepository;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @RequiredArgsConstructor
 @Service

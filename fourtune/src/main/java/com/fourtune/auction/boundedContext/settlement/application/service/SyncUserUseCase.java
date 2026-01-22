@@ -5,6 +5,7 @@ import com.fourtune.auction.boundedContext.settlement.port.out.SettlementUserRep
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.shared.settlement.dto.SettlementUserDto;
 import com.fourtune.auction.shared.settlement.event.SettlementUserCreatedEvent;
+import com.fourtune.auction.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,19 +15,20 @@ public class SyncUserUseCase {
     private final SettlementUserRepository settlementUserRepository;
     private final EventPublisher eventPublisher;
 
-    public SettlementUser syncUser(SettlementUserDto user) {
-        boolean isNew = !settlementUserRepository.existsById(user.getId());
+    public SettlementUser syncUser(UserResponse user) {
+        boolean isNew = !settlementUserRepository.existsById(user.id());
 
         SettlementUser newUser = settlementUserRepository.save(
                 new SettlementUser(
-                        user.getId(),
-                        user.getEmail(),
-                        user.getNickname(),
+                        user.id(),
+                        user.email(),
+                        user.nickname(),
                         "",
-                        user.getPhoneNumber(),
-                        user.getCreatedAt(),
-                        user.getUpdatedAt(),
-                        user.getDeletedAt()
+                        "",
+                        user.createdAt(),
+                        user.updatedAt(),
+                        null,
+                        user.status()
                 )
         );
 

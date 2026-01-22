@@ -10,4 +10,6 @@ import java.util.List;
 
 public interface SettlementCandidatedItemRepository extends JpaRepository<SettlementCandidatedItem, Long> {
     List<SettlementCandidatedItem> findBySettlementItemIsNullAndPaymentDateIsBeforeOrderByPayeeAscIdAsc(LocalDateTime minDate, PageRequest of);
+
+    List<SettlementCandidatedItem> findByPayee_Id(Long payeeId);
 }
