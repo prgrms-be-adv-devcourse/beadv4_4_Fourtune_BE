@@ -1,4 +1,4 @@
-package com.fourtune.auction.shared.notification.fcmToken.dto;
+package com.fourtune.auction.shared.fcmToken.dto;
 
 import lombok.Builder;
 

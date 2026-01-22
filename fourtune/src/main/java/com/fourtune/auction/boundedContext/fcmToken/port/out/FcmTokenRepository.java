@@ -1,6 +1,6 @@
-package com.fourtune.auction.boundedContext.notification.port.out.fcmToken;
+package com.fourtune.auction.boundedContext.fcmToken.port.out;
 
-import com.fourtune.auction.boundedContext.notification.domain.fcmToken.FcmToken;
+import com.fourtune.auction.boundedContext.fcmToken.domain.FcmToken;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.notification.domain.fcmToken;
+package com.fourtune.auction.boundedContext.fcmToken.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
