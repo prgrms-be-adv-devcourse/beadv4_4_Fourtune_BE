@@ -5,6 +5,8 @@ import com.fourtune.auction.boundedContext.notification.domain.Notification;
 import com.fourtune.auction.boundedContext.notification.domain.NotificationUser;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
+import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.shared.notification.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import java.util.List;
 public class NotificationCreateUseCase {
 
     private final NotificationSupport notificationSupport;
+    private final EventPublisher eventPublisher;
 
     @Transactional
     public void bidPlaceToSeller(Long sellerId, Long bidderId, Long auctionId, NotificationType type){
@@ -64,6 +67,8 @@ public class NotificationCreateUseCase {
 
         notificationSupport.save(notification);
         log.info("알림 생성 완료 - Receiver: {}, Type: {}", receiverId, type);
+
+        eventPublisher.publish(new NotificationEvent(receiverId, notification.getTitle(), notification.getContent(), relatedUrl));
     }
 
 }
