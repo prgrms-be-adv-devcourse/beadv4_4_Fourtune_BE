@@ -3,12 +3,14 @@ package com.fourtune.auction.boundedContext.settlement.adapter.in.scheduler;
 import com.fourtune.auction.boundedContext.settlement.application.service.SettlementFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component
+@EnableScheduling
 public class SettlementScheduler {
 
     private final SettlementFacade settlementFacade;

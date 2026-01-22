@@ -13,7 +13,6 @@ import static lombok.AccessLevel.PROTECTED;
 
 @MappedSuperclass
 @Getter
-@Setter/*(value = PROTECTED)*/
 @NoArgsConstructor
 public abstract class ReplicaUser extends BaseUser {
 
@@ -24,8 +23,23 @@ public abstract class ReplicaUser extends BaseUser {
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 
-    @Version
-    private Long version;
+    public ReplicaUser(
+            Long id,
+            String email,
+            String nickname,
+            String password,
+            String phoneNumber,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt,
+            LocalDateTime deletedAt,
+            String status
+    ) {
+        super(email, nickname, password, phoneNumber, status);
+        this.id = id;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.deletedAt = deletedAt;
+    }
 
     public ReplicaUser(
             Long id,
@@ -36,7 +50,7 @@ public abstract class ReplicaUser extends BaseUser {
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
             LocalDateTime deletedAt
-    ) {
+    ){
         super(email, nickname, password, phoneNumber);
         this.id = id;
         this.createdAt = createdAt;

@@ -1,7 +1,10 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionPolicy;
+import com.fourtune.auction.boundedContext.auction.domain.constant.BidPolicy;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.shared.auction.event.AuctionExtendedEvent;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ public class AuctionExtendUseCase {
 
     private final AuctionSupport auctionSupport;
     private final EventPublisher eventPublisher;
+    private final BidPolicy bidPolicy;
 
     /**
      * 경매 자동 연장
@@ -68,13 +72,13 @@ public class AuctionExtendUseCase {
     private void validateExtendable(AuctionItem auctionItem) {
         // ACTIVE 상태인지 확인
         if (auctionItem.getStatus() != com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.ACTIVE) {
-            throw new com.fourtune.auction.global.error.exception.BusinessException(
-                    com.fourtune.auction.global.error.ErrorCode.AUCTION_NOT_ACTIVE
-            );
+            throw new BusinessException(ErrorCode.AUCTION_NOT_ACTIVE);
         }
         
-        // TODO: 연장 횟수 제한 추가 (선택사항)
-        // 현재는 무제한 연장 가능
+        // 연장 횟수 제한 확인
+        if (auctionItem.getExtensionCount() >= bidPolicy.getMaxAutoExtendCount()) {
+            throw new BusinessException(ErrorCode.AUCTION_MAX_EXTENSION_REACHED);
+        }
     }
 
 }

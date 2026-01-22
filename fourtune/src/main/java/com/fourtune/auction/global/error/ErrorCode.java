@@ -12,6 +12,7 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED(405, "C002", "허용되지 않은 메서드입니다."),
     INTERNAL_SERVER_ERROR(500, "C003", "서버 내부 오류가 발생했습니다."),
     FORBIDDEN(403, "C004", "권한이 없습니다."),
+    MISSING_INPUT_VALUE(400, "C005", "필수 입력값이 누락되었습니다."),
 
     //User(유저 관련)
     USER_NOT_FOUND(404, "U001", "존재하지 않는 사용자입니다."),
@@ -35,7 +36,8 @@ public enum ErrorCode {
     AUCTION_INVALID_DURATION(400, "A006", "유효하지 않은 경매 기간입니다."),
     AUCTION_HAS_BIDS(400, "A007", "입찰이 있는 경매는 삭제할 수 없습니다."),
     AUCTION_IN_PROGRESS(400, "A008", "진행중인 경매는 삭제할 수 없습니다."),
-    
+    AUCTION_MAX_EXTENSION_REACHED(400, "A009", "최대 연장 횟수에 도달했습니다."),
+
     //Bid(입찰 관련)
     BID_NOT_FOUND(404, "B001", "존재하지 않는 입찰입니다."),
     BID_AMOUNT_TOO_LOW(400, "B002", "입찰가가 현재가보다 낮습니다."),
@@ -69,48 +71,31 @@ public enum ErrorCode {
     AUCTION_NOT_ACTIVE(400, "BN003", "진행 중인 경매가 아닙니다."),
     CANNOT_ADD_TO_CART(400, "BN004", "장바구니에 담을 수 없는 경매 상품입니다."),
     CANNOT_BUY_OWN_ITEM(400, "BN005", "자신의 상품은 구매할 수 없습니다."),
-    
-    //Notification(알림 관련)
-    NOTIFICATION_NOT_FOUND(404, "N001", "존재하지 않는 알림입니다."),
-    NOTIFICATION_ALREADY_READ(400, "N002", "이미 읽은 알림입니다."),
-    
-    //Watchlist(관심상품 관련)
-    WATCHLIST_NOT_FOUND(404, "W001", "존재하지 않는 관심상품입니다."),
-    WATCHLIST_ALREADY_EXISTS(409, "W002", "이미 관심상품에 등록되어 있습니다."),
-    WATCHLIST_LIMIT_EXCEEDED(400, "W003", "관심상품 최대 등록 개수를 초과했습니다."),
-    CANNOT_ADD_OWN_AUCTION(400, "W004", "본인 경매는 관심상품에 등록할 수 없습니다."),
-    WATCHLIST_AUCTION_NOT_ACTIVE(400, "W005", "진행 중인 경매만 관심상품에 등록할 수 있습니다."),
 
-// [1] Wallet Group (지갑 관련) - Code Range: P1xx
-    PAYMENT_WALLET_NOT_FOUND(404, "P101", "존재하지 않는 지갑입니다."),
-    PAYMENT_WALLET_INSUFFICIENT_BALANCE(400, "P102", "지갑 잔액이 부족합니다."),
-// [2] User Group (결제 사용자 관련) - Code Range: P2xx
-    PAYMENT_USER_NOT_FOUND(404, "P201", "결제 사용자 정보를 찾을 수 없습니다."),
-    PAYMENT_USER_BLOCKED(403, "P202", "결제가 차단된 사용자입니다."),
-    PAYMENT_USER_WITHDRAWN(400, "P203", "탈퇴한 사용자입니다."),
-// [3] Payment Core Group (결제 트랜잭션, PG) - Code Range: P3xx
-// 3-1. 요청 검증
-    PAYMENT_NOT_FOUND(404, "P301", "존재하지 않는 결제 정보입니다."),
-    PAYMENT_AMOUNT_MISMATCH(400, "P302", "주문 금액과 결제 금액이 일치하지 않습니다."),
-    // 3-2. 상태 처리 TODO: 조회한 주문 데이터 상태 검증하기
-    PAYMENT_ALREADY_PROCESSED(409, "P304", "이미 처리된 결제 건입니다."),
-    PAYMENT_ALREADY_CANCELED(409, "P305", "이미 취소된 결제 건입니다."),
-    PAYMENT_NOT_PAID_YET(400, "P306", "아직 결제가 완료되지 않은 상태입니다."),
-
-    PAYMENT_SYSTEM_WALLET_NOT_FOUND(500, "P105", "시스템 지갑을 찾을 수 없습니다. (관리자 문의 필요)"),
-    PAYMENT_PLATFORM_WALLET_NOT_FOUND(500, "P106", "플랫폼 지갑을 찾을 수 없습니다. (관리자 문의 필요)"),
-    // 3-3. PG사 외부 연동
-    PAYMENT_PG_FAILED(502, "P307", "PG사 결제 승인에 실패했습니다."),
-    PAYMENT_PG_SERVER_ERROR(502, "P308", "PG사 시스템 장애로 결제를 진행할 수 없습니다."),
-    PAYMENT_PG_REFUND_FAILED(502, "P504", "PG사 결제 취소 요청에 실패했습니다."),
-    PAYMENT_AUCTION_ORDER_NOT_FOUND(404, "P312", "해당 경매(주문) 정보를 찾을 수 없습니다."),
-    PAYMENT_AUCTION_SERVICE_ERROR(502, "P313", "경매 서비스와의 통신에 실패하여 주문 정보를 가져올 수 없습니다."),
+    // Search(검색 관련)
+    SEARCH_INVALID_CONDITION(400, "S001", "검색 조건이 올바르지 않습니다."),
+    SEARCH_DEEP_PAGING_NOT_ALLOWED(400, "S002", "너무 깊은 페이지는 조회할 수 없습니다."),
+    SEARCH_ENGINE_ERROR(500, "S003", "검색 처리 중 오류가 발생했습니다."),
 
     //JwtToken(토큰 관련)
     EXPIRED_ACCESS_TOKEN(401, "T001", "ACCESS 토큰이 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(401, "TOO2", "REFRESH 토큰이 만료되었습니다."),
     INVALID_REFRESH_TOKEN(401, "T003", "유효하지 않은 REFRESH 토큰입니다."),
-    REFRESH_TOKEN_MISMATCH(401, "T004", "리프레시 토큰이 일치하지 않습니다.(해킹 의심)");
+    REFRESH_TOKEN_MISMATCH(401, "T004", "리프레시 토큰이 일치하지 않습니다.(해킹 의심)"),
+
+    //Notification(알림 관련)
+    NOTIFICATION_NOT_FOUND(404, "N001", "존재하지 않는 알림입니다."),
+    NOT_NOTIFICATION_OWNER(403, "N002", "해당 알림에 대한 접근 권한이 없습니다."),
+    SETTING_NOT_FOUND(404, "N003", "알림 설정이 존재하지 않습니다."),
+
+    // Settlement(정산 관련)
+    SETTLEMENT_NOT_FOUND(404, "S001", "정산 정보를 찾을 수 없습니다."),
+    SETTLEMENT_ACTIVE_NOT_FOUND(404, "S002", "활성화된(정산 예정인) 정산서를 찾을 수 없습니다."),
+    SETTLEMENT_PROCESSING_FAILED(500, "S005", "정산 처리 중 오류가 발생했습니다."), // 송금 실패 등 내부 로직 오류
+
+    //Bid(입찰 관련)
+    SELF_BIDDING_NOT_ALLOWED(400, " B007", "판매자는 자신의 물건에 입찰할 수 없습니다.");
+
 
     private final int status;
     private final String code;

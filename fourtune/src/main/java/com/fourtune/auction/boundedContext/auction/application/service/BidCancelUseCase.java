@@ -4,9 +4,13 @@ import com.fourtune.auction.boundedContext.auction.domain.constant.BidStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
+import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.shared.auction.event.BidCanceledEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 /**
  * 입찰 취소 UseCase
@@ -19,6 +23,7 @@ public class BidCancelUseCase {
 
     private final BidSupport bidSupport;
     private final AuctionSupport auctionSupport;
+    private final EventPublisher eventPublisher;
 
     /**
      * 입찰 취소
@@ -36,6 +41,20 @@ public class BidCancelUseCase {
         
         // 4. 저장
         bidSupport.save(bid);
+        
+        // 5. 경매 정보 조회 (이벤트 발송용)
+        var auctionItem = auctionSupport.findByIdOrThrow(bid.getAuctionId());
+        
+        // 6. 이벤트 발송
+        eventPublisher.publish(new BidCanceledEvent(
+                bid.getId(),
+                bid.getAuctionId(),
+                auctionItem.getTitle(),
+                auctionItem.getSellerId(),
+                bid.getBidderId(),
+                bid.getBidAmount(),
+                LocalDateTime.now()
+        ));
     }
 
     /**

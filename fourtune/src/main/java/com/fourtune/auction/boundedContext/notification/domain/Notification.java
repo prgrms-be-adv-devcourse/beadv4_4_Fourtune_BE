@@ -1,109 +1,70 @@
 package com.fourtune.auction.boundedContext.notification.domain;
 
-import com.fourtune.auction.boundedContext.notification.constant.NotificationType;
-import com.fourtune.auction.global.common.BaseIdAndTime;
+import com.fourtune.auction.boundedContext.notification.domain.constant.NotificationType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
-/**
- * 알림 엔티티
- * - 사용자에게 발송된 알림 정보 관리
- * - 입찰, 낙찰, 결제, 관심상품 알림 등
- */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "notifications", indexes = {
-        @Index(name = "idx_notification_user_id", columnList = "userId"),
-        @Index(name = "idx_notification_is_read", columnList = "isRead"),
-        @Index(name = "idx_notification_created_at", columnList = "createdAt")
-})
-public class Notification extends BaseIdAndTime {
+@Table(name = "notifications")
+public class Notification {
 
-    @Column(nullable = false)
-    private Long userId;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private NotificationUser user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false)
     private NotificationType type;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false)
     private String content;
 
+    @Column
+    private String relatedUrl;
+
     @Column(nullable = false)
-    private boolean isRead = false;
+    private boolean isRead;
+
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime sendAt;
 
     private LocalDateTime readAt;
 
-    // 관련 엔티티 ID (선택적)
-    private Long relatedId;
-
     @Builder
-    private Notification(Long userId, NotificationType type, String title, String content, 
-                         boolean isRead, Long relatedId) {
-        this.userId = userId;
+    public Notification(NotificationUser user, NotificationType type, String title, String content, String relatedUrl) {
+        this.user = user;
         this.type = type;
         this.title = title;
         this.content = content;
-        this.isRead = isRead;
-        this.relatedId = relatedId;
+        this.relatedUrl = relatedUrl;
+        this.isRead = false;
     }
 
-    // ==================== 정적 팩토리 메서드 ====================
-
-    /**
-     * 알림 생성
-     */
-    public static Notification create(Long userId, NotificationType type, String title, String content) {
-        return Notification.builder()
-                .userId(userId)
-                .type(type)
-                .title(title)
-                .content(content)
-                .isRead(false)
-                .build();
+    public void read() {
+        this.isRead = true;
+        this.readAt = LocalDateTime.now();
     }
 
-    /**
-     * 관련 ID 포함 알림 생성
-     */
-    public static Notification createWithRelatedId(Long userId, NotificationType type, 
-                                                    String title, String content, Long relatedId) {
-        return Notification.builder()
-                .userId(userId)
-                .type(type)
-                .title(title)
-                .content(content)
-                .isRead(false)
-                .relatedId(relatedId)
-                .build();
-    }
+    public boolean isOwnedBy(Long userId){
+        if(userId == null || this.user == null)
+            return false;
 
-    // ==================== 비즈니스 메서드 ====================
-
-    /**
-     * 알림 읽음 처리
-     */
-    public void markAsRead() {
-        if (!this.isRead) {
-            this.isRead = true;
-            this.readAt = LocalDateTime.now();
-        }
-    }
-
-    /**
-     * 읽음 여부 확인
-     */
-    public boolean isUnread() {
-        return !this.isRead;
+        return this.user.getId().equals(userId);
     }
 
 }

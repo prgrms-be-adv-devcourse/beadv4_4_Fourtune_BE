@@ -4,6 +4,7 @@ import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import com.fourtune.auction.global.common.BaseTimeEntity;
+import com.fourtune.auction.shared.user.dto.UserResponse;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,7 +33,7 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, length = 20)
+    @Column
     private String phoneNumber;
 
     @Builder.Default
@@ -62,6 +63,14 @@ public class User extends BaseTimeEntity {
         this.password = newEncodedPassword;
     }
 
+    public void changeStatus(Status status){
+        this.status = status;
+    }
+
+    public void updateNickname(String nickname){
+        this.nickname = nickname;
+    }
+
     public void withdraw() {
         this.status = Status.SUSPENDED;
         this.deletedAt = LocalDateTime.now();
@@ -75,6 +84,17 @@ public class User extends BaseTimeEntity {
         if(this.status == Status.ACTIVE) return true;
 
         return false;
+    }
+
+    public UserResponse toDto(){
+        return new UserResponse(
+                this.id,
+                this.getCreatedAt(),
+                this.getUpdatedAt(),
+                this.email,
+                this.nickname,
+                this.status.parseToString()
+        );
     }
 
 }
