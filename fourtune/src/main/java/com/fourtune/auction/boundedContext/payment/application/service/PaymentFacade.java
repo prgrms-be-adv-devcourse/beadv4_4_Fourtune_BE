@@ -50,8 +50,8 @@ public class PaymentFacade {
         return paymentSupport.findPlatformWallet();
     }
 
-    public PaymentExecutionResult confirmPayment(String paymentKey, String orderNo, Long amount) {
-        return paymentConfirmUseCase.confirmPayment(paymentKey, orderNo, amount);
+    public PaymentExecutionResult confirmPayment(String paymentKey, String orderNo, Long amount, Long userId) {
+        return paymentConfirmUseCase.confirmPayment(paymentKey, orderNo, amount, userId);
     }
 
     @Transactional(readOnly = true)

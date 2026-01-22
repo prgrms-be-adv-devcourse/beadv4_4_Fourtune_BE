@@ -25,7 +25,7 @@ public class PaymentConfirmUseCase {
         private final EventPublisher eventPublisher;
 
         @Transactional
-        public PaymentExecutionResult confirmPayment(String paymentKey, String orderNo, Long pgAmount) {
+        public PaymentExecutionResult confirmPayment(String paymentKey, String orderNo, Long pgAmount, Long userId) {
 
                 // 1. [외부] Toss 결제 승인 요청 (트랜잭션 밖에서 수행 권장)
                 // 여기가 실패하면 그냥 에러 던지고 끝남 (돈 안 나감)
@@ -33,7 +33,7 @@ public class PaymentConfirmUseCase {
 
                 // 2. [내부] 시스템 검증 및 자산 이동 (보상 트랜잭션 필요 구간)
                 try {
-                        processInternalSystemLogic(orderNo, pgAmount, paymentKey);
+                        processInternalSystemLogic(orderNo, pgAmount, paymentKey, userId);
                 } catch (Exception e) {
                         log.error("내부 시스템 처리 실패. 결제 승인 취소를 진행합니다. orderId={}, error={}", orderNo, e.getMessage());
 
@@ -46,8 +46,8 @@ public class PaymentConfirmUseCase {
                                 eventPublisher.publish(new PaymentFailedEvent(
                                         "P311",
                                         "결제 취소 실패(관리자 문의)",
-                                        OrderDto.builder().orderNo(orderNo).build(),
-                                        OrderDto.builder().orderNo(orderNo).build().toOrderDetailResponse(),
+                                        OrderDto.builder().orderNo(orderNo).userId(userId).build(),
+                                        OrderDto.builder().orderNo(orderNo).userId(userId).build().toOrderDetailResponse(),
                                         pgAmount,
                                         0L
                                 ));
@@ -59,8 +59,8 @@ public class PaymentConfirmUseCase {
                         eventPublisher.publish(new PaymentFailedEvent(
                                 "500",
                                 "내부 시스템 오류로 결제가 취소되었습니다.",
-                                OrderDto.builder().orderNo(orderNo).build(),
-                                OrderDto.builder().orderNo(orderNo).build().toOrderDetailResponse(),
+                                OrderDto.builder().orderNo(orderNo).userId(userId).build(),
+                                OrderDto.builder().orderNo(orderNo).userId(userId).build().toOrderDetailResponse(),
                                 pgAmount,
                                 0L
                         ));
@@ -72,12 +72,16 @@ public class PaymentConfirmUseCase {
 
         // 내부 로직은 데이터 정합성을 위해 트랜잭션으로 묶음
         // 현재: 충전결제x, 주문금액 = pg결제금액
-        protected void processInternalSystemLogic(String orderNo, Long pgAmount, String paymentKey) {
+        protected void processInternalSystemLogic(String orderNo, Long pgAmount, String paymentKey, Long userId) {
                 // 2-1. 경매 주문 정보 확인
                 OrderDto orderDto = auctionPort.getOrder(orderNo); // AuctionPort 인터페이스 필요
 
                 if (orderDto == null) {
                         throw new BusinessException(ErrorCode.PAYMENT_AUCTION_ORDER_NOT_FOUND);
+                }
+
+                if(!orderDto.getUserId().equals(userId)){
+                        throw new BusinessException(ErrorCode.PAYMENT_PURCHASE_NOT_ALLOWED);
                 }
 
                 if(!orderDto.getOrderStatus().equals(OrderStatus.PENDING)){

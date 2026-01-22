@@ -99,7 +99,7 @@ public enum ErrorCode {
     PAYMENT_SYSTEM_WALLET_NOT_FOUND(500, "P105", "시스템 지갑을 찾을 수 없습니다. (관리자 문의 필요)"),
     PAYMENT_PLATFORM_WALLET_NOT_FOUND(500, "P106", "플랫폼 지갑을 찾을 수 없습니다. (관리자 문의 필요)"),
     PAYMENT_USER_NOT_FOUND(404, "P201", "존재하지 않는 결제 사용자입니다."),
-
+    PAYMENT_PURCHASE_NOT_ALLOWED(400, "P203", "주문자와 결제 사용자가 다릅니다."),
     PAYMENT_NOT_FOUND(404, "P301", "존재하지 않는 결제 정보입니다."),
     PAYMENT_AMOUNT_MISMATCH(400, "P302", "주문 금액과 결제 금액이 일치하지 않습니다."),
     PAYMENT_ORDER_NOT_PENDING(400, "P305", "결제 대기 상태가 아닌 결제 요청입니다."),

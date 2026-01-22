@@ -36,8 +36,9 @@ public class PaymentController {
       */
 
 
-    @PostMapping("/toss/confirm")
+    @PostMapping("/toss/confirm/{userId}")
     public void tossPaymentSuccess(
+            @PathVariable Long userId,
             @RequestBody ConfirmPaymentRequest confirmPaymentRequest,
             HttpServletResponse response
     ) {
@@ -45,7 +46,7 @@ public class PaymentController {
         Long amount = confirmPaymentRequest.amount();
         String paymentKey = confirmPaymentRequest.paymentKey();
 
-        paymentFacade.confirmPayment(paymentKey, orderNo, amount);
+        paymentFacade.confirmPayment(paymentKey, orderNo, amount, userId);
     }
 
     /**
