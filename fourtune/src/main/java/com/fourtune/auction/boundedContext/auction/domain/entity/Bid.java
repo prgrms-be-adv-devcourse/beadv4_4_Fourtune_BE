@@ -156,8 +156,8 @@ public class Bid extends BaseTimeEntity {
         LocalDateTime now = LocalDateTime.now();
         Duration duration = Duration.between(this.getCreatedAt(), now);
         
-        // BidPolicy에서 설정한 시간(분) 이내인지 확인
-        return duration.toMinutes() <= 5; // TODO: BidPolicy에서 가져오기
+        // 입찰 후 5분 이내인지 확인 (고정값)
+        return duration.toMinutes() <= 5;
     }
     
     /**

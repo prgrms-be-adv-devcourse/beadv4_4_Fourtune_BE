@@ -21,12 +21,12 @@ public class NotificationCreateUseCase {
 
     @Transactional
     public void bidPlaceToSeller(Long sellerId, Long bidderId, Long auctionId, NotificationType type){
-        if (!sellerId.equals(bidderId)) {
-            String relatedUrl = "/auctions/" + auctionId;
-            createNotification(sellerId, relatedUrl, type);
+        if (sellerId.equals(bidderId)) {
+            throw new BusinessException(ErrorCode.SELF_BIDDING_NOT_ALLOWED);
         }
-
-        throw new BusinessException(ErrorCode.SELF_BIDDING_NOT_ALLOWED);
+        
+        String relatedUrl = "/auctions/" + auctionId;
+        createNotification(sellerId, relatedUrl, type);
     }
 
     @Transactional
@@ -43,6 +43,12 @@ public class NotificationCreateUseCase {
         for (Long userId : userIds) {
             createNotification(userId, relatedUrl, type);
         }
+    }
+
+    @Transactional
+    public void createSettlementNotification(Long receiverId, Long settlementId, NotificationType type) {
+        String relatedUrl = "/settlements/" + settlementId;
+        createNotification(receiverId, relatedUrl, type);
     }
 
     private void createNotification(Long receiverId, String relatedUrl, NotificationType type){

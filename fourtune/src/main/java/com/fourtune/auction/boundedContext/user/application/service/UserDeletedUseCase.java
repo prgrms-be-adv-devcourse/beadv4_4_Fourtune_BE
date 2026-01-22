@@ -4,7 +4,9 @@ import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
+import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.shared.user.dto.UserWithdrawRequest;
+import com.fourtune.auction.shared.user.event.UserDeletedEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +18,7 @@ public class UserDeletedUseCase {
 
     private final UserSupport userSupport;
     private final PasswordEncoder passwordEncoder;
+    private final EventPublisher eventPublisher;
 
     @Transactional
     public void userDelete(Long userId, UserWithdrawRequest request) {
@@ -29,6 +32,9 @@ public class UserDeletedUseCase {
         validateCanWithdraw(user);
 
         user.withdraw();
+        
+        // 이벤트 발송
+        eventPublisher.publish(new UserDeletedEvent(user.toDto()));
     }
 
     private void validatePassword(String rawPassword, String encodedPassword) {
