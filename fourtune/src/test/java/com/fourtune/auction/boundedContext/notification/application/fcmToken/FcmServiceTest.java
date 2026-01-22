@@ -5,6 +5,9 @@ import com.fourtune.auction.boundedContext.notification.port.out.NotificationSet
 
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
+import com.google.firebase.messaging.BatchResponse;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.MulticastMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 @SpringBootTest
 @Transactional // 테스트 끝나면 DB 깔끔하게 롤백 (데이터 남기지 않음)
@@ -27,7 +34,13 @@ class FcmServiceTest {
     @Test
     @DisplayName("시나리오: 유저 가입부터 알림 수신까지 한 방에 테스트")
     @Rollback(false)
-    void fullScenarioTest() {
+    void fullScenarioTest() throws FirebaseMessagingException {
+        BatchResponse mockResponse = mock(BatchResponse.class);
+
+        given(mockResponse.getFailureCount()).willReturn(0);
+        given(mockResponse.getSuccessCount()).willReturn(1);
+        given(firebaseMessaging.sendEachForMulticast(any(MulticastMessage.class)))
+                .willReturn(mockResponse);
 
         User user = User.builder()
                 .email("tester@example.com")
