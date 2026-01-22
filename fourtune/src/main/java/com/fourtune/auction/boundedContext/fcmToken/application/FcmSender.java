@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.notification.application.fcmToken;
+package com.fourtune.auction.boundedContext.fcmToken.application;
 
 import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;

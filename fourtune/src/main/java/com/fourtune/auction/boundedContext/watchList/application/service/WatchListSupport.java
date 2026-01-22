@@ -38,12 +38,12 @@ public class WatchListSupport {
 
     public WatchListUser findByUserId(Long userId){
         return watchListUserRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("동기화된 유저 정보가 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.WATCH_LIST_USER_NOT_FOUND));
     }
 
     public WatchListAuctionItem findByAuctionItemId(Long auctionId){
         return watchListItemsRepository.findById(auctionId)
-                .orElseThrow(() -> new IllegalArgumentException("동기화된 유저 정보가 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.WATCH_LIST_AUCTION_ITEM_NOT_FOUND));
     }
 
     public WatchList save(WatchList watchList){
@@ -68,6 +68,11 @@ public class WatchListSupport {
 
     public List<Long> findAllByAuctionItemId(Long auctionItemId){
         return watchListRepository.findAllByAuctionItemId(auctionItemId);
+    }
+
+    public WatchList findWatchListByAuctionItemIdAndUserId(Long userId, Long auctionItemId){
+        return watchListRepository.findByUserIdAndAuctionItemId(userId, auctionItemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.WATCH_LIST_NOT_FOUND));
     }
 
 }
