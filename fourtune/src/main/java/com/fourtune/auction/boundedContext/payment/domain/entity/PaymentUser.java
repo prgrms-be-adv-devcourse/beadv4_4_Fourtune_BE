@@ -14,13 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PaymentUser extends ReplicaUser {
 
-    @Column(nullable = false)
-    private String role;
-
-    @Column(nullable = false)
-    private String status;
-
-    @Builder
+   @Builder
     public PaymentUser(
             Long id,
             String email,
@@ -30,12 +24,8 @@ public class PaymentUser extends ReplicaUser {
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
             LocalDateTime deletedAt,
-            String role,
-            String status
-                       ){
-        super(id, email, nickname, password, phoneNumber, createdAt, updatedAt, deletedAt);
-        this.role = role;
-        this.status = status;
+            String status){
+        super(id, email, nickname, password, phoneNumber, createdAt, updatedAt, deletedAt, status);
     }
 
     public PaymentUserDto toDto(){
@@ -48,8 +38,7 @@ public class PaymentUser extends ReplicaUser {
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
                 .deletedAt(this.getDeletedAt())
-                .role(this.role)
-                .status(this.status)
+                .status(this.getStatus())
                 .build();
     }
 }

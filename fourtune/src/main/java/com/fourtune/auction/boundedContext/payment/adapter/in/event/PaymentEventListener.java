@@ -3,6 +3,9 @@ package com.fourtune.auction.boundedContext.payment.adapter.in.event;
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
 import com.fourtune.auction.shared.payment.event.PaymentUserCreatedEvent;
 import com.fourtune.auction.shared.settlement.event.SettlementCompletedEvent;
+import com.fourtune.auction.shared.user.event.UserDeletedEvent;
+import com.fourtune.auction.shared.user.event.UserJoinedEvent;
+import com.fourtune.auction.shared.user.event.UserModifiedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -17,18 +20,23 @@ import static org.springframework.transaction.event.TransactionPhase.AFTER_COMMI
 public class PaymentEventListener {
     private final PaymentFacade paymentFacade;
 
-    //TODO: User Joined
-//    @TransactionalEventListener(phase = AFTER_COMMIT)
-//    @Transactional(propagation = REQUIRES_NEW)
-//    public void handle(UserCreatedEvent event) {
-//        paymentFacade.syncUser(evet.getUserDto());
-//    }
-    //TODO: User Updated
-//    @TransactionalEventListener(phase = AFTER_COMMIT)
-//    @Transactional(propagation = REQUIRES_NEW)
-//    public void handle(UserUpdatedEvent event) {
-//        paymentFacade.syncUser(event.getUserDto());
-//    }
+    @TransactionalEventListener(phase = AFTER_COMMIT)
+    @Transactional(propagation = REQUIRES_NEW)
+    public void handle(UserJoinedEvent event) {
+        paymentFacade.syncUser(event.getUser());
+    }
+
+    @TransactionalEventListener(phase = AFTER_COMMIT)
+    @Transactional(propagation = REQUIRES_NEW)
+    public void handle(UserModifiedEvent event) {
+        paymentFacade.syncUser(event.getUser());
+    }
+
+    @TransactionalEventListener(phase = AFTER_COMMIT)
+    @Transactional(propagation = REQUIRES_NEW)
+    public void handle(UserDeletedEvent event) {
+        paymentFacade.deleteUser(event.getUser());
+    }
 
     @TransactionalEventListener(phase = AFTER_COMMIT)
     @Transactional(propagation = REQUIRES_NEW)

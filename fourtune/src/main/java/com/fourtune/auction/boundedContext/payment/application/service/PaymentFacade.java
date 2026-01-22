@@ -5,6 +5,7 @@ import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionRes
 import com.fourtune.auction.boundedContext.payment.port.out.CashLogRepository;
 import com.fourtune.auction.shared.payment.dto.PaymentUserDto;
 import com.fourtune.auction.shared.settlement.dto.SettlementDto;
+import com.fourtune.auction.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,26 +54,32 @@ public class PaymentFacade {
         return paymentConfirmUseCase.confirmPayment(paymentKey, orderNo, amount);
     }
 
+    @Transactional(readOnly = true)
     public Long getBalance(Long userId) {
         return paymentSupport.getWalletBalanceByUserId(userId);
     }
 
+    @Transactional(readOnly = true)
     public List<CashLog> getCashLogList(Long userId) {
         return paymentSupport.getCashLogList(userId);
     }
 
+    @Transactional(readOnly = true)
     public List<CashLog> getRecentCashLogs(Long userId, int size){
         return paymentSupport.findSliceCashLogs(userId, 0, size);
     }
 
+    @Transactional(readOnly = true)
     public List<CashLog> findSliceCashLogs(Long userId, int page, int size){
         return paymentSupport.findSliceCashLogs(userId, page, size);
     }
 
+    @Transactional(readOnly = true)
     public List<Payment> findPaymentListByUserId(Long userId){
         return paymentSupport.findPaymentListByUserId(userId);
     }
 
+    @Transactional(readOnly = true)
     public List<Refund> findRefundListByUserId(Long userId){
         return paymentSupport.findRefundListByUserId(userId);
     }
@@ -88,7 +95,12 @@ public class PaymentFacade {
     }
 
     @Transactional
-    public PaymentUser syncUser(PaymentUserDto dto){
-        return paymentSyncUserUseCase.syncUser(dto);
+    public PaymentUser syncUser(UserResponse userResponse){
+        return paymentSyncUserUseCase.syncUser(userResponse);
+    }
+
+    @Transactional
+    public void deleteUser(UserResponse user) {
+        paymentSupport.deleteUser(user);
     }
 }
