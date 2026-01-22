@@ -121,9 +121,9 @@ jobs:
 
       - name: Make Firebase Key File
         run: |
-          mkdir -p ./src/main/resources
+          mkdir -p ./fourtune/src/main/resources
 
-          echo '${{ secrets.FIREBASE_KEY }}' > ./src/main/resources/firebase-service-account.json
+          echo '${{ secrets.FIREBASE_KEY }}' > ./fourtune/src/main/resources/firebase-service-account.json
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./fourtune/gradlew
