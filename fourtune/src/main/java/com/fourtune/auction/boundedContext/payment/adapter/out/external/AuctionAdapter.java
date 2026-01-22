@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -23,21 +25,35 @@ public class AuctionAdapter implements AuctionPort {
     @Override
     public OrderDto getOrder(String orderNo) {
         try {
-            // 예시: GET /api/internal/auction/orders/{orderId}
-            String url = AUCTION_MODULE_URL + orderNo;
+//            // 예시: GET /api/internal/auction/orders/{orderId}
+//            String url = AUCTION_MODULE_URL + orderNo;
+//
+//            OrderDto orderDto = webclient.webClient()
+//                    .get()
+//                    .uri(url)
+//                    .retrieve()
+//                    .bodyToMono(OrderDto.class)
+//                    .block();
+//
+//            if (orderDto == null) {
+//                throw new BusinessException(ErrorCode.PAYMENT_AUCTION_ORDER_NOT_FOUND);
+//            }
 
-            OrderDto orderDto = webclient.webClient()
-                    .get()
-                    .uri(url)
-                    .retrieve()
-                    .bodyToMono(OrderDto.class)
-                    .block();
-
-            if (orderDto == null) {
-                throw new BusinessException(ErrorCode.PAYMENT_AUCTION_ORDER_NOT_FOUND);
-            }
-
-            return orderDto;
+//            return orderDto;
+            return OrderDto.builder()
+                    .orderId(1L)
+                    .orderNo("ORDER-TEST-0001")
+                    .price(5000L)
+                    .userId(1L)
+                    .items(List.of(
+                            OrderDto.OrderItem.builder()
+                            .sellerId(2L)
+                            .price(5000L)
+                            .itemId(1L)
+                            .itemName("테스트 아이템")
+                            .build())
+                    )
+                    .build();
 
         } catch (Exception e) {
             log.error("경매 모듈 연동 실패: {}", e.getMessage());

@@ -92,8 +92,7 @@ public enum ErrorCode {
 // 3-1. 요청 검증
     PAYMENT_NOT_FOUND(404, "P301", "존재하지 않는 결제 정보입니다."),
     PAYMENT_AMOUNT_MISMATCH(400, "P302", "주문 금액과 결제 금액이 일치하지 않습니다."),
-    PAYMENT_INVALID_CURRENCY(400, "P303", "지원하지 않는 통화입니다."),
-    // 3-2. 상태 처리
+    // 3-2. 상태 처리 TODO: 조회한 주문 데이터 상태 검증하기
     PAYMENT_ALREADY_PROCESSED(409, "P304", "이미 처리된 결제 건입니다."),
     PAYMENT_ALREADY_CANCELED(409, "P305", "이미 취소된 결제 건입니다."),
     PAYMENT_NOT_PAID_YET(400, "P306", "아직 결제가 완료되지 않은 상태입니다."),

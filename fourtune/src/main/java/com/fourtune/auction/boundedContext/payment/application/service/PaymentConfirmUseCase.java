@@ -69,6 +69,8 @@ public class PaymentConfirmUseCase {
                         throw new BusinessException(ErrorCode.PAYMENT_AUCTION_ORDER_NOT_FOUND);
                 }
 
+                //TODO: 조회한 주문이 결제 대기 상태가 맞는 지 확인
+
                 if (!orderDto.getPrice().equals(pgAmount)) { // 가격 불일치
                         throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
                 }
