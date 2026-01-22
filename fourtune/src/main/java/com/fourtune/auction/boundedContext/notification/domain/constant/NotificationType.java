@@ -9,6 +9,8 @@ public enum NotificationType {
     AUCTION_SUCCESS("낙찰 성공!", "'%s' 상품을 %s원에 낙찰받았습니다. 축하합니다!"),
     AUCTION_FAILED("아쉬운 패찰", "'%s' 상품 낙찰에 실패했습니다."),
     PAYMENT("결제 알림", "결제 만료일이 1일 남았습니다"),
+    PAYMENT_SUCCESS("결제 성공", "'%s' 상품의 결제가 완료되었습니다."),
+    PAYMENT_FAILED("결제 실패", "'%s' 상품의 결제에 실패했습니다."),
     WATCHLIST_START("관심상품 시작 5분 전", "'%s' 상품 경매 시작 5분 전입니다."),
     WATCHLIST_END("관심상품 종료 5분 전", "'%s' 상품 경매 종료 5분 전입니다."),
     SETTLEMENT_SUCCESS("정산 성공", "'%s' 상품의 정산을 성공했습니다."),

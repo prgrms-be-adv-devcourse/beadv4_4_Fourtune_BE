@@ -36,6 +36,7 @@ public enum ErrorCode {
     AUCTION_INVALID_DURATION(400, "A006", "유효하지 않은 경매 기간입니다."),
     AUCTION_HAS_BIDS(400, "A007", "입찰이 있는 경매는 삭제할 수 없습니다."),
     AUCTION_IN_PROGRESS(400, "A008", "진행중인 경매는 삭제할 수 없습니다."),
+    AUCTION_MAX_EXTENSION_REACHED(400, "A009", "최대 연장 횟수에 도달했습니다."),
 
     //Bid(입찰 관련)
     BID_NOT_FOUND(404, "B001", "존재하지 않는 입찰입니다."),

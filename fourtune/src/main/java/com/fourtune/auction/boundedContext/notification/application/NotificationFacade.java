@@ -6,12 +6,14 @@ import com.fourtune.auction.shared.notification.dto.NotificationSettingsResponse
 import com.fourtune.auction.shared.notification.dto.NotificationSettingsUpdateRequest;
 import com.fourtune.auction.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationFacade {
 
     private final NotificationCreateUseCase notificationCreateUseCase;
@@ -54,6 +56,10 @@ public class NotificationFacade {
 
     public void createGroupNotification(List<Long> users, Long auctionItemId, NotificationType type){
         notificationCreateUseCase.createGroupNotification(users, auctionItemId, type);
+    }
+
+    public void createSettlementNotification(Long receiverId, Long settlementId, NotificationType type){
+        notificationCreateUseCase.createSettlementNotification(receiverId, settlementId, type);
     }
 
 }

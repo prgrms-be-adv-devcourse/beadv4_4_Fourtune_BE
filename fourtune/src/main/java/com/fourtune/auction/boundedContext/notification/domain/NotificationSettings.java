@@ -3,14 +3,13 @@ package com.fourtune.auction.boundedContext.notification.domain;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor
 @Table(name = "notification_settings")
 public class NotificationSettings extends BaseTimeEntity {
 
@@ -21,16 +20,17 @@ public class NotificationSettings extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    private boolean isBidPushEnabled;
-    private boolean isPaymentPushEnabled;
-    private boolean isWatchListPushEnabled;
+    @Builder.Default
+    private boolean isBidPushEnabled = true;
 
-    @Builder
+    @Builder.Default
+    private boolean isPaymentPushEnabled = true;
+
+    @Builder.Default
+    private boolean isWatchListPushEnabled = true;
+
     public NotificationSettings(User user) {
         this.user = user;
-        this.isBidPushEnabled = true;
-        this.isPaymentPushEnabled = true;
-        this.isWatchListPushEnabled = true;
     }
 
     public void update(boolean isBidPushEnabled, boolean isPaymentPushEnabled, boolean isWatchListPushEnabled) {

@@ -33,7 +33,7 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, length = 20)
+    @Column
     private String phoneNumber;
 
     @Builder.Default

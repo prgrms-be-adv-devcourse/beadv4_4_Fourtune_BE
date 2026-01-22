@@ -81,6 +81,9 @@ public class AuctionItem extends BaseTimeEntity {
     @Builder.Default
     private Integer bidCount = 0;
     
+    @Builder.Default
+    private Integer extensionCount = 0;
+    
     @OneToMany(mappedBy = "auctionItem", cascade = ALL, orphanRemoval = true)
     @Builder.Default
     private List<ItemImage> images = new ArrayList<>();
@@ -132,6 +135,7 @@ public class AuctionItem extends BaseTimeEntity {
                 .viewCount(0L)
                 .watchlistCount(0)
                 .bidCount(0)
+                .extensionCount(0)
                 .images(new ArrayList<>())
                 .build();
     }
@@ -241,6 +245,14 @@ public class AuctionItem extends BaseTimeEntity {
         }
         
         this.auctionEndTime = this.auctionEndTime.plusMinutes(minutes);
+        this.extensionCount++;
+    }
+    
+    /**
+     * 연장 횟수 조회
+     */
+    public Integer getExtensionCount() {
+        return this.extensionCount;
     }
     
     /**
