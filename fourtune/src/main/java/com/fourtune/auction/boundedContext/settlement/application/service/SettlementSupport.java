@@ -36,6 +36,11 @@ public class SettlementSupport {
         return settlementRepository.findFirstByPayeeIdAndSettledAtIsNotNullOrderByCreatedAtDesc(userId);
     }
 
+    public List<Settlement> findAllByPayeeIdOrderBySettledAtDesc(Long userId){
+        return settlementRepository.findSettlementsByPayee_IdOrderBySettledAtDesc(userId);
+    }
+
+
     public List<SettlementCandidatedItem> findSettlementCandidatedItems(Long payeeId) {
         return settlementCandidatedItemRepository.findByPayee_Id(payeeId);
     }

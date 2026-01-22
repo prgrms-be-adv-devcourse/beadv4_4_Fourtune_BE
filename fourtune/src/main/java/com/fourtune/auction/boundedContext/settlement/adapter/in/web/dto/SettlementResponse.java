@@ -1,13 +1,18 @@
 package com.fourtune.auction.boundedContext.settlement.adapter.in.web.dto;
 
-import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementItem;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class SettlementDto {
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SettlementResponse {
     private Long id;                // 정산서 ID
     private Long payeeId;           // 정산 받는 사람 ID
     private String payeeEmail;      // 정산 받는 사람 이메일
@@ -19,6 +24,8 @@ public class SettlementDto {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Item {
         private Long itemId;
         private String eventType;   // 정산 타입 (SALE, COMMISSION 등)
@@ -27,5 +34,6 @@ public class SettlementDto {
         private Long amount;        // 금액
         private String payerName;   // 송금자 이름 (있을 경우)
         private LocalDateTime paymentDate; // 결제 발생 일시
+        private List<Item> items;       // 정산 상세 항목 리스트
     }
 }

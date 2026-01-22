@@ -1,5 +1,7 @@
 package com.fourtune.auction.boundedContext.settlement.application.service;
 
+import com.fourtune.auction.boundedContext.settlement.adapter.in.web.dto.SettlementCandidatedItemDto;
+import com.fourtune.auction.boundedContext.settlement.adapter.in.web.dto.SettlementResponse;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.Settlement;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementCandidatedItem;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
@@ -24,28 +26,43 @@ public class SettlementFacade {
     private final CollectSettlementItemChunkUseCase collectSettlementItemChunkUseCase;
     private final CompleteSettlementChunkUseCase completeSettlementChunkUseCase;
 
+    @Transactional(readOnly = true)
     public Optional<SettlementUser> findSystemHoldingUser(){
         return settlementSupport.findSystemHoldingUser();
     }
 
+    @Transactional(readOnly = true)
     public Optional<SettlementUser> findPlatformRevenueUser(){
         return settlementSupport.findPlatformRevenueUser();
     }
 
+    @Transactional(readOnly = true)
     public Optional<SettlementUser> findUserById(Long userId){
         return settlementSupport.findUserById(userId);
     }
 
+    @Transactional
     public Settlement createSettlement(Long userId){
         return createSettlementUseCase.createSettlement(userId);
     }
 
+    @Transactional
     public SettlementUser syncUser(SettlementUserDto dto){
         return syncUserUseCase.syncUser(dto);
     }
 
-    public Settlement findLatestSettlementByUserId(Long userId){
-        return settlementSupport.findLatestSettlementByUserId(userId).getFirst();
+    @Transactional(readOnly = true)
+    public SettlementResponse findLatestSettlementByUserId(Long userId){
+        Settlement settlement = settlementSupport.findLatestSettlementByUserId(userId).getFirst();
+        return settlement.toResponse();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SettlementResponse> findAllSettlementsByPayeeId(Long userId){
+        List<Settlement> settlements = settlementSupport.findAllByPayeeIdOrderBySettledAtDesc(userId);
+        return settlements.stream()
+                .map(Settlement::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -63,7 +80,15 @@ public class SettlementFacade {
         return completeSettlementChunkUseCase.completeSettlementsChunk(size);
     }
 
-    public List<SettlementCandidatedItem> findSettlementCandidatedItems(Long payeeId) {
-        return settlementSupport.findSettlementCandidatedItems(payeeId);
+    @Transactional(readOnly = true)
+    public List<SettlementCandidatedItemDto> findSettlementCandidatedItems(Long payeeId) {
+
+        List<SettlementCandidatedItem> pendingsOfPayee = settlementSupport.findSettlementCandidatedItems(payeeId);
+
+        List<SettlementCandidatedItemDto> dtos = pendingsOfPayee.stream()
+                .map(SettlementCandidatedItemDto::new)
+                .collect(Collectors.toList());
+
+        return dtos;
     }
 }

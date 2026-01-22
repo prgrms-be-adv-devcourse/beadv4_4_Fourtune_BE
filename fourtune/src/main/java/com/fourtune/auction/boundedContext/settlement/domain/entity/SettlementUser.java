@@ -22,8 +22,9 @@ public class SettlementUser extends ReplicaUser{
                           String phoneNumber,
                           LocalDateTime createdAt,
                           LocalDateTime updatedAt,
-                          LocalDateTime deletedAt){
-        super(id, email, nickname, password, phoneNumber, createdAt, updatedAt, deletedAt);
+                          LocalDateTime deletedAt,
+                          String status){
+        super(id, email, nickname, password, phoneNumber, createdAt, updatedAt, deletedAt, status);
     }
 
     public SettlementUserDto toDto() {
@@ -34,7 +35,8 @@ public class SettlementUser extends ReplicaUser{
                 getPhoneNumber(),
                 getCreatedAt(),
                 getUpdatedAt(),
-                getDeletedAt()
+                getDeletedAt(),
+                getStatus()
         );
     }
 

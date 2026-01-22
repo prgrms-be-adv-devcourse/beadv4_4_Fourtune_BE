@@ -26,7 +26,8 @@ public class SyncUserUseCase {
                         user.getPhoneNumber(),
                         user.getCreatedAt(),
                         user.getUpdatedAt(),
-                        user.getDeletedAt()
+                        user.getDeletedAt(),
+                        user.getStatus()
                 )
         );
 
