@@ -87,6 +87,11 @@ public enum ErrorCode {
     NOT_NOTIFICATION_OWNER(403, "N002", "해당 알림에 대한 접근 권한이 없습니다."),
     SETTING_NOT_FOUND(404, "N003", "알림 설정이 존재하지 않습니다."),
 
+    // Settlement(정산 관련)
+    SETTLEMENT_NOT_FOUND(404, "S001", "정산 정보를 찾을 수 없습니다."),
+    SETTLEMENT_ACTIVE_NOT_FOUND(404, "S002", "활성화된(정산 예정인) 정산서를 찾을 수 없습니다."),
+    SETTLEMENT_PROCESSING_FAILED(500, "S005", "정산 처리 중 오류가 발생했습니다."), // 송금 실패 등 내부 로직 오류
+
     //Bid(입찰 관련)
     SELF_BIDDING_NOT_ALLOWED(400, " B007", "판매자는 자신의 물건에 입찰할 수 없습니다.");
 

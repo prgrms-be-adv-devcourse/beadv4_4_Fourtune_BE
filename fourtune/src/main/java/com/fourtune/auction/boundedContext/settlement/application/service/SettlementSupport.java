@@ -44,4 +44,8 @@ public class SettlementSupport {
     public List<SettlementCandidatedItem> findSettlementCandidatedItems(Long payeeId) {
         return settlementCandidatedItemRepository.findByPayee_Id(payeeId);
     }
+
+    public void deleteUserById(Long id) {
+        settlementUserRepository.deleteById(id);
+    }
 }

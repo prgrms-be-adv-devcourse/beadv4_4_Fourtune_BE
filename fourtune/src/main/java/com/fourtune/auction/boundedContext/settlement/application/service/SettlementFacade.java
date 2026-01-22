@@ -7,6 +7,7 @@ import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementCa
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
 import com.fourtune.auction.shared.settlement.dto.SettlementUserDto;
+import com.fourtune.auction.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,8 +48,8 @@ public class SettlementFacade {
     }
 
     @Transactional
-    public SettlementUser syncUser(SettlementUserDto dto){
-        return syncUserUseCase.syncUser(dto);
+    public SettlementUser syncUser(UserResponse userResponse){
+        return syncUserUseCase.syncUser(userResponse);
     }
 
     @Transactional(readOnly = true)
@@ -90,5 +91,10 @@ public class SettlementFacade {
                 .collect(Collectors.toList());
 
         return dtos;
+    }
+
+    @Transactional
+    public void deleteUser(UserResponse user) {
+        settlementSupport.deleteUserById(user.id());
     }
 }
