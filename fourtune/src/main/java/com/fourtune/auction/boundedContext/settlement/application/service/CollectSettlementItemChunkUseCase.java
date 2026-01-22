@@ -53,7 +53,7 @@ public class CollectSettlementItemChunkUseCase {
 
             // 해당 유저의 활성 정산서(Settlement) 조회
             Settlement settlement = findActiveSettlement(payeeUser).orElseThrow(
-                    () -> new BusinessException(ErrorCode.ACTIVE_SETTLEMENT_NOT_FOUND)
+                    () -> new BusinessException(ErrorCode.SETTLEMENT_ACTIVE_NOT_FOUND)
                     );
 
             // 아이템 리스트를 순회하며 SettlementItem 생성 및 연결
