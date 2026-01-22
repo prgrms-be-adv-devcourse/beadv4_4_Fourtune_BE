@@ -4,9 +4,11 @@
 //import com.fourtune.auction.boundedContext.notification.application.NotificationSettingsService;
 //import com.fourtune.auction.boundedContext.notification.domain.constant.NotificationType;
 //import com.fourtune.auction.shared.auction.event.AuctionClosedEvent;
+//import com.fourtune.auction.shared.settlement.event.SettlementCompletedEvent;
 //import com.fourtune.auction.shared.user.event.UserDeletedEvent;
 //import com.fourtune.auction.shared.user.event.UserJoinedEvent;
 //import com.fourtune.auction.shared.user.event.UserModifiedEvent;
+//import com.fourtune.auction.shared.user.event.UserSignedUpEvent;
 //import com.fourtune.auction.shared.watchList.event.WatchListAuctionEndedEvent;
 //import com.fourtune.auction.shared.watchList.event.WatchListAuctionStartedEvent;
 //import lombok.RequiredArgsConstructor;
@@ -90,6 +92,13 @@
 //    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 //    public void handleWatchListAuctionEndEvent(WatchListAuctionEndedEvent event){
 //        notificationFacade.createGroupNotification(event.getUsers(), event.getAuctionItemId(), NotificationType.WATCHLIST_END);
+//    }
+//
+//    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+//    public void handleUserSignup(UserSignedUpEvent event) {
+//        log.info("📢 회원가입 이벤트 수신 - 알림 설정 생성 시작 (UserId: {})", event.userResponse().id());
+//
+//        notificationSettingsService.createNotificationSettings(event.userResponse());
 //    }
 //
 //}

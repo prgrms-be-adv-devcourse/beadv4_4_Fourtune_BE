@@ -1,10 +1,12 @@
 package com.fourtune.auction.boundedContext.notification.adapter.in.controller;
 
 import com.fourtune.auction.boundedContext.notification.application.NotificationFacade;
+import com.fourtune.auction.boundedContext.notification.application.fcmToken.FcmService;
 import com.fourtune.auction.shared.auth.dto.UserContext;
 import com.fourtune.auction.shared.notification.dto.NotificationResponseDto;
 import com.fourtune.auction.shared.notification.dto.NotificationSettingsResponse;
 import com.fourtune.auction.shared.notification.dto.NotificationSettingsUpdateRequest;
+import com.fourtune.auction.shared.notification.fcmToken.dto.FCMTokenRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import java.util.List;
 public class NotificationController {
 
     private final NotificationFacade notificationFacade;
+    private final FcmService fcmService;
 
     @GetMapping
     public ResponseEntity<List<NotificationResponseDto>> getMyNotifications(
@@ -67,6 +70,15 @@ public class NotificationController {
     ) {
         notificationFacade.updateSettings(userContext.id(), request);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/token")
+    public ResponseEntity<String> registerToken(
+            @AuthenticationPrincipal UserContext userContext,
+            @RequestBody FCMTokenRequest request
+    ) {
+        fcmService.saveToken(userContext.id(), request.token());
+        return ResponseEntity.ok("토큰 저장 완료");
     }
 
 }

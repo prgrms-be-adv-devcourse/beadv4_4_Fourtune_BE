@@ -6,12 +6,14 @@ import com.fourtune.auction.shared.notification.dto.NotificationSettingsResponse
 import com.fourtune.auction.shared.notification.dto.NotificationSettingsUpdateRequest;
 import com.fourtune.auction.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationFacade {
 
     private final NotificationCreateUseCase notificationCreateUseCase;
