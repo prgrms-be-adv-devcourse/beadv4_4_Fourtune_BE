@@ -88,4 +88,11 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
            "WHERE ci.cart.id = :cartId " +
            "AND ci.status = 'EXPIRED'")
     void deleteExpiredItemsByCartId(@Param("cartId") Long cartId);
+    
+    /**
+     * CartItem ID로 조회 (Cart를 함께 로드)
+     * LazyInitializationException 방지용
+     */
+    @Query("SELECT ci FROM CartItem ci JOIN FETCH ci.cart WHERE ci.id = :cartItemId")
+    Optional<CartItem> findByIdWithCart(@Param("cartItemId") Long cartItemId);
 }
