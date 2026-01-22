@@ -102,8 +102,7 @@ public enum ErrorCode {
 
     PAYMENT_NOT_FOUND(404, "P301", "존재하지 않는 결제 정보입니다."),
     PAYMENT_AMOUNT_MISMATCH(400, "P302", "주문 금액과 결제 금액이 일치하지 않습니다."),
-    PAYMENT_ALREADY_PROCESSED(409, "P304", "이미 처리된 결제 건입니다."),
-    PAYMENT_ALREADY_CANCELED(409, "P305", "이미 취소된 결제 건입니다."),
+    PAYMENT_ORDER_NOT_PENDING(400, "P305", "결제 대기 상태가 아닌 결제 요청입니다."),
 
     PAYMENT_PG_FAILED(502, "P307", "PG사 결제 승인에 실패했습니다."),
     PAYMENT_PG_SERVER_ERROR(502, "P308", "PG사 시스템 장애로 결제를 진행할 수 없습니다."),

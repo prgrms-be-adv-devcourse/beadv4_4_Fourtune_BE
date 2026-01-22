@@ -1,15 +1,20 @@
 package com.fourtune.auction.boundedContext.payment.adapter.out.external;
 
+import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
+import com.fourtune.auction.boundedContext.auction.domain.constant.OrderType;
 import com.fourtune.auction.boundedContext.payment.port.out.AuctionPort;
 import com.fourtune.auction.global.config.WebClientConfig;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
+import com.fourtune.auction.shared.auction.dto.OrderDetailResponse;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -40,20 +45,25 @@ public class AuctionAdapter implements AuctionPort {
 //            }
 
 //            return orderDto;
-            return OrderDto.builder()
-                    .orderId(1L)
-                    .orderNo("ORDER-TEST-0001")
-                    .price(5000L)
-                    .userId(1L)
-                    .items(List.of(
-                            OrderDto.OrderItem.builder()
-                            .sellerId(2L)
-                            .price(5000L)
-                            .itemId(1L)
-                            .itemName("테스트 아이템")
-                            .build())
-                    )
-                    .build();
+            OrderDetailResponse orderDetailResponse = new OrderDetailResponse(
+                                    1L,                             // id
+                                    "ORDER-TEST-0001",              // orderId
+                                    1L,                             // auctionId
+                                    "테스트 아이템",                  // auctionTitle
+                                    "http://localhost:8080/img",    // thumbnailUrl
+                                    1L,                             // winnerId
+                                    "구매자닉네임",                   // winnerNickname
+                                    2L,                             // sellerId
+                                    "판매자닉네임",                   // sellerNickname
+                                    BigDecimal.valueOf(5000),       // finalPrice
+                                    null,                           // orderType
+                                    OrderStatus.PENDING,          // status
+                                    null,             // paymentKey
+                                    null,            // paidAt
+                                    LocalDateTime.now()             // createdAt
+                            );
+            return OrderDto.from(orderDetailResponse);
+
 
         } catch (Exception e) {
             log.error("경매 모듈 연동 실패: {}", e.getMessage());

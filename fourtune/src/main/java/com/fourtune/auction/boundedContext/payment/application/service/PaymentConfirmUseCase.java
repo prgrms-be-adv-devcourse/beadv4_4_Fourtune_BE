@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
+import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
 import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionResult;
 import com.fourtune.auction.boundedContext.payment.port.out.AuctionPort;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentGatewayPort;
@@ -69,7 +70,9 @@ public class PaymentConfirmUseCase {
                         throw new BusinessException(ErrorCode.PAYMENT_AUCTION_ORDER_NOT_FOUND);
                 }
 
-                //TODO: 조회한 주문이 결제 대기 상태가 맞는 지 확인
+                if(!orderDto.getOrderStatus().equals(OrderStatus.PENDING)){
+                        throw new BusinessException(ErrorCode.PAYMENT_ORDER_NOT_PENDING);
+                }
 
                 if (!orderDto.getPrice().equals(pgAmount)) { // 가격 불일치
                         throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
