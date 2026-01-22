@@ -25,7 +25,7 @@ public class SettlementController {
     /**
      * 최근 정산 내역 조회
      */
-    @GetMapping("/{userId}/history")
+    @GetMapping("/{userId}/latest")
     public ResponseEntity<ApiResponse> getSettlementHistory(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(ApiResponse.success(
                 settlementFacade.findLatestSettlementByUserId(userId)
