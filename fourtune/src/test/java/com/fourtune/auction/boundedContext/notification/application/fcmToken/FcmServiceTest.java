@@ -2,7 +2,6 @@ package com.fourtune.auction.boundedContext.notification.application.fcmToken;
 
 import com.fourtune.auction.boundedContext.notification.domain.NotificationSettings;
 import com.fourtune.auction.boundedContext.notification.port.out.NotificationSettingsRepository;
-import com.fourtune.auction.boundedContext.notification.port.out.fcmToken.FcmTokenRepository;
 
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
@@ -11,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -20,6 +20,9 @@ class FcmServiceTest {
     @Autowired private FcmService fcmService;
     @Autowired private UserRepository userRepository;
     @Autowired private NotificationSettingsRepository settingsRepository;
+
+    @MockitoBean
+    private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
 
     @Test
     @DisplayName("시나리오: 유저 가입부터 알림 수신까지 한 방에 테스트")
