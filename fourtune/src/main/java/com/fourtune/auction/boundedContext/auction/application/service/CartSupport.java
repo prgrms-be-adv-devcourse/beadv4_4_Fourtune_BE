@@ -31,6 +31,13 @@ public class CartSupport {
     public Optional<Cart> findByUserId(Long userId) {
         return cartRepository.findByUserId(userId);
     }
+    
+    /**
+     * 사용자 ID로 장바구니 조회 (items 포함, LazyInitializationException 방지)
+     */
+    public Optional<Cart> findByUserIdWithItems(Long userId) {
+        return cartRepository.findByUserIdWithItems(userId);
+    }
 
     /**
      * 사용자 ID로 장바구니 조회 (없으면 생성)
@@ -62,6 +69,14 @@ public class CartSupport {
      */
     public CartItem findCartItemByIdOrThrow(Long cartItemId) {
         return cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
+    }
+    
+    /**
+     * 장바구니 아이템 ID로 조회 (Cart 포함, LazyInitializationException 방지)
+     */
+    public CartItem findCartItemByIdWithCartOrThrow(Long cartItemId) {
+        return cartItemRepository.findByIdWithCart(cartItemId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
     }
 

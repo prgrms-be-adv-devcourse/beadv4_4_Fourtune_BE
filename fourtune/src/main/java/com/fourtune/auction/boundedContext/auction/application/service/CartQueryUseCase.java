@@ -31,8 +31,8 @@ public class CartQueryUseCase {
      * 사용자의 장바구니 조회
      */
     public CartResponse getUserCart(Long userId) {
-        // 1. 장바구니 조회 (없으면 빈 응답 반환)
-        Optional<Cart> cartOpt = cartSupport.findByUserId(userId);
+        // 1. 장바구니 조회 (items 포함, LazyInitializationException 방지)
+        Optional<Cart> cartOpt = cartSupport.findByUserIdWithItems(userId);
         if (cartOpt.isEmpty()) {
             return createEmptyCartResponse(userId);
         }
@@ -56,8 +56,8 @@ public class CartQueryUseCase {
      * 장바구니 활성 아이템 개수 조회
      */
     public int getActiveItemCount(Long userId) {
-        // 1. 장바구니 조회
-        Optional<Cart> cartOpt = cartSupport.findByUserId(userId);
+        // 1. 장바구니 조회 (items 포함, LazyInitializationException 방지)
+        Optional<Cart> cartOpt = cartSupport.findByUserIdWithItems(userId);
         if (cartOpt.isEmpty()) {
             return 0;
         }
@@ -70,8 +70,8 @@ public class CartQueryUseCase {
      * 장바구니 총액 계산
      */
     public BigDecimal calculateTotalPrice(Long userId) {
-        // 1. 장바구니 조회
-        Optional<Cart> cartOpt = cartSupport.findByUserId(userId);
+        // 1. 장바구니 조회 (items 포함, LazyInitializationException 방지)
+        Optional<Cart> cartOpt = cartSupport.findByUserIdWithItems(userId);
         if (cartOpt.isEmpty()) {
             return BigDecimal.ZERO;
         }

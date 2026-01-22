@@ -32,8 +32,8 @@ public class CartBuyNowUseCase {
      */
     @Transactional
     public List<String> buyNowFromCart(Long userId, List<Long> cartItemIds) {
-        // 1. 장바구니 조회
-        Optional<Cart> cartOpt = cartSupport.findByUserId(userId);
+        // 1. 장바구니 조회 (items 포함, LazyInitializationException 방지)
+        Optional<Cart> cartOpt = cartSupport.findByUserIdWithItems(userId);
         if (cartOpt.isEmpty()) {
             throw new BusinessException(ErrorCode.CART_NOT_FOUND);
         }
@@ -43,8 +43,8 @@ public class CartBuyNowUseCase {
         
         // 2. 각 CartItem에 대해 즉시구매 처리
         for (Long cartItemId : cartItemIds) {
-            // 2-1. CartItem 조회
-            CartItem cartItem = cartSupport.findCartItemByIdOrThrow(cartItemId);
+            // 2-1. CartItem 조회 (Cart 포함, LazyInitializationException 방지)
+            CartItem cartItem = cartSupport.findCartItemByIdWithCartOrThrow(cartItemId);
             
             // 2-2. 본인의 장바구니인지 확인
             if (!cartItem.getCart().getId().equals(cart.getId())) {
@@ -80,7 +80,7 @@ public class CartBuyNowUseCase {
             }
         }
         
-        // 6. 장바구니 저장
+        // 6. 장바구니 저장 (cartItem 변경사항이 자동 반영됨)
         cartSupport.save(cart);
         
         return orderIds;
@@ -91,8 +91,8 @@ public class CartBuyNowUseCase {
      */
     @Transactional
     public List<String> buyNowAllCart(Long userId) {
-        // 1. 장바구니 조회
-        Optional<Cart> cartOpt = cartSupport.findByUserId(userId);
+        // 1. 장바구니 조회 (items 포함, LazyInitializationException 방지)
+        Optional<Cart> cartOpt = cartSupport.findByUserIdWithItems(userId);
         if (cartOpt.isEmpty()) {
             return List.of();
         }

@@ -36,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/tosspay.html").permitAll()
                         .requestMatchers("/", "/index.html" /*조회 검색 추가*/).permitAll()
                         .requestMatchers("/api/v1/search/**").permitAll()
+                        .requestMatchers("/api/v1/orders/**/complete").permitAll() // 결제 완료 콜백 (외부 결제사에서 호출)
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
