@@ -10,12 +10,10 @@ import java.time.LocalDateTime;
  */
 public record AuctionBuyNowEvent(
     Long auctionId,
+    Long sellerId,
     Long buyerId,
     BigDecimal buyNowPrice,
     String orderId,
     LocalDateTime buyNowTime
 ) {
-    // TODO: 이벤트 핸들러 구현
-    // - CartEventListener.handleAuctionBuyNow() (장바구니 아이템 만료)
-    // - NotificationEventListener.handleAuctionBuyNow() (알림 전송)
 }

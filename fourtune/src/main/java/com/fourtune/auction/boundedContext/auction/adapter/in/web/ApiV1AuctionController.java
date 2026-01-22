@@ -86,4 +86,18 @@ public class ApiV1AuctionController {
         auctionFacade.increaseViewCount(id);
         return ResponseEntity.ok().build();
     }
+    
+    /**
+     * 즉시구매 처리
+     * 경매 상세 페이지에서 "즉시구매" 버튼 클릭 시 호출
+     */
+    @PostMapping("/{id}/buy-now")
+    public ResponseEntity<String> buyNow(
+        @AuthenticationPrincipal UserContext user,
+        @PathVariable Long id
+    ) {
+        Long buyerId = user.id();
+        String orderId = auctionFacade.executeBuyNow(id, buyerId);
+        return ResponseEntity.ok(orderId);
+    }
 }

@@ -58,4 +58,8 @@ public class NotificationFacade {
         notificationCreateUseCase.createGroupNotification(users, auctionItemId, type);
     }
 
+    public void createSettlementNotification(Long receiverId, Long settlementId, NotificationType type){
+        notificationCreateUseCase.createSettlementNotification(receiverId, settlementId, type);
+    }
+
 }
