@@ -44,7 +44,12 @@ public class PaymentConfirmUseCase {
                                 log.error("CRITICAL: 결제 취소 실패! (수동 환불 필요) paymentKey={}, error={}", paymentKey, cancelEx.getMessage());
 
                                 eventPublisher.publish(new PaymentFailedEvent(
-                                        "P311", "결제 취소 실패(관리자 문의)", null, pgAmount, 0L
+                                        "P311",
+                                        "결제 취소 실패(관리자 문의)",
+                                        OrderDto.builder().orderNo(orderNo).build(),
+                                        OrderDto.builder().orderNo(orderNo).build().toOrderDetailResponse(),
+                                        pgAmount,
+                                        0L
                                 ));
 
                                 throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
@@ -52,7 +57,12 @@ public class PaymentConfirmUseCase {
 
                         // 실패 이벤트 발행
                         eventPublisher.publish(new PaymentFailedEvent(
-                                "500", "내부 시스템 오류로 결제가 취소되었습니다.", null, pgAmount, 0L
+                                "500",
+                                "내부 시스템 오류로 결제가 취소되었습니다.",
+                                OrderDto.builder().orderNo(orderNo).build(),
+                                OrderDto.builder().orderNo(orderNo).build().toOrderDetailResponse(),
+                                pgAmount,
+                                0L
                         ));
 
                         throw e; // 컨트롤러에게 예외 다시 던짐
