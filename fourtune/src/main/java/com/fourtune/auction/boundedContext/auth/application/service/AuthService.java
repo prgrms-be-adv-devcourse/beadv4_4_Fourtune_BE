@@ -4,10 +4,13 @@ import com.fourtune.auction.boundedContext.user.application.service.UserSupport;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
+import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.global.security.jwt.JwtTokenProvider;
 import com.fourtune.auction.shared.auth.dto.TokenResponse;
 import com.fourtune.auction.shared.user.dto.UserLoginRequest;
 
+import com.fourtune.auction.shared.user.dto.UserResponse;
+import com.fourtune.auction.shared.user.event.UserSignedUpEvent;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +27,12 @@ public class AuthService {
     private final UserSupport userSupport;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EventPublisher eventPublisher;
 
     @Transactional
     public TokenResponse login(UserLoginRequest request) {
         User user = userSupport.findActiveUserByEmailOrThrow(request.email());
+        UserResponse userResponse = UserResponse.from(user);
 
         validatePassword(request.password(), user.getPassword());
 
@@ -35,6 +40,8 @@ public class AuthService {
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
 
         user.updateRefreshToken(refreshToken);
+
+        eventPublisher.publish(new UserSignedUpEvent(userResponse));
 
         return TokenResponse.builder()
                 .grantType("Bearer")

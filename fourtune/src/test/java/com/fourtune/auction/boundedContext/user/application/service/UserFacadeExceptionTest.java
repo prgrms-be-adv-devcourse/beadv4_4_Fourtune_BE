@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -18,10 +19,18 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 @Transactional
 class UserFacadeExceptionTest {
 
-    @Autowired private UserFacade userFacade;
-    @Autowired private UserSupport userSupport;
+    @Autowired
+    private UserFacade userFacade;
+
+    @Autowired
+    private UserSupport userSupport;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @MockitoBean
+    private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
+
 
     @Test
     @DisplayName("로그인 시 비밀번호가 틀리면 LOGIN_INPUT_INVALID 예외가 발생한다")

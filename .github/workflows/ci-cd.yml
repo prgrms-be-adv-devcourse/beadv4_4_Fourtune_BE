@@ -118,7 +118,13 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: 'gradle'
-      
+
+      - name: Make Firebase Key File
+        run: |
+          mkdir -p ./fourtune/src/main/resources
+
+          echo '${{ secrets.FIREBASE_KEY }}' > ./fourtune/src/main/resources/firebase-service-account.json
+
       - name: Grant execute permission for gradlew
         run: chmod +x ./fourtune/gradlew
       

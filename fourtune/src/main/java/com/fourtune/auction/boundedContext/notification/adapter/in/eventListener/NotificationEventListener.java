@@ -92,12 +92,12 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleAuctionBuyNowEvent(AuctionBuyNowEvent event) {
-        log.info("즉시구매 이벤트 수신 - auctionId={}, buyerId={}, sellerId={}", 
+        log.info("즉시구매 이벤트 수신 - auctionId={}, buyerId={}, sellerId={}",
                 event.auctionId(), event.buyerId(), event.sellerId());
-        
+
         // 구매자에게 즉시구매 완료 알림
         notificationFacade.createNotification(event.buyerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
-        
+
         // 판매자에게 즉시구매 완료 알림
         notificationFacade.createNotification(event.sellerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
     }
@@ -105,9 +105,9 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleAuctionExtendedEvent(AuctionExtendedEvent event) {
-        log.info("경매 연장 이벤트 수신 - auctionId={}, newEndTime={}", 
+        log.info("경매 연장 이벤트 수신 - auctionId={}, newEndTime={}",
                 event.auctionId(), event.newEndTime());
-        
+
         // TODO: 경매 연장 시 관심상품 사용자들에게 알림 발송
         // 현재는 경매 연장 알림 타입이 없으므로, 향후 WatchList 조회 후 그룹 알림 발송 필요
         // notificationFacade.createGroupNotification(users, event.auctionId(), NotificationType.AUCTION_EXTENDED);
@@ -116,9 +116,9 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleBidCanceledEvent(BidCanceledEvent event) {
-        log.info("입찰 취소 이벤트 수신 - auctionId={}, bidderId={}, sellerId={}", 
+        log.info("입찰 취소 이벤트 수신 - auctionId={}, bidderId={}, sellerId={}",
                 event.auctionId(), event.bidderId(), event.sellerId());
-        
+
         // 판매자에게 입찰 취소 알림
         notificationFacade.createNotification(event.sellerId(), event.auctionId(), NotificationType.BID_RECEIVED);
     }
@@ -126,9 +126,9 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentSucceededEvent(PaymentSucceededEvent event) {
-        log.info("결제 성공 이벤트 수신 - orderId={}, userId={}", 
+        log.info("결제 성공 이벤트 수신 - orderId={}, userId={}",
                 event.getOrder().getOrderId(), event.getOrder().getUserId());
-        
+
         // 결제 성공 알림 (OrderDto의 items에서 첫 번째 item의 itemId를 auctionId로 사용)
         Long userId = event.getOrder().getUserId();
         if (event.getOrder().getItems() != null && !event.getOrder().getItems().isEmpty()) {
@@ -142,9 +142,9 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentFailedEvent(PaymentFailedEvent event) {
-        log.info("결제 실패 이벤트 수신 - orderId={}, msg={}", 
+        log.info("결제 실패 이벤트 수신 - orderId={}, msg={}",
                 event.getOrder() != null ? event.getOrder().getOrderId() : "null", event.getMsg());
-        
+
         // 결제 실패 알림
         if (event.getOrder() != null) {
             Long userId = event.getOrder().getUserId();
@@ -152,7 +152,7 @@ public class NotificationEventListener {
                 Long auctionId = event.getOrder().getItems().get(0).getItemId();
                 notificationFacade.createNotification(userId, auctionId, NotificationType.PAYMENT_FAILED);
             } else {
-                log.warn("결제 실패 이벤트 처리 실패: Order에 items가 없음 - orderId={}", 
+                log.warn("결제 실패 이벤트 처리 실패: Order에 items가 없음 - orderId={}",
                         event.getOrder().getOrderId());
             }
         }
