@@ -74,3 +74,5 @@ jacoco.xml
 ### QueryDSL ###
 **/generated/
 **/src/main/generated/
+
+firebase-service-account.json

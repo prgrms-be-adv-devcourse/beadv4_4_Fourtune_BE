@@ -74,6 +74,9 @@ dependencies {
 	// web client
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
+	//webPushToken
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
+
 	// Test Dependencies
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
