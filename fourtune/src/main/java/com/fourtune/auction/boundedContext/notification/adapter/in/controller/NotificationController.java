@@ -1,12 +1,12 @@
 package com.fourtune.auction.boundedContext.notification.adapter.in.controller;
 
 import com.fourtune.auction.boundedContext.notification.application.NotificationFacade;
-import com.fourtune.auction.boundedContext.notification.application.fcmToken.FcmService;
+import com.fourtune.auction.boundedContext.fcmToken.application.FcmService;
 import com.fourtune.auction.shared.auth.dto.UserContext;
 import com.fourtune.auction.shared.notification.dto.NotificationResponseDto;
 import com.fourtune.auction.shared.notification.dto.NotificationSettingsResponse;
 import com.fourtune.auction.shared.notification.dto.NotificationSettingsUpdateRequest;
-import com.fourtune.auction.shared.notification.fcmToken.dto.FCMTokenRequest;
+import com.fourtune.auction.shared.fcmToken.dto.FCMTokenRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
