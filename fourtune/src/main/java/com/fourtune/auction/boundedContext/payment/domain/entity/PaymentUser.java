@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "PAYMENT_USER")
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PaymentUser extends ReplicaUser {
 
