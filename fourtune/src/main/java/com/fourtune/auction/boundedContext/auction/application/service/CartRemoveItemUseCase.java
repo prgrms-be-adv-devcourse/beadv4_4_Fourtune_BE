@@ -26,8 +26,8 @@ public class CartRemoveItemUseCase {
      */
     @Transactional
     public void removeItemFromCart(Long userId, Long cartItemId) {
-        // 1. 장바구니 아이템 조회
-        CartItem cartItem = cartSupport.findCartItemByIdOrThrow(cartItemId);
+        // 1. 장바구니 아이템 조회 (Cart 포함, LazyInitializationException 방지)
+        CartItem cartItem = cartSupport.findCartItemByIdWithCartOrThrow(cartItemId);
         
         // 2. 장바구니 조회
         Optional<Cart> cartOpt = cartSupport.findByUserId(userId);

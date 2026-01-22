@@ -1,9 +1,9 @@
-package com.fourtune.auction.boundedContext.notification.application.fcmToken;
+package com.fourtune.auction.boundedContext.fcmToken.application;
 
 import com.fourtune.auction.boundedContext.notification.domain.NotificationSettings;
-import com.fourtune.auction.boundedContext.notification.domain.fcmToken.FcmToken;
+import com.fourtune.auction.boundedContext.fcmToken.domain.FcmToken;
 import com.fourtune.auction.boundedContext.notification.port.out.NotificationSettingsRepository;
-import com.fourtune.auction.boundedContext.notification.port.out.fcmToken.FcmTokenRepository;
+import com.fourtune.auction.boundedContext.fcmToken.port.out.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

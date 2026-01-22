@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface WatchListRepository extends JpaRepository<WatchList, Long> {
 
@@ -21,4 +22,5 @@ public interface WatchListRepository extends JpaRepository<WatchList, Long> {
     @Query("SELECT w.user.id FROM WatchList w WHERE w.auctionItem.id = :auctionItemId")
     List<Long> findAllByAuctionItemId(Long auctionItemId);
 
+    Optional<WatchList> findByUserIdAndAuctionItemId(Long userId, Long auctionItemId);
 }

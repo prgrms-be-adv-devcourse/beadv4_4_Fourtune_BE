@@ -112,7 +112,12 @@ public enum ErrorCode {
     PAYMENT_AUCTION_SERVICE_ERROR(502, "P313", "경매 서비스와의 통신에 실패하여 주문 정보를 가져올 수 없습니다."),
 
     //Bid(입찰 관련)
-    SELF_BIDDING_NOT_ALLOWED(400, " B007", "판매자는 자신의 물건에 입찰할 수 없습니다.");
+    SELF_BIDDING_NOT_ALLOWED(400, " B007", "판매자는 자신의 물건에 입찰할 수 없습니다."),
+
+    //WatchList(관심상품 관련)
+    WATCH_LIST_USER_NOT_FOUND(404, "W001", "관심상품의 유저가 없습니다."),
+    WATCH_LIST_AUCTION_ITEM_NOT_FOUND(404, "W002", "관심상품의 상품이 없습니다."),
+    WATCH_LIST_NOT_FOUND(404, "W003", "관심상품을 찾을 수 업습니다.");
 
 
     private final int status;
