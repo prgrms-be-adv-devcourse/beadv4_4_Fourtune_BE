@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
 import com.fourtune.auction.boundedContext.payment.domain.entity.*;
-import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
+import com.fourtune.auction.shared.payment.constant.CashPolicy;
 import com.fourtune.auction.boundedContext.payment.port.out.*;
 import com.fourtune.auction.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.payment.adapter.in.init;
 //
 //import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
-//import com.fourtune.auction.boundedContext.payment.domain.constant.CashPolicy;
+//import com.fourtune.auction.shared.payment.constant.CashPolicy;
 //import com.fourtune.auction.boundedContext.payment.domain.entity.CashLog;
 //import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
 //import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
