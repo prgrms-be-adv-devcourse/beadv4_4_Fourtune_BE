@@ -29,6 +29,9 @@ public class WatchListSyncUserUseCase {
                                     .email(userResponse.email())
                                     .nickname(userResponse.nickname())
                                     .status(userResponse.status())
+                                    .deletedAt(null)
+                                    .phoneNumber("")
+                                    .password("")
                                     .build();
 
                             watchListSupport.saveWatchListUser(newUser);
