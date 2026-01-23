@@ -52,3 +52,8 @@ payment:
   toss:
     client-key: "test_toss_client_key"
     secret-key: "test_toss_secret_key"
+
+# 결제 모듈에서 주문 데이터 조회
+api:
+  auction:
+    base-url: "http://localhost:8080"
