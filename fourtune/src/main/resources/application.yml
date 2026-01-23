@@ -109,6 +109,12 @@ payment:
     client-key: test_ck_5OWRapdA8dwjJb9WO69Bro1zEqZK
     secret-key: ${TOSS_SECRET_KEY:test_sk_dskflfjeifwsdfjdsfsddfdf}
 
+# 검색 설정
+search:
+  page-size: 20  # 검색 결과 페이지 크기
+  max-from: 10000  # Deep paging 최대 from 값
+  max-keyword-length: 100  # 검색 키워드 최대 길이
+
 # 결제 모듈에서 주문 데이터 조회
 api:
   auction:
@@ -223,6 +229,12 @@ payment:
     client-key: test_ck_5OWRapdA8dwjJb9WO69Bro1zEqZK
     secret-key: ${TOSS_SECRET_KEY:test_sk_dskflfjeifwsdfjdsfsddfdf}
 
+# 검색 설정
+search:
+  page-size: 20
+  max-from: 10000
+  max-keyword-length: 100
+
 logging:
   level:
     root: INFO
@@ -294,6 +306,11 @@ payment:
   toss:
     client-key: test_ck_5OWRapdA8dwjJb9WO69Bro1zEqZK
     secret-key: ${TOSS_SECRET_KEY:test_sk_dskflfjeifwsdfjdsfsddfdf}
+
+search:
+  page-size: 20
+  max-from: 10000
+  max-keyword-length: 100
 
 # Production에서는 Swagger 비활성화 (보안)
 springdoc:
