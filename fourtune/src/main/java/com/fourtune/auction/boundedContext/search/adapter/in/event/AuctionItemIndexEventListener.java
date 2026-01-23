@@ -12,9 +12,13 @@ import org.springframework.stereotype.Component;
 
 /**
  * AuctionItem 이벤트를 수신하여 ElasticSearch 인덱스를 업데이트하는 리스너
- * - AuctionItemCreatedEvent: 경매 생성 시 인덱스에 추가
- * - AuctionItemUpdatedEvent: 경매 수정 시 인덱스 업데이트
- * - AuctionItemDeletedEvent: 경매 삭제 시 인덱스에서 제거
+ *
+ * 현재: Spring Event 기반 동기 처리
+ * 향후 계획:
+ * Kafka로 확장하여 이벤트 기반 아키텍처 구현
+ * 비동기 처리 (@Async + TransactionalEventListener)
+ * 재시도 로직 (Spring Retry 또는 Kafka 재시도)
+ * Dead Letter Queue 구현
  */
 @Slf4j
 @Component
@@ -25,6 +29,13 @@ public class AuctionItemIndexEventListener {
 
     /**
      * 경매 생성 이벤트 처리
+     * 
+     * TODO: Kafka 확장 시
+     * 1. @KafkaListener로 변경
+     * 2. Topic: auction-item-created
+     * 3. Consumer Group: search-indexing-group
+     * 4. 재시도 정책 설정 (max attempts, backoff)
+     * 5. DLQ 설정 (실패한 메시지 처리)
      */
     @EventListener
     public void handleCreated(AuctionItemCreatedEvent event) {
@@ -35,11 +46,16 @@ public class AuctionItemIndexEventListener {
             log.debug("[SEARCH][INDEX] Successfully indexed auction item: {}", event.auctionItemId());
         } catch (Exception e) {
             log.error("[SEARCH][INDEX] Failed to index created auction item: {}", event.auctionItemId(), e);
+            // TODO: Kafka DLQ 또는 재시도 로직 추가
         }
     }
 
     /**
      * 경매 수정 이벤트 처리
+     * 
+     * TODO: Kafka 확장 시
+     * - Topic: auction-item-updated
+     * - 나머지는 handleCreated와 동일
      */
     @EventListener
     public void handleUpdated(AuctionItemUpdatedEvent event) {
@@ -50,11 +66,16 @@ public class AuctionItemIndexEventListener {
             log.debug("[SEARCH][INDEX] Successfully updated auction item index: {}", event.auctionItemId());
         } catch (Exception e) {
             log.error("[SEARCH][INDEX] Failed to update auction item index: {}", event.auctionItemId(), e);
+            // TODO: Kafka DLQ 또는 재시도 로직 추가
         }
     }
 
     /**
      * 경매 삭제 이벤트 처리
+     * 
+     * TODO: Kafka 확장 시
+     * - Topic: auction-item-deleted
+     * - 나머지는 handleCreated와 동일
      */
     @EventListener
     public void handleDeleted(AuctionItemDeletedEvent event) {
@@ -64,12 +85,11 @@ public class AuctionItemIndexEventListener {
             log.debug("[SEARCH][INDEX] Successfully deleted auction item from index: {}", event.auctionItemId());
         } catch (Exception e) {
             log.error("[SEARCH][INDEX] Failed to delete auction item from index: {}", event.auctionItemId(), e);
+            // TODO: Kafka DLQ 또는 재시도 로직 추가
         }
     }
 
-    /**
-     * AuctionItemCreatedEvent를 SearchAuctionItemView로 변환
-     */
+    // AuctionItemCreatedEvent를 SearchAuctionItemView로 변환
     private SearchAuctionItemView toView(AuctionItemCreatedEvent event) {
         return new SearchAuctionItemView(
                 event.auctionItemId(),
@@ -89,9 +109,7 @@ public class AuctionItemIndexEventListener {
                 event.bidCount());
     }
 
-    /**
-     * AuctionItemUpdatedEvent를 SearchAuctionItemView로 변환
-     */
+    // AuctionItemUpdatedEvent를 SearchAuctionItemView로 변환
     private SearchAuctionItemView toView(AuctionItemUpdatedEvent event) {
         return new SearchAuctionItemView(
                 event.auctionItemId(),
