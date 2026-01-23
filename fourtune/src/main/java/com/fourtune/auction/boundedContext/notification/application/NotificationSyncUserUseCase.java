@@ -20,8 +20,11 @@ public class NotificationSyncUserUseCase {
 
         notificationSupport.findOptionalByUserId(userResponse.id())
                 .ifPresentOrElse(
-                        existingUser -> existingUser.syncProfile(userResponse.nickname(), userResponse.email(), userResponse.status()),
+                        existingUser -> {existingUser.syncProfile(userResponse.nickname(), userResponse.email(), userResponse.status());
+                            log.info(">>>> [UPDATE] 이미 있는 유저입니다. 업데이트 진행");
+                        },
                         () -> {
+                            log.info(">>>> [INSERT] 새 유저입니다. 저장 시도");
                             NotificationUser newUser = NotificationUser.builder()
                                     .id(userResponse.id())
                                     .createdAt(userResponse.createdAt())

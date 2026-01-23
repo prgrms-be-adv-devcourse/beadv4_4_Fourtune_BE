@@ -35,6 +35,7 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserJoinEvent(UserJoinedEvent event) {
+        log.info("현재 스레드: {}", Thread.currentThread().getName());
         notificationFacade.syncUser(event.getUser());
         notificationSettingsService.createNotificationSettings(event.getUser());
     }
