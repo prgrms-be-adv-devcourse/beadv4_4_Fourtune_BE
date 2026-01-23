@@ -1,7 +1,9 @@
 package com.fourtune.auction.global.config;
 
+import com.fourtune.auction.boundedContext.auth.application.service.oauth.CustomOAuth2UserService;
 import com.fourtune.auction.global.security.jwt.JwtAuthenticationFilter;
 import com.fourtune.auction.global.security.jwt.JwtTokenProvider;
+import com.fourtune.auction.shared.auth.handler.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +20,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -34,7 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/settlements/**").permitAll()
                         .requestMatchers("/api/payments/**").permitAll()
                         .requestMatchers("/tosspay.html").permitAll()
-                        .requestMatchers("/", "/index.html" /*조회 검색 추가*/).permitAll()
+                        .requestMatchers("/", "/index.html", "/oauth2/**", "/login-success" /*조회 검색 추가*/).permitAll()
                         .requestMatchers("/api/v1/search/**").permitAll()
                         .requestMatchers("/api/v1/orders/*/complete").permitAll() // 결제 완료 콜백 (외부 결제사에서 호출)
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
@@ -45,8 +49,17 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 )
+
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(oAuth2SuccessHandler)
+                )
+
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
                         UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }

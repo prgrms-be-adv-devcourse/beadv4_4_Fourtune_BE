@@ -54,6 +54,9 @@ public class User extends BaseTimeEntity {
     @Version
     private Long version;
 
+    private String provider;
+    private String providerId;
+
     public void updateProfile(String newNickname, String newPhoneNumber) {
         this.nickname = newNickname;
         this.phoneNumber = newPhoneNumber;
@@ -84,6 +87,11 @@ public class User extends BaseTimeEntity {
         if(this.status == Status.ACTIVE) return true;
 
         return false;
+    }
+
+    public User update(String name) {
+        this.nickname = name;
+        return this;
     }
 
     public UserResponse toDto(){

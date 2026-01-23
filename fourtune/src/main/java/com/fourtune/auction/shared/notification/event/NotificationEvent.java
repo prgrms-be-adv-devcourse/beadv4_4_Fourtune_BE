@@ -1,4 +1,4 @@
-package com.fourtune.auction.shared.notification.dto;
+package com.fourtune.auction.shared.notification.event;
 
 public record NotificationEvent (
         Long receiverId,
