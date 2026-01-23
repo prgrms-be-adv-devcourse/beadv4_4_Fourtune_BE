@@ -15,6 +15,7 @@ public class UserFacade {
     private final UserModifiedUseCase userModifiedUseCase;
     private final UserPasswordChangeUseCase userPasswordChangeUseCase;
     private final UserDeletedUseCase userDeletedUseCase;
+    private final UserSupport userSupport;
 
     public void signup(UserSignUpRequest request) {
         // 지금은 가입 UseCase 하나만 호출하지만,
@@ -37,6 +38,10 @@ public class UserFacade {
 
     public void withdraw(Long userId, UserWithdrawRequest request) {
         userDeletedUseCase.userDelete(userId, request);
+    }
+
+    public Long count(){
+        return userSupport.count();
     }
 
 }
