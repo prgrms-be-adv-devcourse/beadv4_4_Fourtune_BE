@@ -1,7 +1,9 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
+import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.shared.auction.dto.AuctionItemUpdateRequest;
+import com.fourtune.auction.shared.auction.event.AuctionUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,7 @@ public class AuctionUpdateUseCase {
 
     private final AuctionSupport auctionSupport;
     private final BidSupport bidSupport;
+    private final EventPublisher eventPublisher;
 
     /**
      * 경매 정보 수정
@@ -41,6 +44,17 @@ public class AuctionUpdateUseCase {
         );
         
         // 5. DB 저장 (dirty checking으로 자동 저장)
+        
+        // 6. 이벤트 발행 (검색 인덱스 업데이트용)
+        eventPublisher.publish(new AuctionUpdatedEvent(
+                auctionItem.getId(),
+                auctionItem.getSellerId(),
+                auctionItem.getTitle(),
+                auctionItem.getDescription(),
+                auctionItem.getBuyNowPrice(),
+                auctionItem.getBuyNowEnabled(),
+                auctionItem.getCategory()
+        ));
     }
 
     /**

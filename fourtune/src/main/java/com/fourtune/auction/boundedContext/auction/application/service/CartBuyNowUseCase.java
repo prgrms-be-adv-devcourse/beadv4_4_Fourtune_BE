@@ -29,11 +29,12 @@ public class CartBuyNowUseCase {
 
     /**
      * 장바구니에서 선택 아이템 즉시구매
+     * 동시성 제어: Pessimistic Lock 적용
      */
     @Transactional
     public List<String> buyNowFromCart(Long userId, List<Long> cartItemIds) {
-        // 1. 장바구니 조회 (items 포함, LazyInitializationException 방지)
-        Optional<Cart> cartOpt = cartSupport.findByUserIdWithItems(userId);
+        // 1. 장바구니 조회 (items 포함, Pessimistic Lock 적용)
+        Optional<Cart> cartOpt = cartSupport.findByUserIdWithItemsAndLock(userId);
         if (cartOpt.isEmpty()) {
             throw new BusinessException(ErrorCode.CART_NOT_FOUND);
         }
@@ -88,11 +89,12 @@ public class CartBuyNowUseCase {
 
     /**
      * 장바구니 전체 즉시구매
+     * 동시성 제어: Pessimistic Lock 적용
      */
     @Transactional
     public List<String> buyNowAllCart(Long userId) {
-        // 1. 장바구니 조회 (items 포함, LazyInitializationException 방지)
-        Optional<Cart> cartOpt = cartSupport.findByUserIdWithItems(userId);
+        // 1. 장바구니 조회 (items 포함, Pessimistic Lock 적용)
+        Optional<Cart> cartOpt = cartSupport.findByUserIdWithItemsAndLock(userId);
         if (cartOpt.isEmpty()) {
             return List.of();
         }

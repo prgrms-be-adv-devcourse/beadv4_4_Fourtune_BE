@@ -4,6 +4,8 @@ import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Order;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
+import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.shared.auction.event.OrderCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 주문 완료 UseCase
  * - 결제 완료 시 주문 상태 업데이트
  * - Payment 도메인에서 이벤트 수신
+ * - 주문 완료 이벤트 발행
  */
 @Slf4j
 @Service
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderCompleteUseCase {
 
     private final OrderSupport orderSupport;
+    private final EventPublisher eventPublisher;
 
     /**
      * 결제 완료 처리
@@ -39,6 +43,17 @@ public class OrderCompleteUseCase {
         
         // 4. 저장
         orderSupport.save(order);
+        
+        // 5. 이벤트 발행 (정산, 알림 등에 사용)
+        eventPublisher.publish(new OrderCompletedEvent(
+                order.getOrderId(),
+                order.getAuctionId(),
+                order.getWinnerId(),
+                order.getSellerId(),
+                order.getAmount(),
+                order.getOrderName(),
+                order.getPaidAt()
+        ));
         
         log.info("결제 완료 처리: orderId={}, paymentKey={}", orderId, paymentKey);
     }

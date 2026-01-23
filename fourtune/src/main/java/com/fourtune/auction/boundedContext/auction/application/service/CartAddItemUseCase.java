@@ -22,6 +22,7 @@ public class CartAddItemUseCase {
 
     /**
      * 장바구니에 아이템 추가
+     * 동시성 제어: Pessimistic Lock 적용
      */
     @Transactional
     public void addItemToCart(Long userId, Long auctionId) {
@@ -36,8 +37,8 @@ public class CartAddItemUseCase {
             throw new BusinessException(ErrorCode.CANNOT_ADD_TO_CART);
         }
         
-        // 4. 장바구니 조회 또는 생성
-        Cart cart = cartSupport.findOrCreateCart(userId);
+        // 4. 장바구니 조회 또는 생성 (Pessimistic Lock 적용)
+        Cart cart = cartSupport.findOrCreateCartWithLock(userId);
         
         // 5. 장바구니에 아이템 추가 (Cart.addItem 메서드에서 중복 체크)
         cart.addItem(auctionId, auctionItem.getBuyNowPrice());

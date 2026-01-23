@@ -4,6 +4,7 @@ import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -22,11 +23,12 @@ public class OrderCreateUseCase {
 
     /**
      * 낙찰 주문 생성
+     * 동시성 제어: Pessimistic Lock 적용
      */
     @Transactional
     public String createWinningOrder(Long auctionId, Long winnerId, BigDecimal finalPrice) {
-        // 1. 경매 조회
-        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        // 1. 경매 조회 (Pessimistic Lock 적용)
+        AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
         
         // 2. 이미 주문이 있는지 확인
         orderSupport.validateOrderCreatable(auctionId);
@@ -53,11 +55,12 @@ public class OrderCreateUseCase {
     /**
      * 즉시구매 주문 생성
      * 경매 상태 변경은 AuctionBuyNowUseCase에서 처리함
+     * 동시성 제어: Pessimistic Lock 적용
      */
     @Transactional
     public String createBuyNowOrder(Long auctionId, Long buyerId, BigDecimal buyNowPrice) {
-        // 1. 경매 조회
-        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        // 1. 경매 조회 (Pessimistic Lock 적용)
+        AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
         
         // 2. 주문명 생성
         String orderName = "[즉시구매] " + auctionItem.getTitle();

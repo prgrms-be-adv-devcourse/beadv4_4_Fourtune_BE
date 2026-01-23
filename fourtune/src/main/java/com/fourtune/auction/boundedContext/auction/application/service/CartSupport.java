@@ -48,6 +48,30 @@ public class CartSupport {
     }
 
     /**
+     * 사용자 ID로 장바구니 조회 (Pessimistic Lock, 없으면 생성)
+     * 장바구니 추가 시 동시성 제어를 위해 사용
+     */
+    public Cart findOrCreateCartWithLock(Long userId) {
+        Optional<Cart> cartOpt = cartRepository.findByUserIdWithLock(userId);
+        if (cartOpt.isPresent()) {
+            return cartOpt.get();
+        }
+        // 락을 유지한 채로 생성
+        Cart cart = Cart.builder()
+                .userId(userId)
+                .build();
+        return cartRepository.save(cart);
+    }
+
+    /**
+     * 사용자 ID로 장바구니 조회 (items 포함, Pessimistic Lock)
+     * 장바구니 즉시구매 시 동시성 제어를 위해 사용
+     */
+    public Optional<Cart> findByUserIdWithItemsAndLock(Long userId) {
+        return cartRepository.findByUserIdWithLock(userId);
+    }
+
+    /**
      * 장바구니 생성
      */
     private Cart createCart(Long userId) {

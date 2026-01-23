@@ -32,11 +32,12 @@ public class AuctionBuyNowUseCase {
 
     /**
      * 즉시구매 처리
+     * 동시성 제어: Pessimistic Lock 적용
      */
     @Transactional
     public String executeBuyNow(Long auctionId, Long buyerId) {
-        // 1. 경매 조회
-        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        // 1. 경매 조회 (Pessimistic Lock 적용)
+        AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
         
         // 2. 즉시구매 가능 여부 검증
         validateBuyNowAvailable(auctionItem, buyerId);

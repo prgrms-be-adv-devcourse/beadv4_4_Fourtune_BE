@@ -1,7 +1,9 @@
 package com.fourtune.auction.boundedContext.auction.port.out;
 
 import com.fourtune.auction.boundedContext.auction.domain.entity.Cart;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -19,6 +21,14 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
      */
     @Query("SELECT c FROM Cart c LEFT JOIN FETCH c.items WHERE c.userId = :userId")
     Optional<Cart> findByUserIdWithItems(@Param("userId") Long userId);
+    
+    /**
+     * 사용자 ID로 장바구니 조회 (Pessimistic Lock)
+     * 장바구니 추가/수정 시 동시성 제어를 위한 락
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT c FROM Cart c LEFT JOIN FETCH c.items WHERE c.userId = :userId")
+    Optional<Cart> findByUserIdWithLock(@Param("userId") Long userId);
     
     /**
      * 사용자의 장바구니 존재 여부

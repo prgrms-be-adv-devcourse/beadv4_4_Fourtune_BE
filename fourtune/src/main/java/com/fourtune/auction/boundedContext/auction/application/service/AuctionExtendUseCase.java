@@ -28,11 +28,12 @@ public class AuctionExtendUseCase {
 
     /**
      * 경매 자동 연장
+     * 동시성 제어: Pessimistic Lock 적용
      */
     @Transactional
     public void extendAuction(Long auctionId) {
-        // 1. 경매 조회
-        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        // 1. 경매 조회 (Pessimistic Lock 적용)
+        AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
         
         // 2. 연장 가능 여부 확인
         validateExtendable(auctionItem);
