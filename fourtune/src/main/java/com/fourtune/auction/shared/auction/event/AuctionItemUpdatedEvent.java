@@ -1,0 +1,31 @@
+package com.fourtune.auction.shared.auction.event;
+
+import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
+import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+/**
+ * 경매 아이템 수정 이벤트 (Search 인덱싱 전용)
+ * - 검색 인덱싱에 필요한 모든 필드를 포함한 스냅샷
+ * - Search 도메인에서 Auction DB 직접 조회 없이 인덱싱 업데이트 가능
+ */
+public record AuctionItemUpdatedEvent(
+    Long auctionItemId,
+    String title,
+    String description,
+    Category category,
+    AuctionStatus status,
+    BigDecimal startPrice,
+    BigDecimal currentPrice,
+    LocalDateTime startAt,
+    LocalDateTime endAt,
+    String thumbnailUrl,
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt,
+    Long viewCount,
+    Integer bidCount,
+    Integer watchlistCount
+) {
+}

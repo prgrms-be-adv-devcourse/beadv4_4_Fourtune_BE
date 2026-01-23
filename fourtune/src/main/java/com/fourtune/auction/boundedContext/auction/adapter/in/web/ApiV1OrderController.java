@@ -27,7 +27,7 @@ public class ApiV1OrderController {
     private final OrderCompleteUseCase orderCompleteUseCase;
     
     /**
-     * 주문번호로 주문 조회
+     * 주문번호로 주문 조회 (인증 필요)
      */
     @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrderByOrderId(
@@ -41,6 +41,18 @@ public class ApiV1OrderController {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
         
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+    
+    /**
+     * 주문번호로 주문 조회 (인증 없음 - 결제 페이지용)
+     * orderNo로 OrderDetailResponse 조회
+     */
+    @GetMapping("/public/{orderId}")
+    public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrderByOrderIdPublic(
+        @PathVariable String orderId
+    ) {
+        OrderDetailResponse response = orderQueryUseCase.getOrderByOrderId(orderId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
     
