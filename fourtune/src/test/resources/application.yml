@@ -14,6 +14,18 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: dummy-client-id
+            client-secret: dummy-client-secret
+            scope: profile, email
+            redirect-uri: "http://localhost:8080/login/oauth2/code/google"
+            authorization-grant-type: authorization_code
+            client-name: Google
+
   # --- [추가해야 할 부분] 메인에 있는 변수들의 '가짜 값' 정의 ---
   data:
     redis:
