@@ -25,10 +25,6 @@ public class UserLoginUseCase {
 
         validatePassword(request.password(), user.getPassword());
 
-        // 3. 토큰 발급 (JWT)
-        // (선택사항) Refresh Token을 DB나 Redis에 저장하는 로직이 필요하다면 여기서 수행
-        // user.updateRefreshToken(refreshToken);
-
         return new UserLoginResponse(
                 user.getId(),
                 user.getEmail(),
