@@ -109,6 +109,11 @@ payment:
     client-key: test_ck_5OWRapdA8dwjJb9WO69Bro1zEqZK
     secret-key: ${TOSS_SECRET_KEY:test_sk_dskflfjeifwsdfjdsfsddfdf}
 
+# 결제 모듈에서 주문 데이터 조회
+api:
+  auction:
+    base-url: "http://localhost:8080"
+
 ---
 # Test Profile (CI/CD용)
 spring:
@@ -154,6 +159,11 @@ logging:
   level:
     root: WARN
     com.fourtune: INFO
+
+# 결제 모듈에서 주문 데이터 조회
+api:
+  auction:
+    base-url: "http://localhost:8080"
 
 ---
 # Development Profile
@@ -217,6 +227,11 @@ logging:
   level:
     root: INFO
     com.fourtune: DEBUG
+
+# 결제 모듈에서 주문 데이터 조회
+api:
+  auction:
+    base-url: "http://localhost:8080"
 
 ---
 # Production Profile
@@ -292,3 +307,7 @@ logging:
     root: WARN
     com.fourtune: INFO
 
+# 결제 모듈에서 주문 데이터 조회
+api:
+  auction:
+    base-url: "http://localhost:8080"
