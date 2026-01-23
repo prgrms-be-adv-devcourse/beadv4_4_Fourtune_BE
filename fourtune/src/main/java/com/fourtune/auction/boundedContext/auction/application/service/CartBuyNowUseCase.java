@@ -90,6 +90,9 @@ public class CartBuyNowUseCase {
     /**
      * 장바구니 전체 즉시구매
      * 동시성 제어: Pessimistic Lock 적용
+     * 
+     * 주의: 내부에서 buyNowFromCart()를 호출하지만, 같은 트랜잭션 내에서 실행되므로
+     * @Transactional이 중복 적용되지 않습니다. (Spring AOP 프록시 특성상 내부 호출은 프록시를 거치지 않음)
      */
     @Transactional
     public List<String> buyNowAllCart(Long userId) {
@@ -109,7 +112,7 @@ public class CartBuyNowUseCase {
             return List.of();
         }
         
-        // 3. buyNowFromCart 호출
+        // 3. buyNowFromCart 호출 (내부 호출이지만 같은 트랜잭션 내에서 실행)
         return buyNowFromCart(userId, activeItemIds);
     }
 

@@ -53,18 +53,7 @@ public class CartRemoveItemUseCase {
      */
     @Transactional
     public void removeExpiredItems(Long userId) {
-        // 1. 장바구니 조회
-        Optional<Cart> cartOpt = cartSupport.findByUserId(userId);
-        if (cartOpt.isEmpty()) {
-            return; // 장바구니가 없으면 처리할 것 없음
-        }
-        Cart cart = cartOpt.get();
-        
-        // 2. 만료된 아이템 제거 (Cart.clearExpiredItems 메서드 사용)
-        cart.clearExpiredItems();
-        
-        // 3. DB 저장
-        cartSupport.save(cart);
+        removeItemsInternal(userId, Cart::clearExpiredItems);
     }
 
     /**
@@ -72,15 +61,25 @@ public class CartRemoveItemUseCase {
      */
     @Transactional
     public void removePurchasedItems(Long userId) {
+        removeItemsInternal(userId, Cart::clearPurchasedItems);
+    }
+
+    /**
+     * [내부 로직] 장바구니 아이템 제거 공통 처리
+     * - private 선언: 외부 호출 방지
+     * - @Transactional 제거: 부모 트랜잭션을 그대로 따라감
+     * - 함수형 인터페이스 사용: 확장성 향상
+     */
+    private void removeItemsInternal(Long userId, java.util.function.Consumer<Cart> removeAction) {
         // 1. 장바구니 조회
         Optional<Cart> cartOpt = cartSupport.findByUserId(userId);
         if (cartOpt.isEmpty()) {
-            return;
+            return; // 장바구니가 없으면 처리할 것 없음
         }
         Cart cart = cartOpt.get();
         
-        // 2. 구매완료 아이템 제거 (Cart.clearPurchasedItems 메서드 사용)
-        cart.clearPurchasedItems();
+        // 2. 아이템 제거 (함수형 인터페이스로 전달된 로직 실행)
+        removeAction.accept(cart);
         
         // 3. DB 저장
         cartSupport.save(cart);

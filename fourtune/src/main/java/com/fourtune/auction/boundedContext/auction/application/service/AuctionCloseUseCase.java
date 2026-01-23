@@ -50,9 +50,9 @@ public class AuctionCloseUseCase {
             winningBid.win();
             bidSupport.save(winningBid);
             
-            // Order 생성
+            // Order 생성 (엔티티 직접 전달하여 중복 Lock 방지)
             String orderId = orderCreateUseCase.createWinningOrder(
-                    auctionId,
+                    auctionItem,
                     winningBid.getBidderId(),
                     winningBid.getBidAmount()
             );

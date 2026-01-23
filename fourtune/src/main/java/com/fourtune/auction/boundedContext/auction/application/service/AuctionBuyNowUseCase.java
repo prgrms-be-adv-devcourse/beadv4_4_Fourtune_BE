@@ -46,8 +46,8 @@ public class AuctionBuyNowUseCase {
         auctionItem.executeBuyNow();
         auctionSupport.save(auctionItem);
         
-        // 4. 주문 생성 (OrderCreateUseCase.createBuyNowOrder)
-        String orderId = orderCreateUseCase.createBuyNowOrder(auctionId, buyerId, auctionItem.getBuyNowPrice());
+        // 4. 주문 생성 (엔티티 직접 전달하여 중복 Lock 방지)
+        String orderId = orderCreateUseCase.createBuyNowOrder(auctionItem, buyerId, auctionItem.getBuyNowPrice());
         
         // 5. 장바구니의 해당 경매 아이템 만료 처리
         try {
