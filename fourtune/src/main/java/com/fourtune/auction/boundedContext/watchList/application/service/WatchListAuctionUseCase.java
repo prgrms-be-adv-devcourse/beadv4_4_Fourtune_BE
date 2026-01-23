@@ -6,11 +6,13 @@ import com.fourtune.auction.shared.watchList.event.WatchListAuctionEndedEvent;
 import com.fourtune.auction.shared.watchList.event.WatchListAuctionStartedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class WatchListAuctionUseCase {
 
     private final WatchListSupport watchListSupport;
