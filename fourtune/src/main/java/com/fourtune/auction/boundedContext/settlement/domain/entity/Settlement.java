@@ -6,9 +6,7 @@ import com.fourtune.auction.global.common.BaseIdAndTime;
 import com.fourtune.auction.shared.settlement.dto.SettlementDto;
 import com.fourtune.auction.shared.settlement.event.SettlementCompletedEvent;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,6 +20,8 @@ import static jakarta.persistence.FetchType.LAZY;
 @Entity
 @Table(name = "SETTLEMENT_SETTLEMENT")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor // Builder 사용 시 모든 필드 생성자가 필요함
+@Builder // 빌더 패턴 추가
 @Getter
 public class Settlement extends BaseIdAndTime {
 
@@ -32,10 +32,12 @@ public class Settlement extends BaseIdAndTime {
 
     private Long amount;
 
+    @Builder.Default // 빌더 사용 시에도 new ArrayList<>() 초기화가 적용되도록 설정
     @OrderBy("paymentDate DESC, id DESC")
     @OneToMany(mappedBy = "settlement", cascade = {PERSIST, REMOVE}, orphanRemoval = true)
     private List<SettlementItem> items = new ArrayList<>();
 
+    // 기존 생성자 유지 (비즈니스 로직 등에서 사용)
     public Settlement(SettlementUser payee){
         this.payee = payee;
         this.amount = 0L;
@@ -57,15 +59,15 @@ public class Settlement extends BaseIdAndTime {
                                   Long amount){
 
         SettlementItem item = SettlementItem.builder()
-                                .settlement(this)
-                                .settlementEventType(settlementEventType)
-                                .relTypeCode(relTypeCode)
-                                .relId(relId)
-                                .paymentDate(paymentDate)
-                                .payee(payee)
-                                .payer(payer)
-                                .amount(amount)
-                                .build();
+                .settlement(this)
+                .settlementEventType(settlementEventType)
+                .relTypeCode(relTypeCode)
+                .relId(relId)
+                .paymentDate(paymentDate)
+                .payee(payee)
+                .payer(payer)
+                .amount(amount)
+                .build();
 
         this.items.add(item);
         this.amount += amount;
