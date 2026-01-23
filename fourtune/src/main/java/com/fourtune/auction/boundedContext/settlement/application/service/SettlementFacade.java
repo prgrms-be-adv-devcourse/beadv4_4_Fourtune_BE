@@ -67,8 +67,8 @@ public class SettlementFacade {
     }
 
     @Transactional
-    public void addSettlementCandidatedItem(OrderDto dto){
-        addSettlementCandidatedItemsUseCase.addSettlementCandidatedItems(dto);
+    public void addSettlementCandidatedItem(OrderDto orderDto){
+        addSettlementCandidatedItemsUseCase.addSettlementCandidatedItems(orderDto);
     }
 
     @Transactional

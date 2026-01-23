@@ -21,6 +21,7 @@ public class SettlementCandidatedItem extends BaseIdAndTime {
     String relTypeCode;
 
     private Long relId;
+    private String relNo;
 
     private LocalDateTime paymentDate;
 
@@ -41,6 +42,7 @@ public class SettlementCandidatedItem extends BaseIdAndTime {
             SettlementEventType settlementEventType,
             String relTypeCode,
             Long relId,
+            String relNo,
             LocalDateTime paymentDate,
             SettlementUser payer,
             SettlementUser payee,
@@ -50,6 +52,7 @@ public class SettlementCandidatedItem extends BaseIdAndTime {
         this.settlementEventType = settlementEventType;
         this.relTypeCode = relTypeCode;
         this.relId = relId;
+        this.relNo = relNo;
         this.paymentDate = paymentDate;
         this.payer = payer;
         this.payee = payee;

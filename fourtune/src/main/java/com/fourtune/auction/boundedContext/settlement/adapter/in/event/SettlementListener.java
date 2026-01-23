@@ -1,6 +1,8 @@
 package com.fourtune.auction.boundedContext.settlement.adapter.in.event;
 
 import com.fourtune.auction.boundedContext.settlement.application.service.SettlementFacade;
+import com.fourtune.auction.shared.auction.event.OrderCompletedEvent;
+import com.fourtune.auction.shared.payment.dto.OrderDto;
 import com.fourtune.auction.shared.settlement.event.SettlementCompletedEvent;
 import com.fourtune.auction.shared.settlement.event.SettlementUserCreatedEvent;
 import com.fourtune.auction.shared.user.event.UserDeletedEvent;
@@ -64,5 +66,18 @@ public class SettlementListener {
     public void handle(SettlementCompletedEvent event) {
         log.info("[SettlementListener] 정산 완료 확인 -> 새 정산서 생성: PayeeID={}", event.getSettlementDto().getPayeeId());
         settlementFacade.createSettlement(event.getSettlementDto().getPayeeId());
+    }
+
+    /**
+     * 주문 완료시 정산 후보 등록
+     */
+    @TransactionalEventListener(phase = AFTER_COMMIT, fallbackExecution = true)
+    @Transactional(propagation = REQUIRES_NEW)
+    public void handle(OrderCompletedEvent event) {
+        log.info("[SettlementListener] 주문 완료 확인 ={}", event.orderId());
+
+        OrderDto orderDto = OrderDto.from(event);
+
+        settlementFacade.addSettlementCandidatedItem(orderDto);
     }
 }

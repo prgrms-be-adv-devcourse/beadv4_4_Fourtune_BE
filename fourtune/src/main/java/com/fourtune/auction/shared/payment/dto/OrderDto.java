@@ -3,6 +3,7 @@ package com.fourtune.auction.shared.payment.dto;
 import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
 import com.fourtune.auction.boundedContext.auction.domain.constant.OrderType;
 import com.fourtune.auction.shared.auction.dto.OrderDetailResponse;
+import com.fourtune.auction.shared.auction.event.OrderCompletedEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,6 +33,28 @@ public class OrderDto {
     private OrderStatus orderStatus;
     private String paymentKey;
     private LocalDateTime createdAt;
+
+    /**
+     * OrderCompletedEvent -> OrderDto 변환 메서드
+     * (이벤트에 없는 필드는 null 처리됩니다)
+     */
+    public static OrderDto from(OrderCompletedEvent event) {
+        return OrderDto.builder()
+                // event.orderId()는 String(UUID)이므로 orderNo에 매핑
+                .orderNo(event.orderId())
+                .price(event.amount().longValue())
+                .userId(event.winnerId())
+                .paymentDate(event.paidAt())
+                .items(List.of(
+                        OrderItem.builder()
+                                .itemId(event.auctionId())// order item id x, 일단 auction id로
+                                .sellerId(event.sellerId())
+                                .price(event.amount().longValue())
+                                .itemName(event.orderName())
+                                .build()
+                ))
+                .build();
+    }
 
 
     public static OrderDto from(OrderDetailResponse response) {
