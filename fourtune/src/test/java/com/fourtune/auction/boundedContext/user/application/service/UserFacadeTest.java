@@ -73,8 +73,14 @@ class UserFacadeTest {
         UserSignUpRequest request = new UserSignUpRequest("test2@example.com", "password123!", "테스터", "010-1111-1111");
         userFacade.signup(request);
 
+        UserSignUpRequest request2 = new UserSignUpRequest(
+                "test2@example.com",
+                "password123!",
+                "테스터2",
+                "010-2222-2222" // B 번호 (다르게 설정!)
+        );
         // When & Then: 동일한 이메일로 가입 시도 시 예외 발생 검증
-        assertThatThrownBy(() -> userFacade.signup(request))
+        assertThatThrownBy(() -> userFacade.signup(request2))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.EMAIL_DUPLICATION);
     }
@@ -84,7 +90,7 @@ class UserFacadeTest {
     void loginSuccessTest() {
         // 1. Given: 유저가 이미 가입되어 있어야 함
         UserSignUpRequest signupRequest = new UserSignUpRequest(
-                "login@test.com", "password123!", "로그인테스터", "010-1111-1111"
+                "login@test.com", "password123!", "로그인테스터", "010-1364-1367"
         );
         userFacade.signup(signupRequest);
 
