@@ -52,7 +52,7 @@ public class FcmService {
     private boolean isAllowed(NotificationSettings setting, String type) {
         return switch (type) {
             case "OUTBID", "AUCTION_SUCCESS", "AUCTION_FAILED", "BID_RECEIVED" -> setting.isBidPushEnabled();
-            case "PAYMENT" -> setting.isPaymentPushEnabled();
+            case "PAYMENT", "PAYMENT_SUCCESS", "PAYMENT_FAILED" -> setting.isPaymentPushEnabled();
             case "WATCHLIST_START", "WATCHLIST_END" -> setting.isWatchListPushEnabled();
             default -> true;
         };

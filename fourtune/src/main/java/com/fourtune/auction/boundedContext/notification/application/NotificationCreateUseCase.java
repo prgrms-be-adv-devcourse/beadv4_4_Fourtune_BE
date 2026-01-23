@@ -6,7 +6,7 @@ import com.fourtune.auction.boundedContext.notification.domain.NotificationUser;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.notification.dto.NotificationEvent;
+import com.fourtune.auction.shared.notification.event.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
