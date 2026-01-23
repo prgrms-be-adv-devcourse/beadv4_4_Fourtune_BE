@@ -2,6 +2,8 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.port.out.AuctionItemRepository;
+import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.shared.auction.event.AuctionDeletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ public class AuctionDeleteUseCase {
     private final AuctionSupport auctionSupport;
     private final BidSupport bidSupport;
     private final AuctionItemRepository auctionItemRepository;
+    private final EventPublisher eventPublisher;
 
     /**
      * 경매 삭제
@@ -33,8 +36,23 @@ public class AuctionDeleteUseCase {
         // 3. 삭제 가능 여부 확인
         auctionSupport.validateDeletable(auctionItem);
         
-        // 4. 삭제 처리 (hard delete)
+        // 4. 삭제 전 정보 저장 (이벤트 발행용)
+        Long deletedAuctionId = auctionItem.getId();
+        Long sellerId = auctionItem.getSellerId();
+        String title = auctionItem.getTitle();
+        com.fourtune.auction.boundedContext.auction.domain.constant.Category category = 
+                auctionItem.getCategory();
+        
+        // 5. 삭제 처리 (hard delete)
         auctionItemRepository.delete(auctionItem);
+        
+        // 6. 이벤트 발행 (검색 인덱스 삭제용)
+        eventPublisher.publish(new AuctionDeletedEvent(
+                deletedAuctionId,
+                sellerId,
+                title,
+                category
+        ));
     }
 
     /**

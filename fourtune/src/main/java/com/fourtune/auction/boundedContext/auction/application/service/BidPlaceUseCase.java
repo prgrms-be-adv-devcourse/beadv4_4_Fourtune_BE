@@ -17,13 +17,13 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-/**
- * 입찰 등록 UseCase
- * - 입찰 처리
- * - 동시성 제어 (분산 락)
- * - 자동 연장 체크
- * - 실시간 알림
- */
+    /**
+     * 입찰 등록 UseCase
+     * - 입찰 처리
+     * - 동시성 제어 (DB 레벨 Pessimistic Lock)
+     * - 자동 연장 체크
+     * - 실시간 알림
+     */
 @Service
 @RequiredArgsConstructor
 public class BidPlaceUseCase {
@@ -32,15 +32,15 @@ public class BidPlaceUseCase {
     private final BidSupport bidSupport;
     private final AuctionExtendUseCase auctionExtendUseCase;
     private final EventPublisher eventPublisher;
-    // private final RedisLockService redisLockService; // TODO: 나중에 추가
 
     /**
      * 입찰 등록
+     * Pessimistic Lock을 사용하여 동시 입찰 시 데이터 일관성 보장
      */
     @Transactional
     public Long placeBid(Long auctionId, Long bidderId, BigDecimal bidAmount) {
-        // 1. 경매 조회
-        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        // 1. 경매 조회 (Pessimistic Lock 적용)
+        AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
         
         // 2. 입찰 가능 여부 확인
         validateBidPlaceable(auctionItem, bidderId, bidAmount);

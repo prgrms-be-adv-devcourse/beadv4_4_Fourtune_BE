@@ -26,11 +26,12 @@ public class AuctionCloseUseCase {
 
     /**
      * 경매 종료 처리
+     * 동시성 제어: Pessimistic Lock 적용
      */
     @Transactional
     public void closeAuction(Long auctionId) {
-        // 1. 경매 조회
-        AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
+        // 1. 경매 조회 (Pessimistic Lock 적용)
+        AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
         
         // 2. 종료 가능 여부 확인
         validateCloseable(auctionItem);

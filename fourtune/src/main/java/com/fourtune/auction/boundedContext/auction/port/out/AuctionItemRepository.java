@@ -3,12 +3,17 @@ package com.fourtune.auction.boundedContext.auction.port.out;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
 import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface AuctionItemRepository extends JpaRepository<AuctionItem, Long> {
     
@@ -44,4 +49,12 @@ public interface AuctionItemRepository extends JpaRepository<AuctionItem, Long> 
         LocalDateTime startTime,
         AuctionStatus status
     );
+    
+    /**
+     * ID로 경매 조회 (Pessimistic Lock)
+     * 입찰 시 동시성 제어를 위한 락
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM AuctionItem a WHERE a.id = :id")
+    Optional<AuctionItem> findByIdWithLock(@Param("id") Long id);
 }

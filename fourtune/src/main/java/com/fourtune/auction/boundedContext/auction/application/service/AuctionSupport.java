@@ -40,6 +40,15 @@ public class AuctionSupport {
     }
 
     /**
+     * ID로 경매 조회 (Pessimistic Lock 적용)
+     * 입찰 시 동시성 제어를 위해 사용
+     */
+    public AuctionItem findByIdWithLockOrThrow(Long auctionId) {
+        return auctionItemRepository.findByIdWithLock(auctionId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.AUCTION_NOT_FOUND));
+    }
+
+    /**
      * 경매 저장
      */
     public AuctionItem save(AuctionItem auctionItem) {
