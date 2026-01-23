@@ -1,8 +1,6 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
-import com.fourtune.auction.boundedContext.payment.application.service.PaymentConfirmUseCase;
-import com.fourtune.auction.boundedContext.payment.application.service.PaymentSupport;
 import com.fourtune.auction.boundedContext.payment.domain.constant.PaymentStatus;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Payment;
 import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
