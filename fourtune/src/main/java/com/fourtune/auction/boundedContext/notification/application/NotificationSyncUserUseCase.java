@@ -32,6 +32,9 @@ public class NotificationSyncUserUseCase {
                                     .email(userResponse.email())
                                     .nickname(userResponse.nickname())
                                     .status(userResponse.status())
+                                    .deletedAt(null)
+                                    .phoneNumber("")
+                                    .password("")
                                     .build();
 
                             notificationSupport.saveNotificationUser(newUser);
