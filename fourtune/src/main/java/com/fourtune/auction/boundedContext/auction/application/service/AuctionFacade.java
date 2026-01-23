@@ -5,11 +5,14 @@ import com.fourtune.auction.shared.auction.dto.AuctionItemDetailResponse;
 import com.fourtune.auction.shared.auction.dto.AuctionItemResponse;
 import com.fourtune.auction.shared.auction.dto.AuctionItemUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -17,6 +20,7 @@ import java.util.List;
  * - 여러 UseCase를 조합하여 복잡한 비즈니스 플로우 처리
  * - Controller는 이 Facade만 호출
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -40,8 +44,8 @@ public class AuctionFacade {
         // 2. AuctionCreateUseCase 호출
         Long auctionId = auctionCreateUseCase.createAuction(sellerId, request);
         
-        // 3. 생성된 경매 조회 및 DTO 변환
-        return auctionQueryUseCase.getAuctionById(auctionId);
+        // 3. 생성된 경매 조회 및 DTO 변환 (readOnly 트랜잭션으로 분리)
+        return getAuctionByIdInReadOnlyTransaction(auctionId);
     }
 
     /**
@@ -51,8 +55,8 @@ public class AuctionFacade {
         // 1. AuctionUpdateUseCase 호출
         auctionUpdateUseCase.updateAuction(auctionId, userId, request);
         
-        // 2. 수정된 경매 조회 및 DTO 변환
-        return auctionQueryUseCase.getAuctionById(auctionId);
+        // 2. 수정된 경매 조회 및 DTO 변환 (readOnly 트랜잭션으로 분리)
+        return getAuctionByIdInReadOnlyTransaction(auctionId);
     }
 
     /**
@@ -67,20 +71,36 @@ public class AuctionFacade {
      * 경매 종료 처리 (스케줄러에서 호출)
      */
     public void closeExpiredAuctions() {
-        // 1. 종료 시간이 지난 경매 목록 조회
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        java.util.List<com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem> expiredAuctions =
-                auctionQueryUseCase.findExpiredAuctions(now);
+        // 1. 종료 시간이 지난 경매 목록 조회 (readOnly 트랜잭션으로 분리)
+        List<com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem> expiredAuctions =
+                findExpiredAuctionsInReadOnlyTransaction();
         
-        // 2. 각 경매마다 AuctionCloseUseCase 호출
+        // 2. 각 경매마다 독립 트랜잭션으로 종료 처리
         for (com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem auction : expiredAuctions) {
             try {
-                auctionCloseUseCase.closeAuction(auction.getId());
+                closeAuctionInNewTransaction(auction.getId());
             } catch (Exception e) {
-                // 로깅만 하고 계속 진행 (한 경매 실패가 전체에 영향 없도록)
-                // TODO: 로깅 추가
+                log.error("경매 종료 실패: auctionId={}", auction.getId(), e);
             }
         }
+    }
+
+    /**
+     * 만료된 경매 목록 조회 (읽기 전용 트랜잭션)
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    private List<com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem> findExpiredAuctionsInReadOnlyTransaction() {
+        LocalDateTime now = LocalDateTime.now();
+        return auctionQueryUseCase.findExpiredAuctions(now);
+    }
+
+    /**
+     * 경매 종료 처리 (독립 트랜잭션)
+     * 각 경매마다 독립적인 트랜잭션으로 처리하여 하나 실패 시 다른 것들에 영향 없도록 함
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void closeAuctionInNewTransaction(Long auctionId) {
+        auctionCloseUseCase.closeAuction(auctionId);
     }
 
     /**
@@ -95,6 +115,14 @@ public class AuctionFacade {
         // TODO: 비동기 처리로 변경 고려
         
         return response;
+    }
+
+    /**
+     * 경매 ID로 조회 (읽기 전용 트랜잭션)
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    private AuctionItemResponse getAuctionByIdInReadOnlyTransaction(Long auctionId) {
+        return auctionQueryUseCase.getAuctionById(auctionId);
     }
 
     /**

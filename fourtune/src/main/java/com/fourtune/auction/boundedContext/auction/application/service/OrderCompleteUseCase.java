@@ -81,24 +81,21 @@ public class OrderCompleteUseCase {
     }
 
     /**
-     * 주문 취소
+     * [진입점] 주문 취소 (orderId 기준)
      */
     @Transactional
     public void cancelOrder(String orderId) {
         // 1. 주문 조회
         Order order = orderSupport.findByOrderIdOrThrow(orderId);
         
-        // 2. 주문 취소 (Order 엔티티에서 취소 가능 여부 검증)
-        order.cancel();
-        
-        // 3. 저장
-        orderSupport.save(order);
+        // 2. 내부 메서드로 위임
+        cancelOrderInternal(order);
         
         log.info("주문 취소 처리: orderId={}", orderId);
     }
 
     /**
-     * 주문 취소 (주문 ID 기준)
+     * [진입점] 주문 취소 (id 기준, 사용자 검증 포함)
      */
     @Transactional
     public void cancelOrderById(Long id, Long userId) {
@@ -110,13 +107,23 @@ public class OrderCompleteUseCase {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
         
-        // 3. 주문 취소
-        order.cancel();
-        
-        // 4. 저장
-        orderSupport.save(order);
+        // 3. 내부 메서드로 위임
+        cancelOrderInternal(order);
         
         log.info("주문 취소 처리: id={}, userId={}", id, userId);
+    }
+
+    /**
+     * [내부 로직] 실제 주문 취소 처리
+     * - private 선언: 외부 호출 방지
+     * - @Transactional 제거: 부모 트랜잭션을 그대로 따라감
+     */
+    private void cancelOrderInternal(Order order) {
+        // 1. 주문 취소 (Order 엔티티에서 취소 가능 여부 검증)
+        order.cancel();
+        
+        // 2. 저장
+        orderSupport.save(order);
     }
 
 }

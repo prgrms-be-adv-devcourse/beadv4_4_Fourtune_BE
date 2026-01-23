@@ -4,7 +4,6 @@ import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -22,7 +21,7 @@ public class OrderCreateUseCase {
     private final AuctionSupport auctionSupport;
 
     /**
-     * 낙찰 주문 생성
+     * [진입점] 낙찰 주문 생성
      * 동시성 제어: Pessimistic Lock 적용
      */
     @Transactional
@@ -30,30 +29,12 @@ public class OrderCreateUseCase {
         // 1. 경매 조회 (Pessimistic Lock 적용)
         AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
         
-        // 2. 이미 주문이 있는지 확인
-        orderSupport.validateOrderCreatable(auctionId);
-        
-        // 3. 주문명 생성
-        String orderName = "[낙찰] " + auctionItem.getTitle();
-        
-        // 4. Order 엔티티 생성 (정적 팩토리 메서드)
-        Order order = Order.create(
-                auctionId,
-                winnerId,
-                auctionItem.getSellerId(),
-                finalPrice,
-                orderName
-        );
-        
-        // 5. DB 저장
-        Order savedOrder = orderSupport.save(order);
-        
-        // 6. orderId 반환 (UUID)
-        return savedOrder.getOrderId();
+        // 2. 내부 메서드로 위임
+        return createOrderInternal(auctionItem, winnerId, finalPrice, "[낙찰] " + auctionItem.getTitle());
     }
 
     /**
-     * 즉시구매 주문 생성
+     * [진입점] 즉시구매 주문 생성
      * 경매 상태 변경은 AuctionBuyNowUseCase에서 처리함
      * 동시성 제어: Pessimistic Lock 적용
      */
@@ -62,23 +43,51 @@ public class OrderCreateUseCase {
         // 1. 경매 조회 (Pessimistic Lock 적용)
         AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
         
-        // 2. 주문명 생성
-        String orderName = "[즉시구매] " + auctionItem.getTitle();
-        
-        // 3. Order 엔티티 생성
+        // 2. 내부 메서드로 위임
+        return createOrderInternal(auctionItem, buyerId, buyNowPrice, "[즉시구매] " + auctionItem.getTitle());
+    }
+
+    /**
+     * [진입점] 낙찰 주문 생성 (엔티티 직접 전달)
+     * 이미 Lock이 획득된 엔티티를 사용하여 중복 Lock 방지
+     * 외부 UseCase에서 이미 Lock을 획득한 경우 사용
+     */
+    @Transactional
+    public String createWinningOrder(AuctionItem auctionItem, Long winnerId, BigDecimal finalPrice) {
+        return createOrderInternal(auctionItem, winnerId, finalPrice, "[낙찰] " + auctionItem.getTitle());
+    }
+
+    /**
+     * [진입점] 즉시구매 주문 생성 (엔티티 직접 전달)
+     * 이미 Lock이 획득된 엔티티를 사용하여 중복 Lock 방지
+     * 외부 UseCase에서 이미 Lock을 획득한 경우 사용
+     */
+    @Transactional
+    public String createBuyNowOrder(AuctionItem auctionItem, Long buyerId, BigDecimal buyNowPrice) {
+        return createOrderInternal(auctionItem, buyerId, buyNowPrice, "[즉시구매] " + auctionItem.getTitle());
+    }
+
+    /**
+     * [내부 로직] 실제 주문 생성 공통 메서드
+     * - private 선언: 외부 호출 방지
+     * - @Transactional 제거: 부모 트랜잭션을 그대로 따라감
+     * - 공통화: 낙찰/즉시구매 로직이 거의 같으므로 하나로 합침
+     */
+    private String createOrderInternal(AuctionItem auctionItem, Long buyerId, BigDecimal price, String orderName) {
+        // 1. 주문 생성 가능 여부 검증 (낙찰/즉시구매 공통)
+        orderSupport.validateOrderCreatable(auctionItem.getId());
+
+        // 2. Order 엔티티 생성
         Order order = Order.create(
-                auctionId,
+                auctionItem.getId(),
                 buyerId,
                 auctionItem.getSellerId(),
-                buyNowPrice,
+                price,
                 orderName
         );
-        
-        // 4. DB 저장
-        Order savedOrder = orderSupport.save(order);
-        
-        // 5. orderId 반환
-        return savedOrder.getOrderId();
+
+        // 3. 저장 및 반환
+        return orderSupport.save(order).getOrderId();
     }
 
 }

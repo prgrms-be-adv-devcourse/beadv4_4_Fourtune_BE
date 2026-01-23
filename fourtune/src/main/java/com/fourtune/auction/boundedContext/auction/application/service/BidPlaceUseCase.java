@@ -136,9 +136,9 @@ public class BidPlaceUseCase {
         LocalDateTime endTime = auctionItem.getAuctionEndTime();
         Duration remaining = Duration.between(now, endTime);
         
-        // 종료 5분 전이면 자동 연장
+        // 종료 5분 전이면 자동 연장 (엔티티 직접 전달하여 중복 Lock 방지)
         if (remaining.toMinutes() <= AuctionPolicy.AUTO_EXTEND_THRESHOLD_MINUTES) {
-            auctionExtendUseCase.extendAuction(auctionItem.getId());
+            auctionExtendUseCase.extendAuction(auctionItem);
         }
     }
 
