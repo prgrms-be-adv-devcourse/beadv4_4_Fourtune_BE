@@ -4,6 +4,8 @@ import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentUserRepository;
 import com.fourtune.auction.boundedContext.payment.port.out.WalletRepository;
+import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.shared.payment.dto.PaymentUserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +21,9 @@ public class CreateWalletUseCase {
     @Transactional
     public Wallet createWallet(PaymentUserDto dto) {
 
-        PaymentUser paymentUser = paymentUserRepository.findByEmail(dto.getEmail()).orElseThrow();
+        PaymentUser paymentUser = paymentUserRepository.findByEmail(dto.getEmail()).orElseThrow(
+                () -> new BusinessException(ErrorCode.PAYMENT_USER_NOT_FOUND)
+        );
 
         Wallet newWallet = Wallet.builder()
                 .paymentUser(paymentUser)

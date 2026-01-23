@@ -47,7 +47,7 @@ public enum ErrorCode {
     BID_ALREADY_HIGHEST(400, "B006", "이미 최고 입찰자입니다."),
     BID_CANCELLED_NOT_ALLOWED(400, "B007", "취소할 수 없는 입찰입니다."),
     BID_LOCK_FAILED(500, "B008", "입찰 처리 중 오류가 발생했습니다."),
-
+    
     //Order(주문 관련)
     ORDER_NOT_FOUND(404, "O001", "존재하지 않는 주문입니다."),
     ORDER_ALREADY_EXISTS(409, "O002", "이미 생성된 주문이 있습니다."),
@@ -57,14 +57,14 @@ public enum ErrorCode {
     ORDER_CANCEL_NOT_ALLOWED(400, "O006", "취소할 수 없는 주문입니다."),
     ORDER_ALREADY_CANCELLED(400, "O007", "이미 취소된 주문입니다."),
     ORDER_INVALID_AMOUNT(400, "O008", "유효하지 않은 주문 금액입니다."),
-
+    
     //Cart(장바구니 관련)
     CART_NOT_FOUND(404, "CA001", "존재하지 않는 장바구니입니다."),
     CART_ITEM_NOT_FOUND(404, "CA002", "장바구니에 존재하지 않는 상품입니다."),
     CART_ITEM_ALREADY_EXISTS(409, "CA003", "이미 장바구니에 담긴 상품입니다."),
     CART_ITEM_NOT_ACTIVE(400, "CA004", "활성 상태가 아닌 장바구니 아이템입니다."),
     CART_ITEM_EXPIRED(400, "CA005", "만료된 장바구니 아이템입니다."),
-
+    
     //BuyNow(즉시구매 관련)
     BUY_NOW_NOT_ENABLED(400, "BN001", "즉시구매가 활성화되지 않은 경매입니다."),
     BUY_NOW_PRICE_NOT_SET(400, "BN002", "즉시구매가가 설정되지 않았습니다."),
@@ -92,6 +92,23 @@ public enum ErrorCode {
     SETTLEMENT_NOT_FOUND(404, "S001", "정산 정보를 찾을 수 없습니다."),
     SETTLEMENT_ACTIVE_NOT_FOUND(404, "S002", "활성화된(정산 예정인) 정산서를 찾을 수 없습니다."),
     SETTLEMENT_PROCESSING_FAILED(500, "S005", "정산 처리 중 오류가 발생했습니다."), // 송금 실패 등 내부 로직 오류
+
+    // Payment(결제 관련)
+    PAYMENT_WALLET_NOT_FOUND(404, "P101", "존재하지 않는 지갑입니다."),
+    PAYMENT_WALLET_INSUFFICIENT_BALANCE(400, "P102", "지갑 잔액이 부족합니다."),
+    PAYMENT_SYSTEM_WALLET_NOT_FOUND(500, "P105", "시스템 지갑을 찾을 수 없습니다. (관리자 문의 필요)"),
+    PAYMENT_PLATFORM_WALLET_NOT_FOUND(500, "P106", "플랫폼 지갑을 찾을 수 없습니다. (관리자 문의 필요)"),
+    PAYMENT_USER_NOT_FOUND(404, "P201", "존재하지 않는 결제 사용자입니다."),
+    PAYMENT_PURCHASE_NOT_ALLOWED(400, "P203", "주문자와 결제 사용자가 다릅니다."),
+    PAYMENT_NOT_FOUND(404, "P301", "존재하지 않는 결제 정보입니다."),
+    PAYMENT_AMOUNT_MISMATCH(400, "P302", "주문 금액과 결제 금액이 일치하지 않습니다."),
+    PAYMENT_ORDER_NOT_PENDING(400, "P305", "결제 대기 상태가 아닌 결제 요청입니다."),
+
+    PAYMENT_PG_FAILED(502, "P307", "PG사 결제 승인에 실패했습니다."),
+    PAYMENT_PG_SERVER_ERROR(502, "P308", "PG사 시스템 장애로 결제를 진행할 수 없습니다."),
+    PAYMENT_PG_REFUND_FAILED(502, "P504", "PG사 결제 취소 요청에 실패했습니다."),
+    PAYMENT_AUCTION_ORDER_NOT_FOUND(404, "P312", "해당 경매(주문) 정보를 찾을 수 없습니다."),
+    PAYMENT_AUCTION_SERVICE_ERROR(502, "P313", "경매 서비스와의 통신에 실패하여 주문 정보를 가져올 수 없습니다."),
 
     //Bid(입찰 관련)
     SELF_BIDDING_NOT_ALLOWED(400, " B007", "판매자는 자신의 물건에 입찰할 수 없습니다."),

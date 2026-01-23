@@ -2,6 +2,7 @@ package com.fourtune.auction.boundedContext.payment.domain.entity;
 
 import com.fourtune.auction.boundedContext.payment.domain.constant.PaymentStatus;
 import com.fourtune.auction.global.common.BaseIdAndTime;
+import com.fourtune.auction.shared.payment.dto.PaymentDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -29,6 +30,9 @@ public class Payment extends BaseIdAndTime {
     @Column(nullable = false)
     private Long amount; // 최초 결제 금액
 
+    @Column(nullable = true)
+    private Long pgPaymentAmount;
+
     @Column(nullable = false)
     private Long balanceAmount; // 취소 가능 잔액 (부분 취소 시 차감됨)
 
@@ -40,13 +44,13 @@ public class Payment extends BaseIdAndTime {
     private String cancelReason; // (전액) 취소 사유
 
     @Builder
-    public Payment(String paymentKey, Long orderId, String orderNo, PaymentUser paymentUser, Long amount, PaymentStatus status) {
+    public Payment(String paymentKey, Long orderId, String orderNo, PaymentUser paymentUser, Long amount, Long pgPaymentAmount, PaymentStatus status) {
         this.paymentKey = paymentKey;
         this.orderId = orderId;
         this.orderNo = orderNo;
         this.paymentUser = paymentUser;
-        this.paymentKey = paymentKey;
         this.amount = amount;
+        this.pgPaymentAmount = pgPaymentAmount;
         this.balanceAmount = amount; // 생성 시 잔액은 결제 금액과 동일
         this.status = status;
     }
@@ -77,5 +81,20 @@ public class Payment extends BaseIdAndTime {
         this.status = PaymentStatus.CANCELED;
         this.balanceAmount = 0L;
         this.cancelReason = reason;
+    }
+
+    public PaymentDto toDto(){
+        return PaymentDto.builder()
+                .paymentId(getId())
+                .paymentKey(paymentKey)
+                .orderId(orderId)
+                .orderNo(orderNo)
+                .userId(this.paymentUser.getId())
+                .pgPaymentAmount(pgPaymentAmount)
+                .amount(amount)
+                .balanceAmount(balanceAmount)
+                .status(status.name())
+                .cancelReason(cancelReason)
+                .build();
     }
 }

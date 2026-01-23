@@ -32,7 +32,7 @@ public class AddSettlementCandidatedItemsUseCase {
                 SettlementCandidatedItem.builder()
                         .settlementEventType(SettlementEventType.정산__상품판매_대금)
                         .relTypeCode("OrderItem")
-                        .relId(item.getItemId())
+                        .relId(order.getOrderId())// 원래는 order item id 인데 주문에 order item이 1개라 order id로
                         .paymentDate(order.getPaymentDate())
                         .payee(seller)
                         .payer(buyer)
@@ -44,7 +44,7 @@ public class AddSettlementCandidatedItemsUseCase {
                 SettlementCandidatedItem.builder()
                         .settlementEventType(SettlementEventType.정산__상품판매_수수료)
                         .relTypeCode("OrderItem")
-                        .relId(item.getItemId())
+                        .relId(order.getOrderId())// 원래는 order item id 인데 주문에 order item이 1개라 order id로
                         .paymentDate(order.getPaymentDate())
                         .payee(platform)
                         .payer(buyer)
