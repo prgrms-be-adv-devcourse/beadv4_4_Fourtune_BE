@@ -2,23 +2,19 @@ package com.fourtune.auction.boundedContext.payment.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.payment.adapter.in.web.dto.ConfirmPaymentRequest;
 import com.fourtune.auction.boundedContext.payment.adapter.in.web.dto.WalletResponse;
-import com.fourtune.auction.boundedContext.payment.application.service.PaymentConfirmUseCase;
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
 import com.fourtune.auction.boundedContext.payment.domain.entity.CashLog;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Payment;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Refund;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
 import com.fourtune.auction.global.common.ApiResponse;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.payment.event.PaymentFailedEvent;
-import jakarta.servlet.http.HttpServletResponse;
+import com.fourtune.auction.shared.auth.dto.UserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -26,9 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/payments")
 public class PaymentController {
-    private final PaymentConfirmUseCase paymentConfirmUseCase;
     private final PaymentFacade paymentFacade;
-    private final EventPublisher eventPublisher;
     /**
       * 토스페이먼츠 성공 리다이렉트가 아래와 같음
       * URL 예시: /api/payments/toss/success?paymentKey=...&orderId=...&amount=...
@@ -36,45 +30,44 @@ public class PaymentController {
       */
 
 
-    @PostMapping("/toss/confirm/{userId}")
+    @PostMapping("/toss/confirm")
     public void tossPaymentSuccess(
-            @PathVariable Long userId,
-            @RequestBody ConfirmPaymentRequest confirmPaymentRequest,
-            HttpServletResponse response
+            @AuthenticationPrincipal UserContext user,
+            @RequestBody ConfirmPaymentRequest confirmPaymentRequest
     ) {
         String orderNo = confirmPaymentRequest.orderId();
         Long amount = confirmPaymentRequest.amount();
         String paymentKey = confirmPaymentRequest.paymentKey();
 
-        paymentFacade.confirmPayment(paymentKey, orderNo, amount, userId);
+        paymentFacade.confirmPayment(paymentKey, orderNo, amount, user.id());
     }
 
     /**
      * 결제 내역 조회 payment 테이블 조회
      */
-    @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<List<Payment>>> getPayments(@PathVariable("userId") Long userId) {
+    @GetMapping()
+    public ResponseEntity<ApiResponse<List<Payment>>> getPayments(@AuthenticationPrincipal UserContext user) {
         return ResponseEntity.ok(
-                ApiResponse.success(paymentFacade.findPaymentListByUserId(userId))
+                ApiResponse.success(paymentFacade.findPaymentListByUserId(user.id()))
         );
     }
 
     /**
      * 환불 내역 조회 refund 테이블 조회
      */
-    @GetMapping("/{userId}/refunds")
-    public ResponseEntity<ApiResponse<List<Refund>>> getRefunds(@PathVariable("userId") Long userId) {
+    @GetMapping("/refunds")
+    public ResponseEntity<ApiResponse<List<Refund>>> getRefunds(@AuthenticationPrincipal UserContext user) {
         return ResponseEntity.ok(
-                ApiResponse.success(paymentFacade.findRefundListByUserId(userId))
+                ApiResponse.success(paymentFacade.findRefundListByUserId(user.id()))
         );
     }
 
     /**
      * 지갑 잔액 조회 API
      */
-    @GetMapping("/wallets/{userId}/balance")
-    public ResponseEntity<ApiResponse<WalletResponse>> getMyBalance(@PathVariable("userId") Long userId) {
-        Long balance = paymentFacade.getBalance(userId);
+    @GetMapping("/wallets/balance")
+    public ResponseEntity<ApiResponse<WalletResponse>> getMyBalance(@AuthenticationPrincipal UserContext user) {
+        Long balance = paymentFacade.getBalance(user.id());
         return ResponseEntity.ok(
                 ApiResponse.success(WalletResponse.of(balance))
         );
@@ -83,9 +76,9 @@ public class PaymentController {
     /**
      * 지갑 상세 내역 조히 API
      */
-    @GetMapping("/wallets/{userId}/history")
-    public ResponseEntity<ApiResponse<WalletResponse>> getWalletHistory(@PathVariable("userId") Long userId) {
-        List<CashLog> cashLogs = paymentFacade.getRecentCashLogs(userId, 10);
+    @GetMapping("/wallets/history")
+    public ResponseEntity<ApiResponse<WalletResponse>> getWalletHistory(@AuthenticationPrincipal UserContext user) {
+        List<CashLog> cashLogs = paymentFacade.getRecentCashLogs(user.id(), 10);
         return ResponseEntity.ok(ApiResponse.success(WalletResponse.of(cashLogs))
         );
     }
@@ -93,10 +86,10 @@ public class PaymentController {
     /**
      * 지갑 잔액 + 상세 내역 조히 API
      */
-    @GetMapping("/wallets/{userId}/summary")
-    public ResponseEntity<ApiResponse<WalletResponse>> getWalletSummary(@PathVariable("userId") Long userId) {
-        Wallet wallet = paymentFacade.findWalletByUserId(userId).orElseThrow();
-        List<CashLog> cashLogs = paymentFacade.getRecentCashLogs(userId, 10);
+    @GetMapping("/wallets/summary")
+    public ResponseEntity<ApiResponse<WalletResponse>> getWalletSummary(@AuthenticationPrincipal UserContext user) {
+        Wallet wallet = paymentFacade.findWalletByUserId(user.id()).orElseThrow();
+        List<CashLog> cashLogs = paymentFacade.getRecentCashLogs(user.id(), 10);
         return ResponseEntity.ok(ApiResponse.success(WalletResponse.of(wallet.getBalance(), cashLogs))
         );
     }
