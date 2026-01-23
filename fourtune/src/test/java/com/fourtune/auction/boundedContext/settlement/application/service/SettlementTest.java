@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
-class SettlementIntegrationTest {
+class SettlementTest {
 
     @Autowired CollectSettlementItemChunkUseCase collectUseCase;
     @Autowired CompleteSettlementChunkUseCase completeUseCase;
