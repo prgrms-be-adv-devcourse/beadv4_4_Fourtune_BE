@@ -48,11 +48,11 @@ public class ApiV1OrderController {
      * 주문번호로 주문 조회 (인증 없음 - 결제 페이지용)
      * orderNo로 OrderDetailResponse 조회
      */
-    @GetMapping("/public/{orderId}")
-    public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrderByOrderIdPublic(
-        @PathVariable String orderId
+    @GetMapping("/public/{orderNo}")
+    public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrderByOrderNo(
+        @PathVariable("orderNo") String orderNo
     ) {
-        OrderDetailResponse response = orderQueryUseCase.getOrderByOrderId(orderId);
+        OrderDetailResponse response = orderQueryUseCase.getOrderByOrderId(orderNo);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
     
