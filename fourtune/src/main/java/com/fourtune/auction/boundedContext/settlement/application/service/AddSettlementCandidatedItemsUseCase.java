@@ -1,0 +1,65 @@
+package com.fourtune.auction.boundedContext.settlement.application.service;
+
+import com.fourtune.auction.boundedContext.settlement.domain.constant.SettlementEventType;
+import com.fourtune.auction.boundedContext.settlement.domain.constant.SettlementPolicy;
+import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementCandidatedItem;
+import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
+import com.fourtune.auction.boundedContext.settlement.port.out.SettlementCandidatedItemRepository;
+import com.fourtune.auction.shared.payment.dto.OrderDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@RequiredArgsConstructor
+@Service
+public class AddSettlementCandidatedItemsUseCase {
+    private final SettlementCandidatedItemRepository settlementCandidatedItemRepository;
+    private final SettlementSupport settlementSupport;
+
+    public void addSettlementCandidatedItems(OrderDto dto){
+
+        for(OrderDto.OrderItem item : dto.getItems()){
+            makeSettlementCandidatedItemPair(dto, item);
+        }
+
+    }
+
+    void makeSettlementCandidatedItemPair(OrderDto order, OrderDto.OrderItem item){
+        SettlementUser buyer = settlementSupport.findUserById(order.getUserId()).orElseThrow();
+        SettlementUser platform = settlementSupport.findPlatformRevenueUser().orElseThrow();
+        SettlementUser seller = settlementSupport.findUserById(item.getSellerId()).orElseThrow();
+
+        settlementCandidatedItemRepository.save(
+                SettlementCandidatedItem.builder()
+                        .settlementEventType(SettlementEventType.정산__상품판매_대금)
+                        .relTypeCode("OrderItem")
+                        .relId(order.getOrderId())// null 임
+                        .relNo(order.getOrderNo())// 원래는 order item id 인데 주문에 order item이 1개라 order no
+                        .paymentDate(order.getPaymentDate())
+                        .payee(seller)
+                        .payer(buyer)
+                        .amount(getPriceWithoutCommission(item.getPrice()))// 판매금 - 수수료
+                        .build()
+        );
+
+        settlementCandidatedItemRepository.save(
+                SettlementCandidatedItem.builder()
+                        .settlementEventType(SettlementEventType.정산__상품판매_수수료)
+                        .relTypeCode("OrderItem")
+                        .relId(order.getOrderId())// null 임
+                        .relNo(order.getOrderNo())// 원래는 order item id 인데 주문에 order item이 1개라 order no
+                        .payee(platform)
+                        .payer(buyer)
+                        .amount(getCommissionAmount(item.getPrice()))// 수수료
+                        .build()
+        );
+    }
+
+    Long getCommissionAmount(Long orderItemPrice){
+        return (orderItemPrice * SettlementPolicy.COMMISSION_RATE.getValue()) / 100L;
+    }
+
+    Long getPriceWithoutCommission(Long orderItemPrice){
+        return orderItemPrice - getCommissionAmount(orderItemPrice);
+    }
+
+}

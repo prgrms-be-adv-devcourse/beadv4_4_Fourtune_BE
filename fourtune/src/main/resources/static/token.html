@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FCM 토큰 발급기</title>
+</head>
+<body>
+<h1>👇 F12(개발자도구) > Console 탭을 확인하세요</h1>
+<h2 id="status">토큰 요청 준비 중...</h2>
+<p>아래 박스에 토큰이 뜨면 복사하세요.</p>
+<textarea id="tokenArea" rows="10" cols="80"></textarea>
+
+<script type="module">
+    // 1. 가져오신 설정값 (제가 이미 넣어뒀습니다!)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCyGFtcYQrA4ebpoWZrcZzHrXlz2dZ6gK4",
+        authDomain: "fourtune-9c05e.firebaseapp.com",
+        projectId: "fourtune-9c05e",
+        storageBucket: "fourtune-9c05e.firebasestorage.app",
+        messagingSenderId: "927826319863",
+        appId: "1:927826319863:web:1091feb08fff8fcf5036f2",
+        measurementId: "G-YTZKL81JB3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
+
+    onMessage(messaging, (payload) => {
+        console.log('메시지 도착!', payload);
+        // 브라우저에 경고창 띄우기
+        alert(`[알림 도착]\n제목: ${payload.notification.title}\n내용: ${payload.notification.body}`);
+    });
+
+    const VAPID_KEY = "BCREan7uaddsBuULpMcEkGUNIBmvxB1QInjJcX54s0hqvNnm-LufnIUO2VGoKKz7ssh3ysgNZ8ih9XR1PcBlsW0";
+
+    async function getMyToken() {
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                document.getElementById('status').innerText = "권한 허용됨. 토큰 가져오는 중...";
+
+                const currentToken = await getToken(messaging, { vapidKey: VAPID_KEY });
+
+                if (currentToken) {
+                    console.log('--- 내 토큰 ---');
+                    console.log(currentToken);
+                    document.getElementById('tokenArea').value = currentToken;
+                    document.getElementById('status').innerText = "✅ 성공! 아래 토큰을 복사하세요.";
+                } else {
+                    document.getElementById('status').innerText = "토큰 없음. 권한 문제일 수 있습니다.";
+                }
+            } else {
+                document.getElementById('status').innerText = "❌ 알림 권한이 거부되었습니다.";
+            }
+        } catch (err) {
+            console.log('에러:', err);
+            document.getElementById('status').innerText = "❌ 에러 발생 (VAPID Key를 확인하세요)";
+        }
+    }
+
+    getMyToken();
+</script>
+</body>
+</html>

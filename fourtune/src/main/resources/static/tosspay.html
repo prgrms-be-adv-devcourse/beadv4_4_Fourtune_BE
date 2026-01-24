@@ -1,0 +1,278 @@
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://js.tosspayments.com/v2/standard"></script>
+
+    <title>TossPayments 결제 승인 테스트</title>
+</head>
+
+<body class="bg-slate-50">
+<div class="mx-auto max-w-2xl p-6">
+    <h1 class="text-xl font-semibold text-slate-900">결제 요청 & 서버 승인 (직접 입력 버전)</h1>
+    <p class="mt-1 text-sm text-slate-600">OrderId를 원하는 대로 직접 입력해서 테스트하세요.</p>
+
+    <div class="mt-6 rounded-xl border bg-white p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-900">결제수단</h2>
+            <span id="selectedBadge" class="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">CARD 선택됨</span>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+            <button id="CARD" type="button" class="rounded-lg border px-4 py-2 text-sm font-medium transition" onclick="selectPaymentMethod('CARD')">
+                카드
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-4 rounded-xl border bg-white p-4 shadow-sm">
+        <h2 class="text-base font-semibold text-slate-900">요청 파라미터</h2>
+
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+            <label class="block sm:col-span-2">
+                <span class="text-sm font-medium text-blue-700">Access Token (Authorization 헤더)</span>
+                <input id="accessToken" type="text" class="mt-1 w-full rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm outline-none focus:ring focus:ring-blue-500" placeholder="필요시 입력 (Bearer 토큰)" />
+            </label>
+
+            <label class="block sm:col-span-2">
+                <span class="text-sm font-medium text-green-700">Server Confirm URL (POST)</span>
+                <input id="serverConfirmUrl" class="mt-1 w-full rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm outline-none focus:ring focus:ring-green-500" placeholder="http://localhost:8080/api/payments/toss/confirm" />
+            </label>
+
+            <div class="col-span-full h-px bg-slate-100 my-2"></div>
+
+            <label class="block">
+                <span class="text-sm font-medium text-slate-700">clientKey</span>
+                <input id="clientKey" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" />
+            </label>
+
+            <label class="block">
+                <span class="text-sm font-medium text-slate-700">customerKey</span>
+                <input id="customerKey" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" />
+            </label>
+
+            <label class="block">
+                <span class="text-sm font-medium text-slate-700">amount.currency</span>
+                <input id="currency" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="KRW" />
+            </label>
+
+            <label class="block">
+                <span class="text-sm font-medium text-slate-700">amount.value</span>
+                <input id="value" type="number" min="1" step="1" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" placeholder="5000" />
+            </label>
+
+            <label class="block sm:col-span-2">
+                <span class="text-sm font-medium text-slate-700">orderId (직접 입력)</span>
+                <input id="orderId" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring bg-yellow-50" placeholder="ORDER-TEST-1234" />
+                <p class="mt-1 text-xs text-slate-500">영문, 숫자, -, _ 만 허용 (6자 이상 권장)</p>
+            </label>
+
+            <label class="block sm:col-span-2">
+                <span class="text-sm font-medium text-slate-700">orderName</span>
+                <input id="orderName" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" />
+            </label>
+
+            <label class="block sm:col-span-2">
+                <span class="text-sm font-medium text-slate-700">Redirect URL (자동설정)</span>
+                <input id="redirectUrl" class="mt-1 w-full rounded-lg border bg-slate-100 px-3 py-2 text-sm text-slate-500 outline-none" readonly />
+            </label>
+
+            <label class="block">
+                <span class="text-sm font-medium text-slate-700">customerEmail</span>
+                <input id="customerEmail" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" />
+            </label>
+
+            <label class="block">
+                <span class="text-sm font-medium text-slate-700">customerName</span>
+                <input id="customerName" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring" />
+            </label>
+        </div>
+
+        <div class="mt-5 flex items-center gap-2">
+            <button type="button" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" onclick="requestPayment()">
+                결제하기
+            </button>
+
+            <button type="button" class="rounded-lg border bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50" onclick="resetDefaults()">
+                기본값 리셋
+            </button>
+
+            <button type="button" class="rounded-lg border bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200" onclick="generateRandomOrderId()">
+                랜덤 ID 생성
+            </button>
+
+            <span id="status" class="ml-auto text-sm text-slate-600 font-medium"></span>
+        </div>
+    </div>
+
+    <div class="mt-4 rounded-xl border bg-white p-4 shadow-sm">
+        <h2 class="text-base font-semibold text-slate-900">디버그 / 서버 응답</h2>
+        <pre id="debug" class="mt-2 overflow-auto rounded-lg bg-slate-900 p-3 text-xs text-slate-100 min-h-[100px] whitespace-pre-wrap"></pre>
+    </div>
+</div>
+
+<script>
+    // -----------------------------
+    // 초기화 및 유틸리티
+    // -----------------------------
+    let selectedPaymentMethod = "CARD";
+
+    function v(id) { return document.getElementById(id)?.value ?? ""; }
+    function n(id) { return Number(document.getElementById(id)?.value ?? "0"); }
+
+    // 편의상 랜덤 생성 버튼을 위해 남겨둠 (필요할 때만 클릭)
+    function generateRandomOrderId() {
+        const random = Math.floor(Math.random() * 1000000);
+        const date = new Date().toISOString().slice(0,10).replace(/-/g,"");
+        document.getElementById("orderId").value = `ORDER-${date}-${random}`;
+    }
+
+    function renderPaymentMethodUI() {
+        const el = document.getElementById("CARD");
+        if (el) {
+            el.className = "rounded-lg border px-4 py-2 text-sm font-medium transition border-blue-300 bg-blue-50 text-blue-800";
+        }
+    }
+
+    function createPaymentClient() {
+        const tossPayments = TossPayments(v("clientKey").trim());
+        return tossPayments.payment({ customerKey: v("customerKey").trim() });
+    }
+
+    // -----------------------------
+    // 1. 결제 요청 (Redirect 방식)
+    // -----------------------------
+    async function requestPayment() {
+        const status = document.getElementById("status");
+        const debug = document.getElementById("debug");
+
+        try {
+            // ✅ 직접 입력한 orderId 가져오기
+            const orderId = v("orderId").trim();
+            if (!orderId) throw new Error("orderId를 입력해주세요.");
+
+            localStorage.setItem("tp_accessToken", v("accessToken"));
+            localStorage.setItem("tp_serverConfirmUrl", v("serverConfirmUrl"));
+
+            status.textContent = "요청 준비중...";
+
+            const currentUrl = window.location.href.split('?')[0];
+
+            const payload = {
+                method: "CARD",
+                amount: { currency: v("currency"), value: n("value") },
+                orderId: orderId, // 입력값 그대로 사용
+                orderName: v("orderName"),
+                successUrl: currentUrl,
+                failUrl: currentUrl,
+                customerEmail: v("customerEmail"),
+                customerName: v("customerName"),
+                card: { useEscrow: false, flowMode: "DEFAULT", useCardPoint: false, useAppCardOnly: false }
+            };
+
+            debug.textContent = `[Request Payload]\n${JSON.stringify(payload, null, 2)}`;
+
+            const payment = createPaymentClient();
+            await payment.requestPayment(payload);
+
+        } catch (e) {
+            status.textContent = "에러 발생";
+            debug.textContent = `[Error] ${e.message}`;
+            console.error(e);
+        }
+    }
+
+    // -----------------------------
+    // 2. 리다이렉트 후 서버 승인 요청
+    // -----------------------------
+    async function checkRedirectParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const statusEl = document.getElementById("status");
+        const debugEl = document.getElementById("debug");
+
+        if (urlParams.has("paymentKey") && urlParams.has("orderId") && urlParams.has("amount")) {
+
+            const paymentKey = urlParams.get("paymentKey");
+            const orderId = urlParams.get("orderId");
+            const amount = urlParams.get("amount");
+
+            const savedToken = localStorage.getItem("tp_accessToken") || "";
+            const savedServerUrl = localStorage.getItem("tp_serverConfirmUrl") || "";
+
+            if(document.getElementById("accessToken")) document.getElementById("accessToken").value = savedToken;
+            if(document.getElementById("serverConfirmUrl")) document.getElementById("serverConfirmUrl").value = savedServerUrl;
+
+            statusEl.textContent = "인증 성공! 서버 승인 요청 중...";
+            debugEl.textContent = `[Redirected Params]\npaymentKey: ${paymentKey}\norderId: ${orderId}\namount: ${amount}\n\n>> 서버(${savedServerUrl})로 POST 요청을 보냅니다...`;
+
+            try {
+                const requestBody = {
+                    paymentKey: paymentKey,
+                    orderId: orderId,
+                    amount: Number(amount)
+                };
+
+                const response = await fetch(savedServerUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(savedToken ? { "Authorization": `Bearer ${savedToken}` } : {})
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (response.ok) {
+                    statusEl.textContent = "최종 승인 성공 (200 OK)";
+                    debugEl.textContent += `\n\n[Success]\n서버 응답 성공 (Status: ${response.status})`;
+                    const text = await response.text();
+                    if(text) debugEl.textContent += `\nBody: ${text}`;
+                } else {
+                    statusEl.textContent = "서버 승인 실패";
+                    const errorText = await response.text();
+                    debugEl.textContent += `\n\n[Server Error (${response.status})]\n${errorText}`;
+                }
+
+            } catch (err) {
+                statusEl.textContent = "네트워크 에러";
+                debugEl.textContent += `\n\n[Fetch Error] ${err.message}`;
+            }
+        }
+    }
+
+    // -----------------------------
+    // 기본값 설정
+    // -----------------------------
+    function resetDefaults() {
+        document.getElementById("clientKey").value = "test_ck_5OWRapdA8dwjJb9WO69Bro1zEqZK";
+        document.getElementById("customerKey").value = "MEMBER-5";
+        document.getElementById("currency").value = "KRW";
+        document.getElementById("value").value = 5000;
+
+        // ✅ orderId 직접 입력 기본값
+        document.getElementById("orderId").value = "ORDER-TEST-0001";
+
+        document.getElementById("orderName").value = "테스트 상품";
+        document.getElementById("customerEmail").value = "test@example.com";
+        document.getElementById("customerName").value = "김토스";
+        document.getElementById("serverConfirmUrl").value = "http://localhost:8080/api/payments/toss/confirm";
+        document.getElementById("accessToken").value = "";
+        document.getElementById("redirectUrl").value = window.location.href.split('?')[0];
+
+        document.getElementById("status").textContent = "";
+        document.getElementById("debug").textContent = "";
+    }
+
+    // 실행
+    renderPaymentMethodUI();
+    resetDefaults();
+    checkRedirectParams();
+
+</script>
+</body>
+</html>
