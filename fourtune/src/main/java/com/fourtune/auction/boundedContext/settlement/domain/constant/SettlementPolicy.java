@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum SettlementPolicy {
-    SETTLEMENT_WAITING_DAYS(0),
+    SETTLEMENT_WAITING_DAYS(7),
     COMMISSION_RATE(10);
 
     private final int value;
