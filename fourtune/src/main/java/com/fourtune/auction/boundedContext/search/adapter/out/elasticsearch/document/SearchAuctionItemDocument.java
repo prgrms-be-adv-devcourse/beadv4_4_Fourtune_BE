@@ -18,21 +18,17 @@ public class SearchAuctionItemDocument {
     @Id
     private Long auctionItemId;
 
-    // keyword + text 함께 쓰기 위해 멀티필드 사용
-    @MultiField(
-            mainField = @Field(type = FieldType.Text, analyzer = "standard"),
-            otherFields = @InnerField(suffix = "keyword", type = FieldType.Keyword)
-    )
+    @Field(type = FieldType.Text, analyzer = "standard")
     private String title;
 
     @Field(type = FieldType.Text, analyzer = "standard")
     private String description;
 
     @Field(type = FieldType.Keyword)
-    private String category;  // enum 이름
+    private String category; // enum 이름
 
     @Field(type = FieldType.Keyword)
-    private String status;    // enum 이름
+    private String status; // enum 이름
 
     @Field(type = FieldType.Scaled_Float, scalingFactor = 100) // BigDecimal 정렬용
     private BigDecimal startPrice;
@@ -40,19 +36,19 @@ public class SearchAuctionItemDocument {
     @Field(type = FieldType.Scaled_Float, scalingFactor = 100)
     private BigDecimal currentPrice;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
     private LocalDateTime startAt;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
     private LocalDateTime endAt;
 
     @Field(type = FieldType.Keyword, index = false)
     private String thumbnailUrl;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
     private LocalDateTime createdAt;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
     private LocalDateTime updatedAt;
 
     @Field(type = FieldType.Long)

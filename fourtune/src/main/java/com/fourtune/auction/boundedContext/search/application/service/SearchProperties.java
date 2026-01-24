@@ -1,20 +1,26 @@
 package com.fourtune.auction.boundedContext.search.application.service;
 
 import lombok.Getter;
-import lombok.Value;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * 검색 관련 설정 프로퍼티
+ * - application.yml의 search.* 설정을 바인딩
+ */
 @Getter
 @Component
 public class SearchProperties {
 
-    private final int pageSize = 20;
-    private final int maxFrom = 10000;
+    // 검색 결과 페이지 크기 (기본: 20)
+    @Value("${search.page-size:20}")
+    private int pageSize;
 
-    // TODO : @Value로 변경 쉽게 페이지 사이즈 설정 (yml에 값 추가)
-//    @Value("${search.page.size:20}")
-//    private int pageSize = 20;
-//
-//    @Value("${search.max.from:10000}")
-//    private int maxFrom = 10_000;
+    // Deep paging 최대 from 값 (기본: 10000)
+    @Value("${search.max-from:10000}")
+    private int maxFrom;
+
+    // 검색 키워드 최대 길이 (기본: 100)
+    @Value("${search.max-keyword-length:100}")
+    private int maxKeywordLength;
 }
