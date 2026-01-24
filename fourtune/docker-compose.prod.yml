@@ -1,5 +1,4 @@
-# 프로덕션 환경용 Docker Compose
-# 사용법: docker-compose -f docker-compose.prod.yml up -d
+# 프로덕션 환경용 Docker Compose (Updated for t3.large)
 version: '3.8'
 
 services:
@@ -21,11 +20,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '1'
+          cpus: '0.50'
           memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME:-fourtune_db}"]
       interval: 10s
@@ -52,7 +51,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: '0.25'
           memory: 512M
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
@@ -72,7 +71,8 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      # 중요: 8GB 램 환경에서는 힙메모리를 1GB로 줄여야 OOM 방지됨
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -84,11 +84,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 4G
-        reservations:
-          cpus: '1'
+          cpus: '1.0'
           memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
@@ -100,70 +100,12 @@ services:
         max-size: "10m"
         max-file: "3"
 
-#  # Kafka
-#  zookeeper:
-#    image: confluentinc/cp-zookeeper:7.5.0
-#    container_name: fourtune-zookeeper-prod
-#    environment:
-#      ZOOKEEPER_CLIENT_PORT: 2181
-#      ZOOKEEPER_TICK_TIME: 2000
-#    ports:
-#      - "2181:2181"
-#    volumes:
-#      - zookeeper_data_prod:/var/lib/zookeeper/data
-#      - zookeeper_log_prod:/var/lib/zookeeper/log
-#    networks:
-#      - fourtune-network
-#    restart: always
-#    logging:
-#      driver: "json-file"
-#      options:
-#        max-size: "10m"
-#        max-file: "3"
-#
-#  kafka:
-#    image: confluentinc/cp-kafka:7.5.0
-#    container_name: fourtune-kafka-prod
-#    depends_on:
-#      - zookeeper
-#    ports:
-#      - "9092:9092"
-#    volumes:
-#      - kafka_data_prod:/var/lib/kafka/data
-#    environment:
-#      KAFKA_BROKER_ID: 1
-#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-#      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-#      KAFKA_LOG_RETENTION_HOURS: 168
-#    networks:
-#      - fourtune-network
-#    restart: always
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: '2'
-#          memory: 2G
-#    healthcheck:
-#      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-#      interval: 30s
-#      timeout: 10s
-#      retries: 5
-#    logging:
-#      driver: "json-file"
-#      options:
-#        max-size: "10m"
-#        max-file: "3"
-
   # Spring Boot Application
   app:
     image: ghcr.io/prgrms-be-adv-devcourse/fourtune:latest
     container_name: fourtune-app-prod
+    env_file:
+      - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_URL=jdbc:postgresql://postgres:5432/${DB_NAME:-fourtune_db}
@@ -173,13 +115,15 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - ELASTICSEARCH_URIS=http://elasticsearch:9200
-#      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - JWT_SECRET=${JWT_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
       - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - AWS_S3_BUCKET=${AWS_S3_BUCKET}
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
+      - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
+      - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
+
     ports:
       - "8080:8080"
     depends_on:
@@ -189,19 +133,18 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
-#      kafka:
-#        condition: service_healthy
     networks:
       - fourtune-network
     restart: always
     deploy:
       resources:
         limits:
-          cpus: '4'
-          memory: 4G
-        reservations:
-          cpus: '2'
+          # 앱에 가장 많은 할당. 하지만 2.0 미만이어야 함
+          cpus: '1.2'
           memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -214,7 +157,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Nginx (필수!)
+  # Nginx
   nginx:
     image: nginx:alpine
     container_name: fourtune-nginx-prod
@@ -223,9 +166,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
-      # Certbot이 발급한 인증서 공유
       - ./certbot/conf:/etc/letsencrypt
-      # Certbot이 인증할 떄 쓰는 웹 폴더 공유
       - ./certbot/www:/var/www/certbot
       - nginx_logs:/var/log/nginx
     depends_on:
@@ -236,8 +177,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
-          memory: 512M
+          cpus: '0.25'
+          memory: 256M
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/actuator/health"]
       interval: 30s
@@ -249,14 +190,13 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Certbot - SSL 인증서 발급/갱신용
+  # Certbot
   certbot:
     image: certbot/certbot
     container_name: fourtune-certbot
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    # 12시간마다 인증서 갱신 시도
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 
@@ -267,16 +207,15 @@ volumes:
     driver: local
   elasticsearch_data_prod:
     driver: local
+  nginx_logs:
+    driver: local
   zookeeper_data_prod:
     driver: local
   zookeeper_log_prod:
     driver: local
   kafka_data_prod:
     driver: local
-  nginx_logs:
-    driver: local
 
 networks:
   fourtune-network:
     driver: bridge
-
