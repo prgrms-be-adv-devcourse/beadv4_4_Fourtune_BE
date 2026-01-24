@@ -16,6 +16,7 @@ import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
 import com.fourtune.auction.shared.auction.dto.BidPlaceRequest;
 import com.fourtune.auction.shared.auction.dto.CartAddItemRequest;
 import com.fourtune.auction.shared.user.dto.UserLoginRequest;
+import com.fourtune.auction.shared.user.dto.UserResponse;
 import com.fourtune.auction.shared.user.dto.UserSignUpRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -75,6 +76,9 @@ class E2EIntegrationTest {
 
     @Autowired
     private AuctionFacade auctionFacade;
+
+    @Autowired
+    private com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade paymentFacade;
 
     @MockitoBean
     private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
@@ -532,6 +536,12 @@ class E2EIntegrationTest {
                         .content(objectMapper.writeValueAsString(signupRequest)))
                 .andExpect(status().isCreated());
 
+        // Payment 도메인에 PaymentUser와 Wallet 생성 (이벤트가 비동기로 처리되지 않을 수 있으므로 명시적으로 생성)
+        User user = userRepository.findByEmail(email).orElseThrow();
+        UserResponse userResponse = UserResponse.from(user);
+        com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser paymentUser = paymentFacade.syncUser(userResponse);
+        paymentFacade.createWallet(paymentUser.toDto());
+
         // 로그인
         UserLoginRequest loginRequest = new UserLoginRequest(email, password);
 
@@ -556,7 +566,14 @@ class E2EIntegrationTest {
                 .status(Status.ACTIVE)
                 .phoneNumber("010-0000-0000")
                 .build();
-        return userRepository.save(user);
+        user = userRepository.save(user);
+        
+        // Payment 도메인에 PaymentUser와 Wallet 생성
+        UserResponse userResponse = UserResponse.from(user);
+        com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser paymentUser = paymentFacade.syncUser(userResponse);
+        paymentFacade.createWallet(paymentUser.toDto());
+        
+        return user;
     }
 
     private AuctionItem createTestAuction(Long sellerId, boolean buyNowEnabled) {
