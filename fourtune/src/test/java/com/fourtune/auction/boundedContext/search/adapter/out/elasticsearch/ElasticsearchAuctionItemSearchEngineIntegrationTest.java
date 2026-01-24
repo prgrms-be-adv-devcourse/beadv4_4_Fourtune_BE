@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import com.google.firebase.messaging.FirebaseMessaging;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -49,6 +48,12 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
     static void setProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.elasticsearch.uris", elasticsearch::getHttpHostAddress);
     }
+
+    @MockitoBean
+    private com.fourtune.auction.global.config.FirebaseConfig firebaseConfig;
+
+    @MockitoBean
+    private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
 
     @Autowired
     private ElasticsearchAuctionItemSearchEngine searchEngine;
