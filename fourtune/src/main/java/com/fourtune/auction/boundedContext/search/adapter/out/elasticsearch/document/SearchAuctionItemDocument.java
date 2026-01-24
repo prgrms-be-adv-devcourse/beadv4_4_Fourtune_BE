@@ -40,19 +40,19 @@ public class SearchAuctionItemDocument {
     @Field(type = FieldType.Scaled_Float, scalingFactor = 100)
     private BigDecimal currentPrice;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
     private LocalDateTime startAt;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
     private LocalDateTime endAt;
 
     @Field(type = FieldType.Keyword, index = false)
     private String thumbnailUrl;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
     private LocalDateTime createdAt;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
     private LocalDateTime updatedAt;
 
     @Field(type = FieldType.Long)
