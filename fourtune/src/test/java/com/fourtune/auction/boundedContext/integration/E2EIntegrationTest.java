@@ -129,6 +129,7 @@ class E2EIntegrationTest {
                         // 여기서는 기본값으로 설정하고, 실제 테스트에서는 정상 플로우가 진행되므로
                         // 실패 이벤트가 발생하지 않음
                         return com.fourtune.auction.shared.payment.dto.OrderDto.builder()
+                                .orderId(1L)  // 기본값 (실제 테스트에서는 덮어씀)
                                 .orderNo(orderNo)
                                 .price(100000L)
                                 .userId(1L)
@@ -301,14 +302,16 @@ class E2EIntegrationTest {
                 .getContentAsString();
 
         JsonNode orderJson = objectMapper.readTree(orderResponse);
-        String orderId = orderJson.get("data").get("orderId").asText();
+        String orderNo = orderJson.get("data").get("orderId").asText();
+        Long orderId = orderJson.get("data").get("id").asLong();
         // finalPrice는 BigDecimal이므로 Long으로 변환
         Long amount = orderJson.get("data").get("finalPrice").asLong();
 
         // AuctionPort 모킹 업데이트: 실제 주문 정보 반환
-        when(auctionPort.getOrder(orderId))
+        when(auctionPort.getOrder(orderNo))
                 .thenReturn(com.fourtune.auction.shared.payment.dto.OrderDto.builder()
-                        .orderNo(orderId)
+                        .orderId(orderId)
+                        .orderNo(orderNo)
                         .price(amount)
                         .userId(userRepository.findByEmail(email).orElseThrow().getId())
                         .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING)
@@ -326,7 +329,7 @@ class E2EIntegrationTest {
         String paymentKey = "test_payment_key_" + System.currentTimeMillis();
         ConfirmPaymentRequest paymentRequest = new ConfirmPaymentRequest(
                 paymentKey,
-                orderId,
+                orderNo,
                 amount
         );
 
@@ -338,14 +341,14 @@ class E2EIntegrationTest {
                 .andExpect(status().isOk());
 
         // 1-6. 주문 완료 처리 (정산 포함)
-        mockMvc.perform(post("/api/v1/orders/{orderId}/complete", orderId)
+        mockMvc.perform(post("/api/v1/orders/{orderId}/complete", orderNo)
                         .param("paymentKey", paymentKey)
                         .header("Authorization", "Bearer " + accessToken))
                 .andDo(print())
                 .andExpect(status().isOk());
 
         // 1-7. 주문 최종 상태 확인
-        String finalOrderResponse = mockMvc.perform(get("/api/v1/orders/{orderId}", orderId)
+        String finalOrderResponse = mockMvc.perform(get("/api/v1/orders/{orderId}", orderNo)
                         .header("Authorization", "Bearer " + accessToken))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -402,24 +405,7 @@ class E2EIntegrationTest {
                 .getContentAsString();
 
         JsonNode buyNowJson = objectMapper.readTree(buyNowResponse);
-        String orderId = buyNowJson.get("data").get(0).asText();
-
-        // AuctionPort 모킹 업데이트: 실제 주문 정보 반환
-        when(auctionPort.getOrder(orderId))
-                .thenReturn(com.fourtune.auction.shared.payment.dto.OrderDto.builder()
-                        .orderNo(orderId)
-                        .price(auction.getBuyNowPrice().longValue())
-                        .userId(userRepository.findByEmail(email).orElseThrow().getId())
-                        .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING)
-                        .items(java.util.List.of(
-                                com.fourtune.auction.shared.payment.dto.OrderDto.OrderItem.builder()
-                                        .itemId(auctionId)
-                                        .sellerId(seller.getId())
-                                        .price(auction.getBuyNowPrice().longValue())
-                                        .itemName(auction.getTitle())
-                                        .build()
-                        ))
-                        .build());
+        String orderNo = buyNowJson.get("data").get(0).asText();
 
         // 2-4. 경매 기반 주문 조회(주문 생성 확인)
         String orderResponse = mockMvc.perform(get("/api/v1/orders/auction/{auctionId}", auctionId)
@@ -427,20 +413,39 @@ class E2EIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.orderId").value(orderId))
+                .andExpect(jsonPath("$.data.orderId").value(orderNo))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
         JsonNode orderJson = objectMapper.readTree(orderResponse);
+        Long orderId = orderJson.get("data").get("id").asLong();
         // finalPrice는 BigDecimal이므로 Long으로 변환
         Long amount = orderJson.get("data").get("finalPrice").asLong();
+
+        // AuctionPort 모킹 업데이트: 실제 주문 정보 반환
+        when(auctionPort.getOrder(orderNo))
+                .thenReturn(com.fourtune.auction.shared.payment.dto.OrderDto.builder()
+                        .orderId(orderId)
+                        .orderNo(orderNo)
+                        .price(amount)
+                        .userId(userRepository.findByEmail(email).orElseThrow().getId())
+                        .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING)
+                        .items(java.util.List.of(
+                                com.fourtune.auction.shared.payment.dto.OrderDto.OrderItem.builder()
+                                        .itemId(auctionId)
+                                        .sellerId(seller.getId())
+                                        .price(amount)
+                                        .itemName(auction.getTitle())
+                                        .build()
+                        ))
+                        .build());
 
         // 2-5. 결제 승인(confirm) — 토스 결제 프론트 성공 후 호출
         String paymentKey = "test_payment_key_" + System.currentTimeMillis();
         ConfirmPaymentRequest paymentRequest = new ConfirmPaymentRequest(
                 paymentKey,
-                orderId,
+                orderNo,
                 amount
         );
 
@@ -452,14 +457,14 @@ class E2EIntegrationTest {
                 .andExpect(status().isOk());
 
         // 2-6. 주문 완료 처리(정산 포함)
-        mockMvc.perform(post("/api/v1/orders/{orderId}/complete", orderId)
+        mockMvc.perform(post("/api/v1/orders/{orderId}/complete", orderNo)
                         .param("paymentKey", paymentKey)
                         .header("Authorization", "Bearer " + accessToken))
                 .andDo(print())
                 .andExpect(status().isOk());
 
         // 2-7. 주문 최종 상태 확인
-        String finalOrderResponse = mockMvc.perform(get("/api/v1/orders/{orderId}", orderId)
+        String finalOrderResponse = mockMvc.perform(get("/api/v1/orders/{orderId}", orderNo)
                         .header("Authorization", "Bearer " + accessToken))
                 .andDo(print())
                 .andExpect(status().isOk())
