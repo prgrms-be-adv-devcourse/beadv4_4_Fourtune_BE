@@ -12,6 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.google.firebase.messaging.FirebaseMessaging;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -28,9 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * ElasticSearch 검색 엔진 통합 테스트
- * <p>
- * - Testcontainers를 사용하여 실제 ElasticSearch 환경에서 테스트를 수행합니다.
- * - 검색 기능(키워드, 필터, 정렬, 페이징)이 정상 작동하는지 "꼼꼼하게" 검증합니다.
+ * - Testcontainers를 사용하여 실제 ElasticSearch 환경에서 테스트를 수행
+ * - 검색 기능(키워드, 필터, 정렬, 페이징)이 정상 작동하는지 검증할 것
  */
 @SpringBootTest
 @Testcontainers
