@@ -50,7 +50,7 @@ class UserFacadeExceptionTest {
     void login_DeletedUser_Exception() {
         // Given: 유저 가입 후 상태를 DELETED로 변경
         String email = "deleted@test.com";
-        userFacade.signup(new UserSignUpRequest(email, "pw123!", "탈퇴자", "010-2222-2222"));
+        userFacade.signup(new UserSignUpRequest(email, "pw123!", "탈퇴자", "010-1234-1234"));
 
         User user = userSupport.findActiveUserByEmailOrThrow(email);
         user.withdraw();

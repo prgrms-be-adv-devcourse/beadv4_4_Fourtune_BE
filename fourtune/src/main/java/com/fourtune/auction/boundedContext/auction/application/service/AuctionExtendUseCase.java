@@ -27,7 +27,7 @@ public class AuctionExtendUseCase {
     private final BidPolicy bidPolicy;
 
     /**
-     * 경매 자동 연장
+     * [진입점] 경매 자동 연장
      * 동시성 제어: Pessimistic Lock 적용
      */
     @Transactional
@@ -35,17 +35,37 @@ public class AuctionExtendUseCase {
         // 1. 경매 조회 (Pessimistic Lock 적용)
         AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
         
-        // 2. 연장 가능 여부 확인
+        // 2. 내부 메서드로 위임
+        extendAuctionInternal(auctionItem);
+    }
+
+    /**
+     * [진입점] 경매 자동 연장 (엔티티 직접 전달)
+     * 이미 Lock이 획득된 엔티티를 사용하여 중복 Lock 방지
+     * 외부 UseCase에서 이미 Lock을 획득한 경우 사용
+     */
+    @Transactional
+    public void extendAuction(AuctionItem auctionItem) {
+        extendAuctionInternal(auctionItem);
+    }
+
+    /**
+     * [내부 로직] 경매 자동 연장 (엔티티 직접 전달)
+     * - private 선언: 외부 호출 방지
+     * - @Transactional 제거: 부모 트랜잭션을 그대로 따라감
+     */
+    private void extendAuctionInternal(AuctionItem auctionItem) {
+        // 1. 연장 가능 여부 확인
         validateExtendable(auctionItem);
         
-        // 3. 경매 시간 연장 (3분 연장)
+        // 2. 경매 시간 연장 (3분 연장)
         auctionItem.extend(AuctionPolicy.AUTO_EXTEND_MINUTES);
         
-        // 4. DB 저장 (dirty checking)
+        // 3. DB 저장 (dirty checking)
         
-        // 5. 이벤트 발행
+        // 4. 이벤트 발행
         eventPublisher.publish(new AuctionExtendedEvent(
-                auctionId,
+                auctionItem.getId(),
                 auctionItem.getAuctionEndTime()  // 새로운 종료 시간
         ));
     }

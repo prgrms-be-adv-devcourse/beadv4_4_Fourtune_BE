@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -43,11 +45,17 @@ public class PaymentConfirmUseCase {
                         }catch (Exception cancelEx){
                                 log.error("CRITICAL: 결제 취소 실패! (수동 환불 필요) paymentKey={}, error={}", paymentKey, cancelEx.getMessage());
 
+                                OrderDto orderDto =OrderDto.builder()
+                                        .orderNo(orderNo)
+                                        .userId(userId)
+                                        .items(null)
+                                        .build();
+
                                 eventPublisher.publish(new PaymentFailedEvent(
                                         "P311",
                                         "결제 취소 실패(관리자 문의)",
-                                        OrderDto.builder().orderNo(orderNo).userId(userId).build(),
-                                        OrderDto.builder().orderNo(orderNo).userId(userId).build().toOrderDetailResponse(),
+                                        orderDto,
+                                        orderDto.toOrderDetailResponse(),
                                         pgAmount,
                                         0L
                                 ));
@@ -55,12 +63,18 @@ public class PaymentConfirmUseCase {
                                 throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
                         }
 
+                        OrderDto orderDto =OrderDto.builder()
+                                .orderNo(orderNo)
+                                .userId(userId)
+                                .items(null)
+                                .build();
+
                         // 실패 이벤트 발행
                         eventPublisher.publish(new PaymentFailedEvent(
                                 "500",
                                 "내부 시스템 오류로 결제가 취소되었습니다.",
-                                OrderDto.builder().orderNo(orderNo).userId(userId).build(),
-                                OrderDto.builder().orderNo(orderNo).userId(userId).build().toOrderDetailResponse(),
+                                orderDto,
+                                orderDto.toOrderDetailResponse(),
                                 pgAmount,
                                 0L
                         ));

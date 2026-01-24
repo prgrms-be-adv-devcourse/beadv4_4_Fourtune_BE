@@ -34,6 +34,17 @@ public class OrderDto {
     private String paymentKey;
     private LocalDateTime createdAt;
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OrderItem {
+        private Long itemId;    // 경매 상품 ID
+        private Long sellerId;  // 판매자 ID
+        private Long price;     // 개별 상품 가격
+        private String itemName; // (옵션) 나중에 로그 찍을 때 편함
+    }
+
     /**
      * OrderCompletedEvent -> OrderDto 변환 메서드
      * (이벤트에 없는 필드는 null 처리됩니다)
@@ -83,37 +94,31 @@ public class OrderDto {
     }
 
 
+    /**
+     * OrderDto -> OrderDetailResponse 변환 메서드
+     * items가 null이거나 비어있을 경우, 관련 필드에 null을 할당하여 NPE 방지
+     */
     public OrderDetailResponse toOrderDetailResponse() {
-        // 아이템 리스트의 첫 번째 요소를 가져옴 (없으면 null)
-        OrderItem firstItem = this.items.get(0);
+        // 1. 아이템 리스트 안전하게 가져오기
+        OrderItem firstItem = (this.items != null && !this.items.isEmpty()) ? this.items.get(0) : null;
 
         return new OrderDetailResponse(
-                this.orderId,                           // id
-                this.orderNo,                           // orderId
-                firstItem.getItemId(),                  // auctionId
-                firstItem.getItemName(),                // auctionTitle
-                this.thumbnailUrl,                                   // thumbnailUrl (정보 없음)
-                this.userId,                            // winnerId
-                this.winnerNickname,                                   // winnerNickname (정보 없음)
-                firstItem.getSellerId(), // sellerId
-                this.sellerNickname,                                   // sellerNickname (정보 없음)
-                BigDecimal.valueOf(this.price),         // finalPrice
-                this.orderType,                                   // OrderType (정보 없음)
-                this.orderStatus,                                   // OrderStatus (정보 없음)
-                this.paymentKey,                                   // paymentKey (정보 없음)
-                this.paymentDate,                       // paidAt
-                this.createdAt                     // createdAt (현재 시간)
+                this.orderId,
+                this.orderNo,
+                (firstItem != null) ? firstItem.getItemId() : null,   // auctionId
+                (firstItem != null) ? firstItem.getItemName() : null, // auctionTitle
+                this.thumbnailUrl,
+                this.userId,
+                this.winnerNickname,
+                (firstItem != null) ? firstItem.getSellerId() : null, // sellerId
+                this.sellerNickname,
+                (this.price != null) ? BigDecimal.valueOf(this.price) : null, // finalPrice
+                this.orderType,
+                this.orderStatus,
+                this.paymentKey,
+                this.paymentDate,
+                this.createdAt
         );
     }
 
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class OrderItem {
-        private Long itemId;    // 경매 상품 ID
-        private Long sellerId;  // 판매자 ID
-        private Long price;     // 개별 상품 가격
-        private String itemName; // (옵션) 나중에 로그 찍을 때 편함
-    }
 }

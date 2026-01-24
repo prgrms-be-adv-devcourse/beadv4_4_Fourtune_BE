@@ -118,7 +118,7 @@ search:
 # 결제 모듈에서 주문 데이터 조회
 api:
   auction:
-    base-url: "http://localhost:8080"
+    base-url: http://localhost:8080
 
 ---
 # Test Profile (CI/CD용)
@@ -169,7 +169,7 @@ logging:
 # 결제 모듈에서 주문 데이터 조회
 api:
   auction:
-    base-url: "http://localhost:8080"
+    base-url: http://localhost:8080
 
 ---
 # Development Profile
@@ -243,7 +243,7 @@ logging:
 # 결제 모듈에서 주문 데이터 조회
 api:
   auction:
-    base-url: "http://localhost:8080"
+    base-url: http://localhost:8080
 
 ---
 # Production Profile
@@ -277,14 +277,14 @@ spring:
   elasticsearch:
     uris: ${ELASTICSEARCH_URIS}
     
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-    consumer:
-      group-id: fourtune-consumer-group
-      auto-offset-reset: earliest
-    producer:
-      acks: all
-      retries: 3
+#  kafka:
+#    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+#    consumer:
+#      group-id: fourtune-consumer-group
+#      auto-offset-reset: earliest
+#    producer:
+#      acks: all
+#      retries: 3
 
 jwt:
   secret: ${JWT_SECRET}
@@ -327,4 +327,4 @@ logging:
 # 결제 모듈에서 주문 데이터 조회
 api:
   auction:
-    base-url: "http://localhost:8080"
+    base-url: http://localhost:8080

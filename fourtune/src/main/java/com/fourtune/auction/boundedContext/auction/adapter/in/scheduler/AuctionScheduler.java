@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -59,22 +61,12 @@ public class AuctionScheduler {
             int startedCount = 0;
             for (AuctionItem auction : scheduledAuctions) {
                 try {
-                    auction.start();
-                    auctionSupport.save(auction);
-                    
-                    // 경매 시작 이벤트 발행 (관심상품 알림용)
-                    eventPublisher.publish(new AuctionStartedEvent(
-                            auction.getId(),
-                            auction.getTitle(),
-                            auction.getSellerId(),
-                            auction.getStartPrice(),
-                            auction.getAuctionEndTime()
-                    ));
-                    
+                    // ✅ 각 경매마다 독립 트랜잭션으로 처리
+                    startAuctionInTransaction(auction.getId());
                     startedCount++;
                     log.debug("경매 ID {} 시작 처리 완료", auction.getId());
                 } catch (Exception e) {
-                    log.error("경매 ID {} 시작 처리 실패: {}", auction.getId(), e.getMessage());
+                    log.error("경매 ID {} 시작 처리 실패: {}", auction.getId(), e.getMessage(), e);
                 }
             }
             
@@ -82,5 +74,25 @@ public class AuctionScheduler {
         } catch (Exception e) {
             log.error("예정된 경매 시작 작업 중 오류 발생: {}", e.getMessage(), e);
         }
+    }
+
+    /**
+     * 경매 시작 처리 (독립 트랜잭션)
+     * 각 경매마다 독립적인 트랜잭션으로 처리하여 하나 실패 시 다른 것들에 영향 없도록 함
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void startAuctionInTransaction(Long auctionId) {
+        AuctionItem auction = auctionSupport.findByIdOrThrow(auctionId);
+        auction.start();
+        auctionSupport.save(auction);
+        
+        // 경매 시작 이벤트 발행 (관심상품 알림용)
+        eventPublisher.publish(new AuctionStartedEvent(
+                auction.getId(),
+                auction.getTitle(),
+                auction.getSellerId(),
+                auction.getStartPrice(),
+                auction.getAuctionEndTime()
+        ));
     }
 }

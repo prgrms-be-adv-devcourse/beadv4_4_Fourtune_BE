@@ -43,16 +43,17 @@ public class AuctionCloseUseCase {
             // 4-1. 낙찰자가 있는 경우
             Bid winningBid = highestBidOpt.get();
             
-            // 경매 상태 변경 (ACTIVE -> SOLD)
-            auctionItem.sell();
+            // 경매 상태 변경 (ACTIVE -> ENDED -> SOLD)
+            auctionItem.close();  // ACTIVE -> ENDED
+            auctionItem.sell();   // ENDED -> SOLD
             
             // 낙찰 입찰 처리
             winningBid.win();
             bidSupport.save(winningBid);
             
-            // Order 생성
+            // Order 생성 (엔티티 직접 전달하여 중복 Lock 방지)
             String orderId = orderCreateUseCase.createWinningOrder(
-                    auctionId,
+                    auctionItem,
                     winningBid.getBidderId(),
                     winningBid.getBidAmount()
             );

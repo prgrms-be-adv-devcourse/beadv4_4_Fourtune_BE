@@ -2,7 +2,6 @@ package com.fourtune.auction.boundedContext.user.application.service;
 
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
@@ -41,12 +40,25 @@ public class UserJoinedUseCase {
     }
 
     private void isSuspendedUser(User user, UserSignUpRequest request){
-            existingActiveUser(user);
-            validateSignUp(request);
+        existingActiveUser(user);
 
-            user.changeStatus(Status.ACTIVE);
-            user.changePassword(passwordEncoder.encode(request.password()));
-            user.updateNickname(request.nickname());
+        validateRejoin(user, request);
+
+        user.changeStatus(Status.ACTIVE);
+        user.changePassword(passwordEncoder.encode(request.password()));
+        user.updateNickname(request.nickname());
+    }
+
+    private void validateRejoin(User currentUser, UserSignUpRequest request) {
+        if (!currentUser.getNickname().equals(request.nickname())
+                && userSupport.existsByNickname(request.nickname())) {
+            throw new BusinessException(ErrorCode.NICKNAME_DUPLICATION);
+        }
+
+        if (!currentUser.getPhoneNumber().equals(request.phoneNumber())
+                && userSupport.existsByPhoneNumber(request.phoneNumber())) {
+            throw new BusinessException(ErrorCode.PHONE_DUPLICATION);
+        }
     }
 
     private void existingActiveUser(User user){
@@ -64,5 +76,4 @@ public class UserJoinedUseCase {
             throw new BusinessException(ErrorCode.PHONE_DUPLICATION);
         }
     }
-
 }

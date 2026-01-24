@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -17,29 +19,29 @@ public class WatchListSyncAuctionItemUseCase {
     private final WatchListItemsRepository watchListItemsRepository;
 
     @Transactional
-    public void syncAuctionItem(AuctionItemResponse response) {
-        log.info("관심상품 경매 물품 동기화 시작 - ItemId: {}", response.id());
+    public void syncAuctionItem(Long auctionItemId, String title, BigDecimal currentPrice, String thumbnailUrl) {
+        log.info("관심상품 경매 물품 동기화 시작 - ItemId: {}", auctionItemId);
 
-        watchListSupport.findOptionalByAuctionItemId(response.id())
+        watchListSupport.findOptionalByAuctionItemId(auctionItemId)
                 .ifPresentOrElse(
                         existingItem -> {
                             existingItem.updateSync(
-                                    response.title(),
-                                    response.currentPrice(),
-                                    response.thumbnailUrl()
+                                    title,
+                                    currentPrice,
+                                    thumbnailUrl
                             );
-                            log.info("기존 관심상품 Replica 업데이트 완료 : {}", response.id());
+                            log.info("기존 관심상품 Replica 업데이트 완료 : {}", auctionItemId);
                         },
                         () -> {
                             WatchListAuctionItem newItem = WatchListAuctionItem.builder()
-                                    .id(response.id())
-                                    .title(response.title())
-                                    .currentPrice(response.currentPrice())
-                                    .thumbnailImageUrl(response.thumbnailUrl())
+                                    .id(auctionItemId)
+                                    .title(title)
+                                    .currentPrice(currentPrice)
+                                    .thumbnailImageUrl(thumbnailUrl)
                                     .build();
 
                             watchListItemsRepository.save(newItem);
-                            log.info("새로운 관심상품 Replica 생성 완료 : {}", response.id());
+                            log.info("새로운 관심상품 Replica 생성 완료 : {}", auctionItemId);
                         }
                 );
     }

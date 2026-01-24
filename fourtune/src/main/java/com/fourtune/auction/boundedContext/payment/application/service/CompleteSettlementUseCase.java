@@ -8,17 +8,25 @@ import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.shared.settlement.dto.SettlementDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class CompleteSettlementUseCase {
         private final PaymentSupport paymentSupport;
 
+        @Transactional // [중요] 입금/출금의 원자성 보장을 위해 트랜잭션 추가
         public Wallet settlementCashComplete(SettlementDto dto){
                 // payee가 이번달 정산받을 금액이 들어있는 dto를 참고하여 현금 이동해주기
                 Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow(
                         () -> new BusinessException(ErrorCode.PAYMENT_SYSTEM_WALLET_NOT_FOUND)
                 );
+
+                // [추가] 시스템 지갑 잔액 부족 확인
+                // 정산금을 줄 돈이 없으면 예외를 발생시켜 트랜잭션을 롤백시킵니다.
+                if (systemWallet.getBalance() < dto.getAmount()) {
+                        throw new BusinessException(ErrorCode.PAYMENT_WALLET_INSUFFICIENT_BALANCE);
+                }
 
                 if(dto.getPayeeEmail().equals(CashPolicy.PLATFORM_REVENUE_USER_EMAIL)){
                         Wallet platformWallet = paymentSupport.findPlatformWallet().orElseThrow(

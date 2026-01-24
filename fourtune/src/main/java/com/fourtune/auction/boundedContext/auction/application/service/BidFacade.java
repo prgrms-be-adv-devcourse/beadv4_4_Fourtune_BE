@@ -6,6 +6,7 @@ import com.fourtune.auction.shared.auction.dto.BidHistoryResponse;
 import com.fourtune.auction.shared.auction.dto.BidResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -34,7 +35,15 @@ public class BidFacade {
         //    - 내부에서 자동 연장 체크 및 이벤트 발행까지 처리
         Long bidId = bidPlaceUseCase.placeBid(auctionId, bidderId, bidAmount);
         
-        // 2. 등록된 입찰 상세 조회 후 반환
+        // 2. 등록된 입찰 상세 조회 후 반환 (readOnly 트랜잭션으로 분리)
+        return getBidDetailInReadOnlyTransaction(bidId);
+    }
+
+    /**
+     * 입찰 상세 조회 (읽기 전용 트랜잭션)
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    private BidDetailResponse getBidDetailInReadOnlyTransaction(Long bidId) {
         return bidQueryUseCase.getBidDetail(bidId);
     }
 

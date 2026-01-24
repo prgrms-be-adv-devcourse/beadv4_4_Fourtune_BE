@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,8 +56,8 @@ public class WatchListService {
     }
 
     @Transactional
-    public void syncAuctionItem(AuctionItemResponse auctionItemResponse){
-        watchListSyncAuctionItemUseCase.syncAuctionItem(auctionItemResponse);
+    public void syncAuctionItem(Long auctionItemId, String title, BigDecimal currentPrice, String thumbnailUrl){
+        watchListSyncAuctionItemUseCase.syncAuctionItem(auctionItemId, title, currentPrice, thumbnailUrl);
     }
 
     public void findAllByAuctionStartItemId(Long auctionItemId){
