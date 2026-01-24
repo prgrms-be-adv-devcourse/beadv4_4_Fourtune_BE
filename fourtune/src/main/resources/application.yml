@@ -265,14 +265,14 @@ spring:
   elasticsearch:
     uris: ${ELASTICSEARCH_URIS}
     
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-    consumer:
-      group-id: fourtune-consumer-group
-      auto-offset-reset: earliest
-    producer:
-      acks: all
-      retries: 3
+#  kafka:
+#    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+#    consumer:
+#      group-id: fourtune-consumer-group
+#      auto-offset-reset: earliest
+#    producer:
+#      acks: all
+#      retries: 3
 
 jwt:
   secret: ${JWT_SECRET}
