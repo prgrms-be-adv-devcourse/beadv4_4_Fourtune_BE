@@ -43,8 +43,9 @@ public class AuctionCloseUseCase {
             // 4-1. 낙찰자가 있는 경우
             Bid winningBid = highestBidOpt.get();
             
-            // 경매 상태 변경 (ACTIVE -> SOLD)
-            auctionItem.sell();
+            // 경매 상태 변경 (ACTIVE -> ENDED -> SOLD)
+            auctionItem.close();  // ACTIVE -> ENDED
+            auctionItem.sell();   // ENDED -> SOLD
             
             // 낙찰 입찰 처리
             winningBid.win();
