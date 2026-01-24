@@ -125,7 +125,6 @@ services:
       - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - AWS_S3_BUCKET=${AWS_S3_BUCKET}
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY:-toss_sk_randomtestsecretkey}
-      - DEV_SERVER_BASE_URL=${DEV_SERVER_BASE_URL}
     ports:
       - "8080:8080"
     depends_on:

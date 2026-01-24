@@ -112,7 +112,7 @@ payment:
 # 결제 모듈에서 주문 데이터 조회
 api:
   auction:
-    base-url: "http://localhost:8080"
+    base-url: http://localhost:8080
 
 ---
 # Test Profile (CI/CD용)
@@ -163,7 +163,7 @@ logging:
 # 결제 모듈에서 주문 데이터 조회
 api:
   auction:
-    base-url: "http://localhost:8080"
+    base-url: http://localhost:8080
 
 ---
 # Development Profile
@@ -231,7 +231,7 @@ logging:
 # 결제 모듈에서 주문 데이터 조회
 api:
   auction:
-    base-url: ${DEV_SERVER_BASE_URL:http://localhost:8080}
+    base-url: http://localhost:8080
 
 ---
 # Production Profile
@@ -310,4 +310,4 @@ logging:
 # 결제 모듈에서 주문 데이터 조회
 api:
   auction:
-    base-url: ${PROD_SERVER_BASE_URL:http://localhost:8080}
+    base-url: http://localhost:8080
