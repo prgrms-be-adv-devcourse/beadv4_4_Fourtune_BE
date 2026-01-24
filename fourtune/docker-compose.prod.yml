@@ -194,6 +194,7 @@ services:
   certbot:
     image: certbot/certbot
     container_name: fourtune-certbot
+    restart: unless-stopped
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
