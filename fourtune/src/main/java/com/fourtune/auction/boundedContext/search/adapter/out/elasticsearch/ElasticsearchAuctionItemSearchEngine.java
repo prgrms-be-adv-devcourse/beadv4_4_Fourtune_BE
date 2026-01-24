@@ -14,13 +14,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.query.Criteria;
-import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
-import org.springframework.stereotype.Component;
-
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.json.JsonData;
+import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -31,31 +35,33 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
 
     // 검색 필터로 허용할 상태(요구사항 3개만)
     private static final Set<String> ALLOWED_STATUSES = Set.of(
-            "SCHEDULED","ACTIVE","ENDED"
-    );
+            "SCHEDULED", "ACTIVE", "ENDED");
 
     // 카테고리 필터로 허용할 카테고리
     private static final Set<String> ALLOWED_CATEGORIES = Set.of(
-            "ELECTRONICS","CLOTHING","POTTERY","APPLIANCES","BEDDING","BOOKS","COLLECTIBLES","ETC"
-    );
+            "ELECTRONICS", "CLOTHING", "POTTERY", "APPLIANCES", "BEDDING", "BOOKS", "COLLECTIBLES", "ETC");
 
     @Override
     public SearchResultPage<SearchAuctionItemView> search(SearchCondition condition) {
 
-        int size = props.getPageSize();          // 기본 20, yml로 변경 가능
-        int page = condition.safePage();         // 1부터
+        int size = props.getPageSize();
+        int page = condition.safePage();
         int from = (page - 1) * size;
 
-        // from/size deep paging 가드 (추후 search_after 전환 포인트)
         if (from > props.getMaxFrom()) {
             throw new IllegalArgumentException("Too deep paging: from=" + from + ", maxFrom=" + props.getMaxFrom());
         }
 
-        CriteriaQuery query = new CriteriaQuery(buildCriteria(condition));
-        query.setPageable(PageRequest.of(page - 1, size));
-        query.addSort(buildSort(condition.sort()));
+        // NativeQuery 생성
+        Query query = buildNativeQuery(condition);
 
-        SearchHits<SearchAuctionItemDocument> hits = operations.search(query, SearchAuctionItemDocument.class);
+        NativeQuery nativeQuery = NativeQuery.builder()
+                .withQuery(query)
+                .withPageable(PageRequest.of(page - 1, size))
+                .withSort(buildSort(condition.sort()))
+                .build();
+
+        SearchHits<SearchAuctionItemDocument> hits = operations.search(nativeQuery, SearchAuctionItemDocument.class);
 
         var items = hits.getSearchHits().stream()
                 .map(SearchHit::getContent)
@@ -68,47 +74,60 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
         return new SearchResultPage<>(items, total, page, size, hasNext);
     }
 
-    private Criteria buildCriteria(SearchCondition c) {
-        Criteria root = new Criteria();
+    private Query buildNativeQuery(SearchCondition c) {
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
 
-        // 1) 키워드: title OR description
+        // 1) 키워드: title OR description (Unified via 'should' inside a 'must' or
+        // directly if it's the only constraint)
+        // 하지만 여기서는 다른 필터랑 결합되므로 boolQuery의 'must' 절 안에 'should'를 넣거나,
+        // 전체 boolQuery의 구조를 잡아야 함.
+        // Elastic 8.x+ Java API Client 스타일:
+
         if (hasText(c.keyword())) {
             String keyword = c.keyword().trim();
 
-            // matches = full-text
-            Criteria keywordCriteria =
-                    new Criteria("title").matches(keyword)
-                            .or(new Criteria("description").matches(keyword));
+            // (title contains keyword OR description contains keyword)
+            // matchQuery 대신 wildcard나 query_string을 고려할 수도 있으나, 여기서는 match(contains 의미) 시도
+            Query titleQuery = MatchQuery.of(m -> m.field("title").query(keyword))._toQuery();
+            Query descQuery = MatchQuery.of(m -> m.field("description").query(keyword))._toQuery();
 
-            root = root.and(keywordCriteria);
+            boolQueryBuilder.must(m -> m.bool(b -> b.should(titleQuery).should(descQuery)));
         }
 
-        // 2) 카테고리 필터 (정본 enum name 문자열만 허용)
+        // 2) 카테고리 필터
         Set<String> categories = normalizeEnumNames(c.categories());
         categories = filterAllowedCategories(categories);
         if (!categories.isEmpty()) {
-            root = root.and(new Criteria("category").in(categories));
+            // terms query
+            List<FieldValue> categoryValues = categories.stream().map(FieldValue::of).toList();
+            boolQueryBuilder.filter(f -> f.terms(t -> t.field("category").terms(ts -> ts.value(categoryValues))));
         }
 
-        // 3) 상태 필터 (요구사항 3개만 허용)
+        // 3) 상태 필터
         Set<String> statuses = normalizeEnumNames(c.statuses());
         statuses = statuses.stream()
                 .filter(ALLOWED_STATUSES::contains)
                 .collect(Collectors.toSet());
         if (!statuses.isEmpty()) {
-            root = root.and(new Criteria("status").in(statuses));
+            List<FieldValue> statusValues = statuses.stream().map(FieldValue::of).toList();
+            boolQueryBuilder.filter(f -> f.terms(t -> t.field("status").terms(ts -> ts.value(statusValues))));
         }
 
-        // 4) 가격 범위 필터 (currentPrice)
+        // 4) 가격 범위 필터
         SearchPriceRange pr = c.searchPriceRange();
         if (pr != null && !pr.isEmpty()) {
-            Criteria price = new Criteria("currentPrice");
-            if (pr.min() != null) price = price.greaterThanEqual(pr.min());
-            if (pr.max() != null) price = price.lessThanEqual(pr.max());
-            root = root.and(price);
+            boolQueryBuilder.filter(f -> f.range(r -> r
+                    .number(n -> {
+                        n.field("currentPrice");
+                        if (pr.min() != null)
+                            n.gte(pr.min().doubleValue());
+                        if (pr.max() != null)
+                            n.lte(pr.max().doubleValue());
+                        return n;
+                    })));
         }
 
-        return root;
+        return boolQueryBuilder.build()._toQuery();
     }
 
     private Sort buildSort(SearchSort sort) {
@@ -123,8 +142,7 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
         if (s == SearchSort.POPULAR) {
             return Sort.by(
                     Sort.Order.desc("viewCount"),
-                    Sort.Order.desc("createdAt")
-            );
+                    Sort.Order.desc("createdAt"));
         }
 
         return Sort.by(Sort.Order.desc("createdAt"));
@@ -146,8 +164,7 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
                 d.getUpdatedAt(),
                 d.getViewCount(),
                 d.getWatchlistCount(),
-                d.getBidCount()
-        );
+                d.getBidCount());
     }
 
     private boolean hasText(String s) {
@@ -155,7 +172,8 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
     }
 
     private Set<String> normalizeEnumNames(Set<String> raw) {
-        if (raw == null) return Set.of();
+        if (raw == null)
+            return Set.of();
         return raw.stream()
                 .filter(v -> v != null && !v.isBlank())
                 .map(v -> v.trim().toUpperCase(Locale.ROOT))
