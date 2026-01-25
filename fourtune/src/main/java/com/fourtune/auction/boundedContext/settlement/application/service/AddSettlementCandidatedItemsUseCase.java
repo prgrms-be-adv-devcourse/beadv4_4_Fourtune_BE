@@ -47,6 +47,7 @@ public class AddSettlementCandidatedItemsUseCase {
                         .relTypeCode("OrderItem")
                         .relId(order.getOrderId())// null 임
                         .relNo(order.getOrderNo())// 원래는 order item id 인데 주문에 order item이 1개라 order no
+                        .paymentDate(order.getPaymentDate())
                         .payee(platform)
                         .payer(buyer)
                         .amount(getCommissionAmount(item.getPrice()))// 수수료
