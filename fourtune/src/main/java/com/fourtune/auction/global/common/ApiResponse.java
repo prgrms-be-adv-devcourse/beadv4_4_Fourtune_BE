@@ -3,11 +3,13 @@ package com.fourtune.auction.global.common;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * API Response
  * 공통 API 응답 형식
  */
+@NoArgsConstructor
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ApiResponse<T> {
