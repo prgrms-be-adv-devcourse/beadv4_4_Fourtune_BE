@@ -11,6 +11,7 @@ import com.fourtune.auction.boundedContext.settlement.port.out.SettlementUserRep
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,9 @@ import java.util.*;
 @RequiredArgsConstructor
 @Service
 public class CollectSettlementItemChunkUseCase {
+    // 시연때는 yml에서 0으로 변경
+    @Value("${settlement.policy.waiting-days:7}")
+    private int waitingDays;
 
     private final SettlementCandidatedItemRepository settlementCandidatedItemRepository;
     private final SettlementRepository settlementRepository;
@@ -85,9 +89,9 @@ public class CollectSettlementItemChunkUseCase {
     public List<SettlementCandidatedItem> findCandidatedItemsToFinalize(int size){
         LocalDateTime minDate = LocalDateTime
                 .now()
-                .minusDays(SettlementPolicy.SETTLEMENT_WAITING_DAYS.getValue())
-                .toLocalDate()
-                .atStartOfDay();
+                .minusDays(SettlementPolicy.SETTLEMENT_WAITING_DAYS.getValue());
+//                .toLocalDate()
+//                .atStartOfDay();
         // 아직 정산과 연결되지 않고, 결제일 =< (현재-구매확정소요일) 구매확정일이 지나거나 된, 정산 후보를 payee와 id 오름차순
         return settlementCandidatedItemRepository
                 .findBySettlementItemIsNullAndPaymentDateIsBeforeOrderByPayeeAscIdAsc(
