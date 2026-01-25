@@ -112,7 +112,7 @@ public class AuctionEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentSucceeded(PaymentSucceededEvent event) {
         String orderId = event.getOrder() != null 
-                ? String.valueOf(event.getOrder().getOrderId()) 
+                ? String.valueOf(event.getOrder().getOrderNo())
                 : "unknown";
         Long userId = event.getOrder() != null ? event.getOrder().getUserId() : null;
         Long amount = event.getOrder() != null ? event.getOrder().getPrice() : null;
