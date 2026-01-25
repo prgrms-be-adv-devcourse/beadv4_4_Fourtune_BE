@@ -89,7 +89,8 @@ public class CollectSettlementItemChunkUseCase {
     public List<SettlementCandidatedItem> findCandidatedItemsToFinalize(int size){
         LocalDateTime minDate = LocalDateTime
                 .now()
-                .minusDays(SettlementPolicy.SETTLEMENT_WAITING_DAYS.getValue());
+                .minusDays(this.waitingDays);
+//                .minusDays(SettlementPolicy.SETTLEMENT_WAITING_DAYS.getValue());
 //                .toLocalDate()
 //                .atStartOfDay();
         // 아직 정산과 연결되지 않고, 결제일 =< (현재-구매확정소요일) 구매확정일이 지나거나 된, 정산 후보를 payee와 id 오름차순
