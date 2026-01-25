@@ -14,6 +14,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import org.springframework.web.cors.CorsConfiguration; // [추가]
+import org.springframework.web.cors.CorsConfigurationSource; // [추가]
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource; // [추가]
+import java.util.List; // [추가]
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -26,17 +31,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // [1] 여기에 CORS 설정을 반드시 연결해야 합니다! (이게 없어서 302가 떴던 것)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
+                        // [팁] Preflight(OPTIONS) 요청은 무조건 허용해주는 것이 안전합니다.
+                        .requestMatchers(org.springframework.web.cors.CorsUtils::isPreFlightRequest).permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs"
                         ,"/swagger-ui.html", "/api/auth/reissue", "/token.html", "/firebase-messaging-sw.js").permitAll()
                         .requestMatchers("/api/auth/**", "/api/users/signup").permitAll()
-                        .requestMatchers("/api/settlements/**").permitAll()
-                        .requestMatchers("/api/payments/**").permitAll()
                         .requestMatchers("/tosspay.html").permitAll()
                         .requestMatchers("/", "/index.html", "/oauth2/**", "/login-success" /*조회 검색 추가*/).permitAll()
                         .requestMatchers("/api/v1/search/**").permitAll()
@@ -63,6 +70,27 @@ public class SecurityConfig {
 
 
         return http.build();
+    }
+
+    // [2] CORS 설정 Bean 추가 (아까 WebConfig에 있던 내용을 여기로 가져옴)
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://fourtune.store",
+                "https://www.fourtune.store",
+                "https://*.vercel.app"
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
 }
