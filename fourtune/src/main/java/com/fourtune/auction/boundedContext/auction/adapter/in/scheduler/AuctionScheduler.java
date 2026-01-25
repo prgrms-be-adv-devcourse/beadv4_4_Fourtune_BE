@@ -4,8 +4,10 @@ import com.fourtune.auction.boundedContext.auction.application.service.AuctionFa
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionSupport;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
+import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.shared.auction.event.AuctionStartedEvent;
+import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -94,5 +96,39 @@ public class AuctionScheduler {
                 auction.getStartPrice(),
                 auction.getAuctionEndTime()
         ));
+        
+        // Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
+        String thumbnailUrl = extractThumbnailUrl(auction);
+        eventPublisher.publish(new AuctionItemUpdatedEvent(
+                auction.getId(),
+                auction.getTitle(),
+                auction.getDescription(),
+                auction.getCategory(),
+                auction.getStatus(),
+                auction.getStartPrice(),
+                auction.getCurrentPrice(),
+                auction.getAuctionStartTime(),
+                auction.getAuctionEndTime(),
+                thumbnailUrl,
+                auction.getCreatedAt(),
+                auction.getUpdatedAt(),
+                auction.getViewCount(),
+                auction.getBidCount(),
+                auction.getWatchlistCount()
+        ));
+    }
+    
+    /**
+     * 썸네일 URL 추출
+     */
+    private String extractThumbnailUrl(AuctionItem auctionItem) {
+        if (auctionItem.getImages() == null || auctionItem.getImages().isEmpty()) {
+            return null;
+        }
+        return auctionItem.getImages().stream()
+                .filter(ItemImage::getIsThumbnail)
+                .findFirst()
+                .map(ItemImage::getImageUrl)
+                .orElseGet(() -> auctionItem.getImages().get(0).getImageUrl()); // 썸네일이 없으면 첫 번째 이미지
     }
 }
