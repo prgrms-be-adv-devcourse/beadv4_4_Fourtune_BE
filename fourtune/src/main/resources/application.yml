@@ -118,8 +118,8 @@ auction:
 
 payment:
   toss:
-    client-key: test_ck_5OWRapdA8dwjJb9WO69Bro1zEqZK
-    secret-key: ${TOSS_SECRET_KEY:test_sk_dskflfjeifwsdfjdsfsddfdf}
+    client-key: ${TOSS_CLIENT_KEY}
+    secret-key: ${TOSS_SECRET_KEY}
 
 # 검색 설정
 search:
@@ -238,8 +238,8 @@ auction:
 
 payment:
   toss:
-    client-key: test_ck_5OWRapdA8dwjJb9WO69Bro1zEqZK
-    secret-key: ${TOSS_SECRET_KEY:test_sk_dskflfjeifwsdfjdsfsddfdf}
+    client-key: ${TOSS_CLIENT_KEY}
+    secret-key: ${TOSS_SECRET_KEY}
 
 # 검색 설정
 search:
@@ -316,8 +316,8 @@ auction:
 
 payment:
   toss:
-    client-key: test_ck_5OWRapdA8dwjJb9WO69Bro1zEqZK
-    secret-key: ${TOSS_SECRET_KEY:test_sk_dskflfjeifwsdfjdsfsddfdf}
+    client-key: ${TOSS_CLIENT_KEY}
+    secret-key: ${TOSS_SECRET_KEY}
 
 search:
   page-size: 20
