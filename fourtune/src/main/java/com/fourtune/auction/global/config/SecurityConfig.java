@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/tosspay.html").permitAll()
                         .requestMatchers("/", "/index.html", "/oauth2/**", "/login-success" /*조회 검색 추가*/).permitAll()
                         .requestMatchers("/api/v1/search/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/auctions/*").permitAll() // 비로그인 경매아이템 상세페이지 조회 허용
                         .requestMatchers("/api/v1/orders/*/complete").permitAll() // 결제 완료 콜백 (외부 결제사에서 호출)
                         .requestMatchers("/api/v1/orders/public/**").permitAll() // 주문 조회 (결제 페이지용, 인증 없음)
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
