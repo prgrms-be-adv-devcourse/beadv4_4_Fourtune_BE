@@ -64,53 +64,53 @@ services:
 
   # Kibana (Elasticsearch 시각화 도구)
   # 안 쓸 경우 주석 처리해서 리소스 절약
-  kibana:
-    image: docker.elastic.co/kibana/kibana:9.0.0
-    container_name: fourtune-kibana
-    ports:
-      - "5601:5601"
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-    networks:
-      - fourtune-network
-
-  # Kafka (추후 확장용, 로컬에서는 선택사항)
-  # 당장 안 쓰면 주석 처리해서 리소스 절약
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: fourtune-zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
-    networks:
-      - fourtune-network
-
-  kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: fourtune-kafka
-    depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-    networks:
-      - fourtune-network
-    healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+#  kibana:
+#    image: docker.elastic.co/kibana/kibana:9.0.0
+#    container_name: fourtune-kibana
+#    ports:
+#      - "5601:5601"
+#    environment:
+#      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+#    depends_on:
+#      - elasticsearch
+#    networks:
+#      - fourtune-network
+#
+#  # Kafka (추후 확장용, 로컬에서는 선택사항)
+#  # 당장 안 쓰면 주석 처리해서 리소스 절약
+#  zookeeper:
+#    image: confluentinc/cp-zookeeper:7.5.0
+#    container_name: fourtune-zookeeper
+#    environment:
+#      ZOOKEEPER_CLIENT_PORT: 2181
+#      ZOOKEEPER_TICK_TIME: 2000
+#    ports:
+#      - "2181:2181"
+#    networks:
+#      - fourtune-network
+#
+#  kafka:
+#    image: confluentinc/cp-kafka:7.5.0
+#    container_name: fourtune-kafka
+#    depends_on:
+#      - zookeeper
+#    ports:
+#      - "9092:9092"
+#    environment:
+#      KAFKA_BROKER_ID: 1
+#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+#    networks:
+#      - fourtune-network
+#    healthcheck:
+#      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 5
 
   # Spring Boot Application (로컬 개발용)
   app:
