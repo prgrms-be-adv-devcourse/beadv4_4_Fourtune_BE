@@ -8,12 +8,14 @@ import com.fourtune.auction.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class NotificationFacade {
 
     private final NotificationCreateUseCase notificationCreateUseCase;
