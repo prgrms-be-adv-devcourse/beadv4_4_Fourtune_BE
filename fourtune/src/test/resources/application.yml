@@ -57,3 +57,10 @@ payment:
 api:
   auction:
     base-url: "http://localhost:8080"
+
+settlement:
+  scheduler:
+    collect-cron: ${SETTLEMENT_SCHEDULER_COLLECT_CRON:0 */5 * * * *}  # (시연용) 5분 마다
+    complete-cron: ${SETTLEMENT_SCHEDULER_COMPLETE_CRON:0 */5 * * * *}  # (시연용) 5분 마다
+  policy:
+    waiting-days: ${SETTLEMENT_POLICY_WAITING_DAYS:0} # 구매 확정 후 정산 대기 일수 (0일이면 즉시 정산)

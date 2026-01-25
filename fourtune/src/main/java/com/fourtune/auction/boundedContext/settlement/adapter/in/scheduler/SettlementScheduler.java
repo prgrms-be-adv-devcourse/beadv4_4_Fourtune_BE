@@ -16,7 +16,7 @@ public class SettlementScheduler {
     private final SettlementFacade settlementFacade;
 
     // [Collect] 매일 새벽 4시
-    @Scheduled(cron = "0 0 4 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "${settlement.scheduler.collect-cron:0 0 4 * * *}", zone = "Asia/Seoul")
     public void runCollectItems() {
         log.info("정산 데이터 수집 작업 시작 (Daily Collect)");
 
@@ -33,7 +33,7 @@ public class SettlementScheduler {
 
     // [Complete] 매월 1일 오전 9시: 모아둔 돈 한방에 지급
     // "0 0 9 1 * *" -> 매월 1일 09:00:00
-    @Scheduled(cron = "0 0 9 1 * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "${settlement.scheduler.complete-cron:0 0 9 1 * *}", zone = "Asia/Seoul")
     public void runCompleteItems() {
         log.info("정산 금액 지급 작업 시작 (Monthly Complete)");
 
