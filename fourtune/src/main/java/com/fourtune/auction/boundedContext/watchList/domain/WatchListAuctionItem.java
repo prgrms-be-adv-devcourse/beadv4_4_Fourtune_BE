@@ -18,13 +18,6 @@ import java.math.BigDecimal;
 @Table(name = "watch_list_auction_items")
 public class WatchListAuctionItem extends ReplicaAuctionItem {
 
-    @Id
-    @Column(name = "auction_item_id")
-    private Long id;
-
-    private String itemName;
-    private BigDecimal currentPrice;
-
     @Builder
     public WatchListAuctionItem(Long id, String title, BigDecimal currentPrice,
                                 BigDecimal buyNowPrice, String thumbnailImageUrl) {
@@ -32,8 +25,6 @@ public class WatchListAuctionItem extends ReplicaAuctionItem {
     }
 
     public void updateSync(String title, BigDecimal currentPrice, String thumbnailImageUrl) {
-        this.itemName = title;
-        this.currentPrice = currentPrice;
         super.updateInfo(title, currentPrice, thumbnailImageUrl);
     }
 
