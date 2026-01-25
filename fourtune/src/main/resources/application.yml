@@ -1,6 +1,9 @@
 spring:
   application:
     name: fourtune
+  jackson:
+    time-zone: Asia/Seoul # 한국 시간으로 변환
+    locale: ko_KR
   
   profiles:
     active: local
@@ -274,7 +277,7 @@ spring:
       
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     
   data:

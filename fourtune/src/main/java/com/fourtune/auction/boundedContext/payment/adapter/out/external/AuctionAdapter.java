@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.payment.adapter.out.external;
 
 import com.fourtune.auction.boundedContext.payment.port.out.AuctionPort;
+import com.fourtune.auction.global.common.ApiResponse;
 import com.fourtune.auction.global.config.WebClientConfig;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
@@ -9,6 +10,7 @@ import com.fourtune.auction.shared.payment.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -29,18 +31,20 @@ public class AuctionAdapter implements AuctionPort {
         try {
             String url = BASE_URL + AUCTION_MODULE_URL + orderNo;
 
-            OrderDetailResponse orderDetailResponse = webclient.webClient()
+            ApiResponse<OrderDetailResponse> response = webclient.webClient()
                     .get()
                     .uri(url)
                     .retrieve()
-                    .bodyToMono(OrderDetailResponse.class)
+                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<OrderDetailResponse>>() {})
                     .block();
 
-            if (orderDetailResponse == null) {
+            // 2. 전체 응답 또는 내부 데이터(data)가 없는 경우 예외 처리
+            if (response == null || response.getData() == null) {
+                log.error("경매 모듈 응답 데이터 없음 - 주문번호: {}", orderNo);
                 throw new BusinessException(ErrorCode.PAYMENT_AUCTION_ORDER_NOT_FOUND);
             }
 
-            return OrderDto.from(orderDetailResponse);
+            return OrderDto.from(response.getData());
 
 
         } catch (Exception e) {
