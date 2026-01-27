@@ -45,7 +45,7 @@ public interface AuctionItemRepository extends JpaRepository<AuctionItem, Long> 
     /**
      * 시작 시간이 지났고 SCHEDULED 상태인 경매 조회 (자동 시작용)
      */
-    List<AuctionItem> findByAuctionStartTimeBeforeAndStatus(
+    List<AuctionItem> findByAuctionStartTimeLessThanEqualAndStatus(
         LocalDateTime startTime,
         AuctionStatus status
     );
