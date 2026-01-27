@@ -64,7 +64,7 @@ public class AuctionScheduler {
             for (AuctionItem auction : scheduledAuctions) {
                 try {
                     // ✅ 각 경매마다 독립 트랜잭션으로 처리
-                    startAuctionInTransaction(auction.getId());
+                    auctionFacade.startAuctionInTransaction(auction.getId());
                     startedCount++;
                     log.debug("경매 ID {} 시작 처리 완료", auction.getId());
                 } catch (Exception e) {
@@ -82,53 +82,10 @@ public class AuctionScheduler {
      * 경매 시작 처리 (독립 트랜잭션)
      * 각 경매마다 독립적인 트랜잭션으로 처리하여 하나 실패 시 다른 것들에 영향 없도록 함
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void startAuctionInTransaction(Long auctionId) {
-        AuctionItem auction = auctionSupport.findByIdOrThrow(auctionId);
-        auction.start();
-        auctionSupport.save(auction);
-        
-        // 경매 시작 이벤트 발행 (관심상품 알림용)
-        eventPublisher.publish(new AuctionStartedEvent(
-                auction.getId(),
-                auction.getTitle(),
-                auction.getSellerId(),
-                auction.getStartPrice(),
-                auction.getAuctionEndTime()
-        ));
-        
-        // Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
-        String thumbnailUrl = extractThumbnailUrl(auction);
-        eventPublisher.publish(new AuctionItemUpdatedEvent(
-                auction.getId(),
-                auction.getTitle(),
-                auction.getDescription(),
-                auction.getCategory(),
-                auction.getStatus(),
-                auction.getStartPrice(),
-                auction.getCurrentPrice(),
-                auction.getAuctionStartTime(),
-                auction.getAuctionEndTime(),
-                thumbnailUrl,
-                auction.getCreatedAt(),
-                auction.getUpdatedAt(),
-                auction.getViewCount(),
-                auction.getBidCount(),
-                auction.getWatchlistCount()
-        ));
-    }
-    
+
+
     /**
      * 썸네일 URL 추출
      */
-    private String extractThumbnailUrl(AuctionItem auctionItem) {
-        if (auctionItem.getImages() == null || auctionItem.getImages().isEmpty()) {
-            return null;
-        }
-        return auctionItem.getImages().stream()
-                .filter(ItemImage::getIsThumbnail)
-                .findFirst()
-                .map(ItemImage::getImageUrl)
-                .orElseGet(() -> auctionItem.getImages().get(0).getImageUrl()); // 썸네일이 없으면 첫 번째 이미지
-    }
+
 }
