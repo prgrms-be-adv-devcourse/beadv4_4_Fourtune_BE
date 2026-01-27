@@ -33,6 +33,7 @@ public class AuctionFacade {
     private final AuctionExtendUseCase auctionExtendUseCase;
     private final AuctionQueryUseCase auctionQueryUseCase;
     private final AuctionBuyNowUseCase auctionBuyNowUseCase;
+    private final AuctionActionService auctionActionService;
 
     /**
      * 경매 생성
@@ -162,6 +163,10 @@ public class AuctionFacade {
         // AuctionQueryUseCase.increaseViewCount 호출
         auctionQueryUseCase.increaseViewCount(auctionId);
         // TODO: Redis 캐싱 및 비동기 처리는 나중에 추가
+    }
+
+    public void startAuctionInTransaction(Long auctionId){
+        auctionActionService.startAuctionInTransaction(auctionId);
     }
 
 }
