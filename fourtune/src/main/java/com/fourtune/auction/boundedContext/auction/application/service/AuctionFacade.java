@@ -90,7 +90,7 @@ public class AuctionFacade {
      * 만료된 경매 목록 조회 (읽기 전용 트랜잭션)
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    private List<com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem> findExpiredAuctionsInReadOnlyTransaction() {
+    public List<com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem> findExpiredAuctionsInReadOnlyTransaction() {
         LocalDateTime now = LocalDateTime.now();
         return auctionQueryUseCase.findExpiredAuctions(now);
     }
@@ -100,7 +100,7 @@ public class AuctionFacade {
      * 각 경매마다 독립적인 트랜잭션으로 처리하여 하나 실패 시 다른 것들에 영향 없도록 함
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void closeAuctionInNewTransaction(Long auctionId) {
+    public void closeAuctionInNewTransaction(Long auctionId) {
         auctionCloseUseCase.closeAuction(auctionId);
     }
 
@@ -122,7 +122,7 @@ public class AuctionFacade {
      * 경매 ID로 조회 (읽기 전용 트랜잭션)
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    private AuctionItemResponse getAuctionByIdInReadOnlyTransaction(Long auctionId) {
+    public AuctionItemResponse getAuctionByIdInReadOnlyTransaction(Long auctionId) {
         return auctionQueryUseCase.getAuctionById(auctionId);
     }
 

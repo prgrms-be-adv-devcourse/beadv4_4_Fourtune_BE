@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuctionSupport {
 
     private final AuctionItemRepository auctionItemRepository;
@@ -123,7 +125,7 @@ public class AuctionSupport {
      * 시작 시간이 되었지만 아직 시작되지 않은 경매 목록 조회
      */
     public List<AuctionItem> findScheduledAuctionsToStart(java.time.LocalDateTime now) {
-        return auctionItemRepository.findByAuctionStartTimeBeforeAndStatus(
+        return auctionItemRepository.findByAuctionStartTimeLessThanEqualAndStatus(
                 now,
                 AuctionStatus.SCHEDULED
         );
