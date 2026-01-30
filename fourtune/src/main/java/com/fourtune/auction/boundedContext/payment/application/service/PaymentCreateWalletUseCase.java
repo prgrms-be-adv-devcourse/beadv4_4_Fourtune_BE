@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class CreateWalletUseCase {
+public class PaymentCreateWalletUseCase {
 
     private final WalletRepository walletRepository;
     private final PaymentUserRepository paymentUserRepository;

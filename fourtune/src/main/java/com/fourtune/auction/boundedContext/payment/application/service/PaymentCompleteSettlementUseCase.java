@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class CompleteSettlementUseCase {
+public class PaymentCompleteSettlementUseCase {
         private final PaymentSupport paymentSupport;
 
         @Transactional // [중요] 입금/출금의 원자성 보장을 위해 트랜잭션 추가
