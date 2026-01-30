@@ -8,6 +8,7 @@ import com.fourtune.auction.shared.auction.event.AuctionClosedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -30,7 +31,7 @@ public class AuctionCloseUseCase {
      * 경매 종료 처리
      * 동시성 제어: Pessimistic Lock 적용
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void closeAuction(Long auctionId) {
         // 1. 경매 조회 (Pessimistic Lock 적용)
         AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
