@@ -176,6 +176,17 @@ spring:
       group-id: fourtune-test-consumer-group
       auto-offset-reset: earliest
 
+  cloud:
+    aws:
+      credentials:
+        access-key: test
+        secret-key: test
+      region:
+        static: ${AWS_REGION:ap-northeast-2}
+      s3:
+        bucket: test-bucket
+        path-prefix: "test"
+
 # Test에서는 Swagger 비활성화
 springdoc:
   api-docs:
