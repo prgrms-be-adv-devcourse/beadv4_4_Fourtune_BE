@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.user.adapter.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
 import com.fourtune.auction.shared.user.dto.UserResponse;
 import com.fourtune.auction.shared.user.dto.UserSignUpRequest;
@@ -28,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UserControllerTest {
 
     private MockMvc mockMvc;
+    private ObjectMapper objectMapper;
 
     @MockitoBean
     private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
@@ -36,13 +38,12 @@ public class UserControllerTest {
     private WebApplicationContext context;
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
     private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
         this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
                 .addFilters(new CharacterEncodingFilter("UTF-8", true))
                 .build();
