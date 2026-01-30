@@ -39,7 +39,7 @@ class S3ServiceTest {
     }
 
     @Test
-    @DisplayName("S3 Presigned URL 생성 성공 테스트")
+    @DisplayName("S3 Presigned URL 생성 성공 테스트 - 디렉토리 포함")
     void generatePresignedUrl() throws MalformedURLException {
         // given
         String directory = "auction";
@@ -60,13 +60,40 @@ class S3ServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.presignedUrl()).isEqualTo(expectedUrl);
-        // [수정] 이제 imageUrl 필드에 fileKey가 담기므로 버킷명은 포함되지 않음
+        // [검증] 디렉토리가 포함된 경로인지 확인
         assertThat(response.imageUrl()).contains("test/local/tester/" + directory);
 
         // Content-Type 검증
         verify(s3Presigner).presignPutObject(org.mockito.ArgumentMatchers.argThat((PutObjectPresignRequest request) -> {
             return request.putObjectRequest().contentType().equals(contentType);
         }));
+    }
+
+    @Test
+    @DisplayName("S3 Presigned URL 생성 성공 테스트 - 디렉토리 없음(null/empty) -> 바로 하위 저장")
+    void generatePresignedUrl_withBlankDirectory() throws MalformedURLException {
+        // given
+        String directory = ""; // or null
+        String fileName = "test.jpg";
+        String contentType = "image/jpeg";
+        String expectedUrl = "https://s3.url";
+
+        PresignedPutObjectRequest presignedResponse = org.mockito.Mockito.mock(PresignedPutObjectRequest.class);
+        given(presignedResponse.url()).willReturn(java.net.URI.create(expectedUrl).toURL());
+
+        given(s3Presigner.presignPutObject(any(PutObjectPresignRequest.class)))
+                .willReturn(presignedResponse);
+
+        // when
+        S3PresignedUrlResponse response = s3Service.generatePresignedUrl(directory, fileName, contentType);
+
+        // then
+        // [검증] 경로에 슬래시가 두 번 연속되지 않고, pathPrefix 바로 뒤에 파일명이 오는지 확인 (UUID 포함)
+        // 예: test/local/tester/[UUID].jpg
+        assertThat(response.imageUrl()).startsWith("test/local/tester/");
+        assertThat(response.imageUrl()).doesNotContain("//");
+
+        System.out.println("Generated Key: " + response.imageUrl());
     }
 
     @Test
