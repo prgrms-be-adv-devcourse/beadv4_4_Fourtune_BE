@@ -23,8 +23,9 @@ public class S3Controller {
     @GetMapping("/presigned-url")
     public ApiResponse<S3PresignedUrlResponse> getPresignedUrl(
             @RequestParam String directory,
-            @RequestParam String fileName) {
-        S3PresignedUrlResponse response = s3Service.generatePresignedUrl(directory, fileName);
+            @RequestParam String fileName,
+            @RequestParam String contentType) {
+        S3PresignedUrlResponse response = s3Service.generatePresignedUrl(directory, fileName, contentType);
         return ApiResponse.success(response, "Presigned URL 발급 성공");
     }
 }

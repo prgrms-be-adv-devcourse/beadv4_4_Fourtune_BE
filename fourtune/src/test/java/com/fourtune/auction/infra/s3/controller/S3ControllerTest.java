@@ -40,16 +40,18 @@ class S3ControllerTest {
         // given
         String directory = "auction";
         String fileName = "test.jpg";
+        String contentType = "image/jpeg";
         String presignedUrl = "https://s3.aws.com/presigned";
         String imageUrl = "https://s3.aws.com/image.jpg";
 
-        given(s3Service.generatePresignedUrl(directory, fileName))
+        given(s3Service.generatePresignedUrl(directory, fileName, contentType))
                 .willReturn(new S3PresignedUrlResponse(presignedUrl, imageUrl));
 
         // when & then
         mockMvc.perform(get("/api/v1/images/presigned-url")
                 .param("directory", directory)
                 .param("fileName", fileName)
+                .param("contentType", contentType)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
