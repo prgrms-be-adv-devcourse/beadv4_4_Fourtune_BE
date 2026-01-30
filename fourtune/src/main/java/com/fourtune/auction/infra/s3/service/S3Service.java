@@ -101,7 +101,10 @@ public class S3Service {
 
     private String createFileName(String directory, String originalFileName) {
         String ext = extractExtension(originalFileName);
-        // [수정] pathPrefix 적용 (예: test/auction/...)
+        // [수정] directory가 없으면 바로 pathPrefix 아래에 저장
+        if (directory == null || directory.isBlank()) {
+            return pathPrefix + "/" + UUID.randomUUID().toString() + "." + ext;
+        }
         return pathPrefix + "/" + directory + "/" + UUID.randomUUID().toString() + "." + ext;
     }
 
