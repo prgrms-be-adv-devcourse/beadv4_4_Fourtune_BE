@@ -33,6 +33,14 @@ public record OrderDetailResponse(
      * Order와 AuctionItem으로 OrderDetailResponse 생성
      */
     public static OrderDetailResponse from(Order order, AuctionItem auctionItem) {
+        return from(order, auctionItem, null, null);
+    }
+
+    /**
+     * Order, AuctionItem, winnerNickname, sellerNickname으로 OrderDetailResponse 생성
+     */
+    public static OrderDetailResponse from(Order order, AuctionItem auctionItem,
+                                          String winnerNickname, String sellerNickname) {
         String thumbnailUrl = null;
         if (auctionItem != null && auctionItem.getImages() != null) {
             thumbnailUrl = auctionItem.getImages().stream()
@@ -41,7 +49,6 @@ public record OrderDetailResponse(
                     .map(ItemImage::getImageUrl)
                     .orElse(null);
         }
-        
         return new OrderDetailResponse(
                 order.getId(),
                 order.getOrderId(),
@@ -49,9 +56,9 @@ public record OrderDetailResponse(
                 auctionItem != null ? auctionItem.getTitle() : null,
                 thumbnailUrl,
                 order.getWinnerId(),
-                null, // winnerNickname은 User 조회 필요
+                winnerNickname,
                 order.getSellerId(),
-                null, // sellerNickname은 User 조회 필요
+                sellerNickname,
                 order.getAmount(),
                 determineOrderType(auctionItem),
                 order.getStatus(),

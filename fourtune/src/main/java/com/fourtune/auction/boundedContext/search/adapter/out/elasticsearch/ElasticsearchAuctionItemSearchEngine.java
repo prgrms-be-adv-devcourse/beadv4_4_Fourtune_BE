@@ -157,6 +157,8 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
                 d.getStatus(),
                 d.getStartPrice(),
                 d.getCurrentPrice(),
+                d.getBuyNowPrice(),
+                d.getBuyNowEnabled(),
                 d.getStartAt(),
                 d.getEndAt(),
                 d.getThumbnailUrl(),

@@ -63,6 +63,8 @@ public class AuctionCreateUseCase {
                 savedAuction.getStatus(),
                 savedAuction.getStartPrice(),
                 savedAuction.getCurrentPrice(),
+                savedAuction.getBuyNowPrice(),
+                savedAuction.getBuyNowEnabled(),
                 savedAuction.getAuctionStartTime(),
                 savedAuction.getAuctionEndTime(),
                 thumbnailUrl,

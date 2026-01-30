@@ -27,13 +27,20 @@ public record OrderResponse(
      * Order와 AuctionItem으로 OrderResponse 생성
      */
     public static OrderResponse from(Order order, AuctionItem auctionItem) {
+        return from(order, auctionItem, null);
+    }
+
+    /**
+     * Order, AuctionItem, winnerNickname으로 OrderResponse 생성
+     */
+    public static OrderResponse from(Order order, AuctionItem auctionItem, String winnerNickname) {
         return new OrderResponse(
                 order.getId(),
                 order.getOrderId(),
                 order.getAuctionId(),
                 auctionItem != null ? auctionItem.getTitle() : null,
                 order.getWinnerId(),
-                null, // winnerNickname은 User 조회 필요
+                winnerNickname,
                 order.getAmount(),
                 determineOrderType(auctionItem),
                 order.getStatus(),

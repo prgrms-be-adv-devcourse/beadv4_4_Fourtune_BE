@@ -1,6 +1,8 @@
 package com.fourtune.auction.boundedContext.user.adapter.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
+import com.fourtune.auction.shared.user.dto.UserResponse;
 import com.fourtune.auction.shared.user.dto.UserSignUpRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +35,9 @@ public class UserControllerTest {
 
     @Autowired
     private WebApplicationContext context;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
@@ -80,5 +85,27 @@ public class UserControllerTest {
                     assertThat(content).isNotEmpty();
                     System.out.println("발생한 에러 메시지: " + content);
                 });
+    }
+
+    @Test
+    @DisplayName("GET /api/users/{id} - 가입된 유저 ID로 조회 시 id, email, nickname이 반환된다")
+    void getUserByIdTest() throws Exception {
+        UserSignUpRequest signup = new UserSignUpRequest(
+                "public@example.com", "Password123!", "공개닉네임", "010-1111-2222"
+        );
+        mockMvc.perform(post("/api/users/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signup)))
+                .andExpect(status().isCreated());
+
+        Long userId = userRepository.findByEmail("public@example.com").orElseThrow().getId();
+        var result = mockMvc.perform(get("/api/users/" + userId))
+                .andExpect(status().isOk())
+                .andReturn();
+        String json = result.getResponse().getContentAsString();
+        UserResponse parsed = objectMapper.readValue(json, UserResponse.class);
+        assertThat(parsed.id()).isEqualTo(userId);
+        assertThat(parsed.email()).isEqualTo("public@example.com");
+        assertThat(parsed.nickname()).isEqualTo("공개닉네임");
     }
 }

@@ -99,6 +99,8 @@ public class BidPlaceUseCase {
                 auctionItem.getStatus(),
                 auctionItem.getStartPrice(),
                 auctionItem.getCurrentPrice(),
+                auctionItem.getBuyNowPrice(),
+                auctionItem.getBuyNowEnabled(),
                 auctionItem.getAuctionStartTime(),
                 auctionItem.getAuctionEndTime(),
                 thumbnailUrl,
