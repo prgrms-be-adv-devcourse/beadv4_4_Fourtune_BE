@@ -2,6 +2,7 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
+import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
 import com.fourtune.auction.shared.auction.dto.BidDetailResponse;
 import com.fourtune.auction.shared.auction.dto.BidHistoryResponse;
 import com.fourtune.auction.shared.auction.dto.BidResponse;
@@ -11,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 입찰 조회 UseCase
@@ -24,6 +27,7 @@ public class BidQueryUseCase {
 
     private final BidSupport bidSupport;
     private final AuctionSupport auctionSupport;
+    private final UserFacade userFacade;
 
     /**
      * 경매의 입찰 내역 조회
@@ -31,24 +35,24 @@ public class BidQueryUseCase {
     public BidHistoryResponse getAuctionBids(Long auctionId) {
         // 1. 경매 존재 확인
         AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
-        
         // 2. 입찰 내역 조회 (입찰가 높은순)
         List<Bid> bids = bidSupport.findByAuctionId(auctionId);
-        
-        // 3. DTO 변환 후 반환
-        return BidHistoryResponse.from(auctionItem, bids);
+        // 3. bidderId 목록으로 닉네임 일괄 조회
+        Set<Long> bidderIds = bids.stream().map(Bid::getBidderId).collect(Collectors.toSet());
+        var bidderNicknames = userFacade.getNicknamesByIds(bidderIds);
+        // 4. DTO 변환 후 반환
+        return BidHistoryResponse.from(auctionItem, bids, bidderNicknames);
     }
 
     /**
      * 사용자의 입찰 내역 조회
      */
     public List<BidResponse> getUserBids(Long bidderId) {
-        // 1. 사용자의 입찰 내역 조회
         List<Bid> bids = bidSupport.findByBidderId(bidderId);
-        
-        // 2. DTO 변환 후 반환
+        var nicknames = userFacade.getNicknamesByIds(Set.of(bidderId));
+        String bidderNickname = nicknames.get(bidderId);
         return bids.stream()
-                .map(BidResponse::from)
+                .map(bid -> BidResponse.from(bid, bidderNickname))
                 .toList();
     }
 
@@ -56,28 +60,24 @@ public class BidQueryUseCase {
      * 경매의 최고가 입찰 조회
      */
     public BidResponse getHighestBid(Long auctionId) {
-        // 1. 경매 존재 확인
         auctionSupport.findByIdOrThrow(auctionId);
-        
-        // 2. 최고가 입찰 조회
         Optional<Bid> highestBid = bidSupport.findHighestBid(auctionId);
-        
-        // 3. DTO 변환 후 반환 (없으면 null)
-        return highestBid.map(BidResponse::from).orElse(null);
+        if (highestBid.isEmpty()) {
+            return null;
+        }
+        Bid bid = highestBid.get();
+        var nicknames = userFacade.getNicknamesByIds(Set.of(bid.getBidderId()));
+        return BidResponse.from(bid, nicknames.get(bid.getBidderId()));
     }
 
     /**
      * 입찰 ID로 상세 조회
      */
     public BidDetailResponse getBidDetail(Long bidId) {
-        // 1. 입찰 조회
         Bid bid = bidSupport.findByIdOrThrow(bidId);
-        
-        // 2. 경매 정보 조회
         AuctionItem auctionItem = auctionSupport.findByIdOrThrow(bid.getAuctionId());
-        
-        // 3. DTO 변환 후 반환
-        return BidDetailResponse.from(bid, auctionItem);
+        var nicknames = userFacade.getNicknamesByIds(Set.of(bid.getBidderId()));
+        return BidDetailResponse.from(bid, auctionItem, nicknames.get(bid.getBidderId()));
     }
 
 }

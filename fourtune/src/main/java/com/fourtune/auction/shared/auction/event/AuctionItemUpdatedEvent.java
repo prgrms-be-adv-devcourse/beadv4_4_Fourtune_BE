@@ -19,6 +19,8 @@ public record AuctionItemUpdatedEvent(
     AuctionStatus status,
     BigDecimal startPrice,
     BigDecimal currentPrice,
+    BigDecimal buyNowPrice,
+    Boolean buyNowEnabled,
     LocalDateTime startAt,
     LocalDateTime endAt,
     String thumbnailUrl,

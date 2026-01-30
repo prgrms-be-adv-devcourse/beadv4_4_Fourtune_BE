@@ -59,4 +59,13 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * ID로 유저 정보 조회 (id, email, nickname, status 등)
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
+        UserResponse response = userFacade.getUserById(id);
+        return ResponseEntity.ok(response);
+    }
+
 }

@@ -111,6 +111,8 @@ class AuctionItemIndexEventListenerTest {
                 AuctionStatus.ACTIVE,
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(15000),
+                BigDecimal.valueOf(50000),  // buyNowPrice
+                true,                        // buyNowEnabled
                 now.minusDays(1),
                 now.plusDays(7),
                 "https://example.com/thumbnail.jpg",
@@ -135,6 +137,8 @@ class AuctionItemIndexEventListenerTest {
         assertThat(view.status()).isEqualTo("ACTIVE");
         assertThat(view.startPrice()).isEqualByComparingTo(BigDecimal.valueOf(10000));
         assertThat(view.currentPrice()).isEqualByComparingTo(BigDecimal.valueOf(15000));
+        assertThat(view.buyNowPrice()).isEqualByComparingTo(BigDecimal.valueOf(50000));
+        assertThat(view.buyNowEnabled()).isTrue();
         assertThat(view.thumbnailUrl()).isEqualTo("https://example.com/thumbnail.jpg");
         assertThat(view.viewCount()).isEqualTo(500L);
         assertThat(view.bidCount()).isEqualTo(10);
@@ -151,6 +155,8 @@ class AuctionItemIndexEventListenerTest {
                 AuctionStatus.SCHEDULED,
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(10000),
+                BigDecimal.valueOf(50000),  // buyNowPrice
+                true,                        // buyNowEnabled
                 LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(7),
                 "https://example.com/image.jpg",
@@ -170,6 +176,8 @@ class AuctionItemIndexEventListenerTest {
                 AuctionStatus.ACTIVE,
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(15000),
+                BigDecimal.valueOf(60000),  // buyNowPrice
+                true,                        // buyNowEnabled
                 LocalDateTime.now().minusDays(1),
                 LocalDateTime.now().plusDays(6),
                 "https://example.com/image.jpg",

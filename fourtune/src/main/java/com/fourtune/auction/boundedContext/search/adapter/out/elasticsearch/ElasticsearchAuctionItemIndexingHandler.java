@@ -44,6 +44,8 @@ public class ElasticsearchAuctionItemIndexingHandler implements AuctionItemIndex
                 .status(v.status())
                 .startPrice(v.startPrice())
                 .currentPrice(currentPrice)
+                .buyNowPrice(v.buyNowPrice())
+                .buyNowEnabled(v.buyNowEnabled())
                 .startAt(v.startAt())
                 .endAt(v.endAt())
                 .thumbnailUrl(v.thumbnailUrl())

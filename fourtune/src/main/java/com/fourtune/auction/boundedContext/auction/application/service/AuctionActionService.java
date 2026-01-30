@@ -42,6 +42,8 @@ public class AuctionActionService {
                 auction.getStatus(),
                 auction.getStartPrice(),
                 auction.getCurrentPrice(),
+                auction.getBuyNowPrice(),
+                auction.getBuyNowEnabled(),
                 auction.getAuctionStartTime(),
                 auction.getAuctionEndTime(),
                 thumbnailUrl,

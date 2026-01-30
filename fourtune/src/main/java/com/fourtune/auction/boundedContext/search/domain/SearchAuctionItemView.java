@@ -11,6 +11,8 @@ public record SearchAuctionItemView(
         String status,       // enum name
         BigDecimal startPrice,
         BigDecimal currentPrice,
+        BigDecimal buyNowPrice,
+        Boolean buyNowEnabled,
         LocalDateTime startAt,
         LocalDateTime endAt,
         String thumbnailUrl,
