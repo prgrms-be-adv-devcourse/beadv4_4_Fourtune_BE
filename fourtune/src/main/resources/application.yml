@@ -179,12 +179,12 @@ spring:
   cloud:
     aws:
       credentials:
-        access-key: test
-        secret-key: test
+        access-key: ${AWS_ACCESS_KEY:test}
+        secret-key: ${AWS_SECRET_KEY:test}
       region:
         static: ${AWS_REGION:ap-northeast-2}
       s3:
-        bucket: test-bucket
+        bucket: ${AWS_S3_BUCKET:test-bucket}
         path-prefix: "test"
 
 # Test에서는 Swagger 비활성화
