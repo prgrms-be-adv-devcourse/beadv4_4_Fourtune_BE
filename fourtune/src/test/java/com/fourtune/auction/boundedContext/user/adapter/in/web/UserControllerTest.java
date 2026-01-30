@@ -28,7 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UserControllerTest {
 
     private MockMvc mockMvc;
-    private ObjectMapper objectMapper;
 
     @MockitoBean
     private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
@@ -37,11 +36,13 @@ public class UserControllerTest {
     private WebApplicationContext context;
 
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
-        this.objectMapper = new ObjectMapper(); // 직접 생성
         this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
                 .addFilters(new CharacterEncodingFilter("UTF-8", true))
                 .build();
