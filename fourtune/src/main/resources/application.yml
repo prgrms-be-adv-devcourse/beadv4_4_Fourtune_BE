@@ -105,6 +105,7 @@ spring:
         static: ${AWS_REGION:ap-northeast-2}
       s3:
         bucket: ${AWS_S3_BUCKET}
+        path-prefix: "local/${S3_USER_ID}"
 # JWT 설정
 jwt:
   secret: ${JWT_SECRET}
@@ -238,6 +239,7 @@ spring:
         static: ${AWS_REGION:ap-northeast-2}
       s3:
         bucket: ${AWS_S3_BUCKET}
+        path-prefix: "dev"
 
 jwt:
   secret: ${JWT_SECRET}
@@ -326,6 +328,7 @@ spring:
         static: ${AWS_REGION:ap-northeast-2}
       s3:
         bucket: ${AWS_S3_BUCKET}
+        path-prefix: "prod"
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 3600000
