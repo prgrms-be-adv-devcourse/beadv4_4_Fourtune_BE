@@ -96,6 +96,16 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ${AWS_REGION:ap-northeast-2}
+      s3:
+        bucket: ${AWS_S3_BUCKET}
+        path-prefix: "local/${S3_USER_ID}"
 # JWT 설정
 jwt:
   secret: ${JWT_SECRET}
@@ -166,6 +176,17 @@ spring:
       group-id: fourtune-test-consumer-group
       auto-offset-reset: earliest
 
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY:test}
+        secret-key: ${AWS_SECRET_KEY:test}
+      region:
+        static: ${AWS_REGION:ap-northeast-2}
+      s3:
+        bucket: ${AWS_S3_BUCKET:test-bucket}
+        path-prefix: "test"
+
 # Test에서는 Swagger 비활성화
 springdoc:
   api-docs:
@@ -219,6 +240,17 @@ spring:
       auto-offset-reset: earliest
     producer:
       acks: all
+
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ${AWS_REGION:ap-northeast-2}
+      s3:
+        bucket: ${AWS_S3_BUCKET}
+        path-prefix: "dev"
 
 jwt:
   secret: ${JWT_SECRET}
@@ -298,6 +330,16 @@ spring:
 #      acks: all
 #      retries: 3
 
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ${AWS_REGION:ap-northeast-2}
+      s3:
+        bucket: ${AWS_S3_BUCKET}
+        path-prefix: "prod"
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 3600000
