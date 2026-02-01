@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.auth.application.service;
 
+import com.fourtune.auction.boundedContext.auth.port.out.RefreshTokenRepository;
 import com.fourtune.auction.boundedContext.user.application.service.UserSupport;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.global.error.ErrorCode;
@@ -28,6 +29,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final EventPublisher eventPublisher;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
     public TokenResponse login(UserLoginRequest request) {
@@ -39,7 +41,8 @@ public class AuthService {
         String accessToken = jwtTokenProvider.createAccessToken(user);
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
 
-        user.updateRefreshToken(refreshToken);
+        // Redis에 Refresh Token 저장 (TTL: 2주)
+        refreshTokenRepository.save(user.getId(), refreshToken);
 
         eventPublisher.publish(new UserSignedUpEvent(userResponse));
 
@@ -55,23 +58,25 @@ public class AuthService {
         validateToken(refreshToken);
 
         String id = jwtTokenProvider.getUserIdFromToken(refreshToken);
-        User user = userSupport.findByIdOrThrow(Long.parseLong(id));
+        Long userId = Long.parseLong(id);
+        User user = userSupport.findByIdOrThrow(userId);
 
-        isCorrectRequestRefreshToken(user, refreshToken);
+        // Redis에서 저장된 토큰 검증
+        isCorrectRequestRefreshToken(userId, refreshToken);
 
         String newAccessToken = jwtTokenProvider.createAccessToken(user);
         String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getId());
 
-        user.updateRefreshToken(newRefreshToken);
+        // Redis에 새 Refresh Token 저장
+        refreshTokenRepository.save(userId, newRefreshToken);
 
         return new TokenResponse("Bearer", newAccessToken, newRefreshToken);
     }
 
     @Transactional
     public void logout(Long userId) {
-        User user = userSupport.findByIdOrThrow(userId);
-
-        user.updateRefreshToken(null);
+        // Redis에서 Refresh Token 삭제
+        refreshTokenRepository.deleteByUserId(userId);
     }
 
     private void validatePassword(String rawPassword, String encodedPassword) {
@@ -91,17 +96,15 @@ public class AuthService {
         }
     }
 
-    private void isCorrectRequestRefreshToken(User user, String refreshToken){
-        String currentDbToken = user.getRefreshToken();
+    private void isCorrectRequestRefreshToken(Long userId, String refreshToken){
+        String storedToken = refreshTokenRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN));
 
-        if (currentDbToken == null) {
-            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
-        }
+        if (!storedToken.equals(refreshToken)) {
+            log.warn("🚨 탈취 의심 감지! 해당 계정의 리프레시 토큰을 파기합니다. ID: " + userId);
 
-        if (!currentDbToken.equals(refreshToken)) {
-            log.warn("🚨 탈취 의심 감지! 해당 계정의 리프레시 토큰을 파기합니다. ID: " + user.getId());
-
-            user.updateRefreshToken(null);
+            // Redis에서 토큰 삭제
+            refreshTokenRepository.deleteByUserId(userId);
 
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_MISMATCH);
         }
