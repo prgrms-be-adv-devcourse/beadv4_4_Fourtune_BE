@@ -38,6 +38,17 @@ spring:
   elasticsearch:
     uris: http://localhost:9200        # ${ELASTICSEARCH_URIS} 대체
 
+  cloud:
+    aws:
+      credentials:
+        access-key: test
+        secret-key: test
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: test-bucket
+        path-prefix: "test"
+
 # 커스텀 키값들
 jwt:
   secret: "sdsdsdsaWQUIQB1541KJSABDAJKSD1K24JBJ1T14GSF=" # ${JWT_SECRET} 대체
