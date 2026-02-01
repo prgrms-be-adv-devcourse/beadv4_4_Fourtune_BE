@@ -13,8 +13,4 @@ public interface SettlementCandidatedItemRepository extends JpaRepository<Settle
     List<SettlementCandidatedItem> findBySettlementItemIsNullAndPaymentDateIsBeforeOrderByPayeeAscIdAsc(LocalDateTime minDate, PageRequest of);
 
     List<SettlementCandidatedItem> findByPayee_Id(Long payeeId);
-
-    Optional<SettlementCandidatedItem> findBy
-
-    SettlementCandidatedItem findSettlementCandidatedItemByRelId(Long relId);
 }
