@@ -70,7 +70,7 @@ public class TossPaymentAdapter implements PaymentGatewayPort {
      * @param cancelAmount 값이 없으면 전체 환불, 있으면 부분 환불
      */
     @Override
-    public void cancel(String paymentKey, String reason, Long cancelAmount) {
+    public PaymentExecutionResult cancel(String paymentKey, String reason, Long cancelAmount) {
         String basicAuth = createBasicAuthHeader();
 
         Map<String, Object> body = new HashMap<>();
@@ -92,6 +92,9 @@ public class TossPaymentAdapter implements PaymentGatewayPort {
                     .block();
 
             log.info("Toss 결제 취소 성공: paymentKey={}, reason={}, amount={}", paymentKey, reason, cancelAmount);
+            // 성공 시 결과 반환 (취소 건이므로 orderId는 null로 처리하거나 필요시 전달받아야 함)
+            return new PaymentExecutionResult(paymentKey, null, cancelAmount, true);
+
         } catch (Exception e) {
             log.error("CRITICAL: Toss 결제 취소 실패 (수동 확인 필요). paymentKey={}, error={}", paymentKey, e.getMessage());
             throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
