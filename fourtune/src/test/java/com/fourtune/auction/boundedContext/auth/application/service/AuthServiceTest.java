@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.auth.application.service;
 
+import com.fourtune.auction.boundedContext.auth.port.out.RefreshTokenRepository;
 import com.fourtune.auction.boundedContext.user.application.service.UserSupport;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
@@ -18,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,6 +41,9 @@ class AuthServiceTest {
 
     @Mock
     private EventPublisher eventPublisher;
+
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
     private User user;
@@ -71,6 +76,7 @@ class AuthServiceTest {
 
         verify(userSupport).findActiveUserByEmailOrThrow(request.email());
         verify(passwordEncoder).matches("password123", "encoded_password");
+        verify(refreshTokenRepository).save(user.getId(), "refresh.token");
     }
 
     @Test
@@ -102,7 +108,7 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("성공: 리프레시 토큰이 유효하고 DB와 일치하면 재발급된다")
+    @DisplayName("성공: 리프레시 토큰이 유효하고 Redis와 일치하면 재발급된다")
     void reissue_Success() {
         // given
         String refreshToken = "valid_refresh_token";
@@ -110,10 +116,9 @@ class AuthServiceTest {
         Long userId = 1L;
 
         given(jwtTokenProvider.getUserIdFromToken(refreshToken)).willReturn(userIdStr);
-
         given(userSupport.findByIdOrThrow(userId)).willReturn(user);
         given(user.getId()).willReturn(userId);
-        given(user.getRefreshToken()).willReturn(refreshToken);
+        given(refreshTokenRepository.findByUserId(userId)).willReturn(Optional.of(refreshToken));
 
         given(jwtTokenProvider.createAccessToken(user)).willReturn("new_access");
         given(jwtTokenProvider.createRefreshToken(userId)).willReturn("new_refresh");
@@ -123,7 +128,7 @@ class AuthServiceTest {
         assertThat(response.getAccessToken()).isEqualTo("new_access");
         assertThat(response.getRefreshToken()).isEqualTo("new_refresh");
 
-        verify(user, times(1)).updateRefreshToken("new_refresh");
+        verify(refreshTokenRepository).save(userId, "new_refresh");
     }
 
     @Test
@@ -140,20 +145,22 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("실패: DB에 저장된 토큰과 다르면 (탈취 의심) 예외 발생")
+    @DisplayName("실패: Redis에 저장된 토큰과 다르면 (탈취 의심) 예외 발생")
     void reissue_Fail_TokenMismatch() {
         String requestToken = "hacker_token";
-        String dbToken = "original_token";
+        String storedToken = "original_token";
         String userIdStr = "1";
+        Long userId = 1L;
 
         given(jwtTokenProvider.getUserIdFromToken(requestToken)).willReturn(userIdStr);
-        given(userSupport.findByIdOrThrow(1L)).willReturn((user));
-
-        given(user.getRefreshToken()).willReturn(dbToken);
+        given(userSupport.findByIdOrThrow(userId)).willReturn(user);
+        given(refreshTokenRepository.findByUserId(userId)).willReturn(Optional.of(storedToken));
 
         assertThatThrownBy(() -> authService.reissue(requestToken))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REFRESH_TOKEN_MISMATCH);
+
+        verify(refreshTokenRepository).deleteByUserId(userId);
     }
 
 }
