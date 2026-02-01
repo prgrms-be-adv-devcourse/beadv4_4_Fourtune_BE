@@ -80,4 +80,13 @@ public class SettlementListener {
 
         settlementFacade.addSettlementCandidatedItem(orderDto);
     }
+
+    /**
+     * 환불 - 정산 후보 상태 변화 (주문 아이템 별로)
+     */
+    @TransactionalEventListener(phase = AFTER_COMMIT)
+    @Transactional(propagation = REQUIRES_NEW)
+    public void handle(/* AuctionRefundCompletedEvent event */) {
+//        settlementFacade..;
+    }
 }

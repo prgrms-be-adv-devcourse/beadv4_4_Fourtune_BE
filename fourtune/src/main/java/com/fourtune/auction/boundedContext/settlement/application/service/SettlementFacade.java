@@ -26,6 +26,7 @@ public class SettlementFacade {
     private final AddSettlementCandidatedItemsUseCase addSettlementCandidatedItemsUseCase;
     private final CollectSettlementItemChunkUseCase collectSettlementItemChunkUseCase;
     private final CompleteSettlementChunkUseCase completeSettlementChunkUseCase;
+    private final CancelSettlementCandidatedItemUseCase cancelSettlementCandidatedItemUseCase;
 
     @Transactional(readOnly = true)
     public Optional<SettlementUser> findSystemHoldingUser(){
@@ -96,5 +97,10 @@ public class SettlementFacade {
     @Transactional
     public void deleteUser(UserResponse user) {
         settlementSupport.deleteUserById(user.id());
+    }
+
+    @Transactional
+    public void cancelSettlementCandidatedItem(OrderDto orderDto){
+        cancelSettlementCandidatedItemUseCase.cancelSettlementCandidatedItem(orderDto);
     }
 }
