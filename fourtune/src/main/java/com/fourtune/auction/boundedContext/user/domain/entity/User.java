@@ -48,9 +48,6 @@ public class User extends BaseTimeEntity {
 
     private LocalDateTime deletedAt;
 
-    @Column(length = 1000)
-    private String refreshToken;
-
     @Version
     private Long version;
 
@@ -77,10 +74,6 @@ public class User extends BaseTimeEntity {
     public void withdraw() {
         this.status = Status.SUSPENDED;
         this.deletedAt = LocalDateTime.now();
-    }
-
-    public void updateRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
     }
 
     public boolean isAvailableUser(){
