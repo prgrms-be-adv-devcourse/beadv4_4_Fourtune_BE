@@ -110,6 +110,8 @@ public enum ErrorCode {
     PAYMENT_AUCTION_ORDER_NOT_FOUND(404, "P312", "해당 경매(주문) 정보를 찾을 수 없습니다."),
     PAYMENT_AUCTION_SERVICE_ERROR(502, "P313", "경매 서비스와의 통신에 실패하여 주문 정보를 가져올 수 없습니다."),
 
+    PAYMENT_CANCEL_AMOUNT_EXCEEDS_BALANCE(400, "P601", "요청된 금액이 환불 가능 잔액을 넘었습니다."),
+    PAYMENT_ALREADY_CANCELED(400, "P602", "이미 취소된 결제 입니다."),
     //Bid(입찰 관련)
     SELF_BIDDING_NOT_ALLOWED(400, " B007", "판매자는 자신의 물건에 입찰할 수 없습니다."),
 

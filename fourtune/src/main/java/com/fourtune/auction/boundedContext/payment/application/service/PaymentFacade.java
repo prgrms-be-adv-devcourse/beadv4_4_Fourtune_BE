@@ -3,6 +3,8 @@ package com.fourtune.auction.boundedContext.payment.application.service;
 import com.fourtune.auction.boundedContext.payment.domain.entity.*;
 import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionResult;
 import com.fourtune.auction.boundedContext.payment.port.out.CashLogRepository;
+import com.fourtune.auction.shared.payment.dto.OrderDto;
+import com.fourtune.auction.shared.payment.dto.PaymentRefundResponse;
 import com.fourtune.auction.shared.payment.dto.PaymentUserDto;
 import com.fourtune.auction.shared.settlement.dto.SettlementDto;
 import com.fourtune.auction.shared.user.dto.UserResponse;
@@ -19,10 +21,11 @@ public class PaymentFacade {
 
     private final PaymentSupport paymentSupport;
     private final PaymentConfirmUseCase paymentConfirmUseCase;
-    private final CompleteSettlementUseCase completeSettlementUseCase;
+    private final PaymentCompleteSettlementUseCase paymentCompleteSettlementUseCase;
     private final PaymentSyncUserUseCase paymentSyncUserUseCase;
-    private final CreateWalletUseCase createWalletUseCase;
+    private final PaymentCreateWalletUseCase paymentCreateWalletUseCase;
     private final CashLogRepository cashLogRepository;
+    private final PaymentCancelUseCase paymentCancelUseCase;
 
 
     @Transactional(readOnly = true)
@@ -86,12 +89,12 @@ public class PaymentFacade {
 
     @Transactional
     public Wallet completeSettlement(SettlementDto dto){
-        return completeSettlementUseCase.settlementCashComplete(dto);
+        return paymentCompleteSettlementUseCase.settlementCashComplete(dto);
     }
 
     @Transactional
     public Wallet createWallet(PaymentUserDto dto){
-        return createWalletUseCase.createWallet(dto);
+        return paymentCreateWalletUseCase.createWallet(dto);
     }
 
     @Transactional
@@ -102,5 +105,11 @@ public class PaymentFacade {
     @Transactional
     public void deleteUser(UserResponse user) {
         paymentSupport.deleteUser(user);
+    }
+
+    @Transactional
+    public PaymentRefundResponse cancelPayment(String paymentKey, String cancelReason, Long cancelAmount, OrderDto dto){
+        Refund refund = paymentCancelUseCase.cancelPayment(paymentKey, cancelReason, cancelAmount, dto);
+        return PaymentRefundResponse.from(refund);
     }
 }

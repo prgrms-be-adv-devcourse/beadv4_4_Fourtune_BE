@@ -97,4 +97,8 @@ public class Payment extends BaseIdAndTime {
                 .cancelReason(cancelReason)
                 .build();
     }
+
+    public void changeStatus(PaymentStatus paymentStatus) {
+        this.status = paymentStatus;
+    }
 }

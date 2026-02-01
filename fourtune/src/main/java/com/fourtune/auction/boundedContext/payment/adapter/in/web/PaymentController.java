@@ -9,6 +9,8 @@ import com.fourtune.auction.boundedContext.payment.domain.entity.Refund;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
 import com.fourtune.auction.global.common.ApiResponse;
 import com.fourtune.auction.shared.auth.dto.UserContext;
+import com.fourtune.auction.shared.payment.dto.PaymentRefundResponse;
+import com.google.protobuf.Api;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +43,13 @@ public class PaymentController {
 
         paymentFacade.confirmPayment(paymentKey, orderNo, amount, user.id());
     }
+
+//    @PostMapping("/cancel")
+//    public ResponseEntity<ApiResponse<PaymentRefundResponse>> postCancel(/* @RequestBody RefundRequest */){
+//        return ResponseEntity.ok(
+//                ApiResponse.success(paymentFacade.cancelPayment(refundRequest))
+//        );
+//    }
 
     /**
      * 결제 내역 조회 payment 테이블 조회

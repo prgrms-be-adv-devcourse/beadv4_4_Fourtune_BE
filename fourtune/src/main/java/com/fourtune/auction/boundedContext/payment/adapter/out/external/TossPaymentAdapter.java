@@ -25,7 +25,6 @@ public class TossPaymentAdapter implements PaymentGatewayPort {
     @Value("${payment.toss.secret-key}")
     private String tossSecretKey;
 
-    // WebClientConfig가 아니라 WebClient Bean을 직접 주입받아야 합니다.
     private final WebClient webClient;
 
     private static final String TOSS_API_URL = "https://api.tosspayments.com/v1/payments";
@@ -66,16 +65,23 @@ public class TossPaymentAdapter implements PaymentGatewayPort {
 
     /**
      * HTTP POST 요청으로 토스 결제 취소 API 호출 (보상 트랜잭션용)
+     * @param paymentKey
+     * @param reason 필수
+     * @param cancelAmount 값이 없으면 전체 환불, 있으면 부분 환불
      */
     @Override
-    public void cancel(String paymentKey, String reason) {
+    public void cancel(String paymentKey, String reason, Long cancelAmount) {
         String basicAuth = createBasicAuthHeader();
 
         Map<String, Object> body = new HashMap<>();
         body.put("cancelReason", reason);
 
+        // 토스 로직: cancelAmount가 없으면 전액 취소, 있으면 그 금액만큼만 취소
+        if (cancelAmount != null) {
+            body.put("cancelAmount", cancelAmount);
+        }
+
         try {
-            // WebClient를 이용한 취소 요청
             webClient.post()
                     .uri(TOSS_API_URL + "/" + paymentKey + "/cancel")
                     .header("Authorization", basicAuth)
@@ -85,7 +91,7 @@ public class TossPaymentAdapter implements PaymentGatewayPort {
                     .toBodilessEntity() // 바디 데이터가 필요 없을 때 효율적
                     .block();
 
-            log.info("Toss 결제 취소 성공: paymentKey={}, reason={}", paymentKey, reason);
+            log.info("Toss 결제 취소 성공: paymentKey={}, reason={}, amount={}", paymentKey, reason, cancelAmount);
         } catch (Exception e) {
             log.error("CRITICAL: Toss 결제 취소 실패 (수동 확인 필요). paymentKey={}, error={}", paymentKey, e.getMessage());
             throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
