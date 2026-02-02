@@ -78,7 +78,13 @@ public class Order extends BaseTimeEntity {
      * 결제 완료 시간
      */
     private LocalDateTime paidAt;
-    
+
+    /**
+     * 즉시구매 주문명 접두사 (OrderCreateUseCase와 동기화)
+     * ORDER_PAYMENT_POLICY 이중 제한 - 유저당 취소 횟수 조회용
+     */
+    public static final String ORDER_NAME_PREFIX_BUY_NOW = "[즉시구매]";
+
     // ==================== 비즈니스 메서드 ====================
     
     /**

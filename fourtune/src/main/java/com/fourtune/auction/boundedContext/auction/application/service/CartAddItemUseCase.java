@@ -55,13 +55,18 @@ public class CartAddItemUseCase {
         if (!auctionItem.getBuyNowEnabled()) {
             throw new BusinessException(ErrorCode.BUY_NOW_NOT_ENABLED);
         }
+
+        // 2. 정책에 의해 즉시구매 비활성화되었는지 (3진 아웃)
+        if (Boolean.TRUE.equals(auctionItem.getBuyNowDisabledByPolicy())) {
+            throw new BusinessException(ErrorCode.BUY_NOW_DISABLED_BY_POLICY);
+        }
         
-        // 2. buyNowPrice != null
+        // 3. buyNowPrice != null
         if (auctionItem.getBuyNowPrice() == null) {
             throw new BusinessException(ErrorCode.BUY_NOW_PRICE_NOT_SET);
         }
         
-        // 3. status = ACTIVE 만 가능 (SCHEDULED는 아직 시작 안됨)
+        // 4. status = ACTIVE 만 가능 (SCHEDULED는 아직 시작 안됨)
         if (auctionItem.getStatus() != AuctionStatus.ACTIVE) {
             throw new BusinessException(ErrorCode.AUCTION_NOT_ACTIVE);
         }
