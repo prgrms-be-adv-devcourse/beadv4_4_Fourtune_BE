@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
+import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionPolicy;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
@@ -28,6 +29,7 @@ import java.time.LocalDateTime;
 public class AuctionBuyNowUseCase {
 
     private final AuctionSupport auctionSupport;
+    private final OrderSupport orderSupport;
     private final OrderCreateUseCase orderCreateUseCase;
     private final CartSupport cartSupport;
     private final EventPublisher eventPublisher;
@@ -40,6 +42,15 @@ public class AuctionBuyNowUseCase {
     public String executeBuyNow(Long auctionId, Long buyerId) {
         // 1. 경매 조회 (Pessimistic Lock 적용)
         AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
+        
+        // 1.5 시작 시각이 지났는데 아직 SCHEDULED인 경우 ACTIVE로 전환 (스케줄러 대기 없이 즉시구매 가능)
+        if (auctionItem.getStatus() == AuctionStatus.SCHEDULED
+                && auctionItem.getAuctionStartTime() != null
+                && !LocalDateTime.now().isBefore(auctionItem.getAuctionStartTime())) {
+            auctionItem.start();
+            auctionSupport.save(auctionItem);
+            log.debug("즉시구매: 경매 시작 시각 경과로 SCHEDULED → ACTIVE 전환, auctionId={}", auctionId);
+        }
         
         // 2. 즉시구매 가능 여부 검증
         validateBuyNowAvailable(auctionItem, buyerId);
@@ -118,18 +129,37 @@ public class AuctionBuyNowUseCase {
         if (!auctionItem.getBuyNowEnabled()) {
             throw new BusinessException(ErrorCode.BUY_NOW_NOT_ENABLED);
         }
+
+        // 2. 정책에 의해 즉시구매 비활성화되었는지 (경매당 3회 Circuit Breaker)
+        if (Boolean.TRUE.equals(auctionItem.getBuyNowDisabledByPolicy())) {
+            throw new BusinessException(ErrorCode.BUY_NOW_DISABLED_BY_POLICY);
+        }
+
+        // 3. 경매당 유저당 2회 제한 (이미 2회 미결제 시 3번째 시도 거부)
+        long cancelledBuyNowCount = orderSupport.countCancelledBuyNowOrdersByAuctionAndWinner(
+                auctionItem.getId(), buyerId);
+        if (cancelledBuyNowCount >= AuctionPolicy.BUY_NOW_RECOVERY_MAX_PER_USER) {
+            throw new BusinessException(ErrorCode.BUY_NOW_USER_LIMIT_REACHED);
+        }
         
-        // 2. buyNowPrice != null 인지
+        // 4. buyNowPrice != null 인지
         if (auctionItem.getBuyNowPrice() == null) {
             throw new BusinessException(ErrorCode.BUY_NOW_PRICE_NOT_SET);
         }
         
-        // 3. status = ACTIVE 인지
+        // 5. status = ACTIVE 인지 (실제 상태별 구체 메시지 + 원인 로그)
         if (auctionItem.getStatus() != AuctionStatus.ACTIVE) {
+            log.warn("즉시구매 불가: 경매 상태가 ACTIVE가 아님. auctionId={}, actualStatus={}", auctionItem.getId(), auctionItem.getStatus());
+            if (auctionItem.getStatus() == AuctionStatus.SOLD_BY_BUY_NOW) {
+                throw new BusinessException(ErrorCode.AUCTION_ALREADY_SOLD_BY_BUY_NOW);
+            }
+            if (auctionItem.getStatus() == AuctionStatus.ENDED || auctionItem.getStatus() == AuctionStatus.SOLD) {
+                throw new BusinessException(ErrorCode.AUCTION_ALREADY_ENDED);
+            }
             throw new BusinessException(ErrorCode.AUCTION_NOT_ACTIVE);
         }
         
-        // 4. 본인이 판매자가 아닌지
+        // 6. 본인이 판매자가 아닌지
         if (auctionItem.getSellerId().equals(buyerId)) {
             throw new BusinessException(ErrorCode.CANNOT_BUY_OWN_ITEM);
         }

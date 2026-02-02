@@ -25,4 +25,9 @@ public class AuctionPolicy {
     // 자동 연장 관련 상수
     public static final int AUTO_EXTEND_MINUTES = 3;           // 연장 시간 (분)
     public static final int AUTO_EXTEND_THRESHOLD_MINUTES = 5; // 연장 발동 기준 (종료 N분 전)
+
+    // 즉시구매 악용 방지 (이중 제한) - ORDER_PAYMENT_POLICY.md 참고
+    public static final int BUY_NOW_RECOVERY_EXTEND_MINUTES = 10;  // 미결제 복구 시 경매 연장 시간
+    public static final int BUY_NOW_RECOVERY_MAX_PER_AUCTION = 3;  // 경매당 최대 복구 횟수 (Circuit Breaker)
+    public static final int BUY_NOW_RECOVERY_MAX_PER_USER = 2;     // 경매당 유저당 최대 미결제 허용 횟수
 }

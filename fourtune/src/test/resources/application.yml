@@ -29,14 +29,14 @@ spring:
   # --- [추가해야 할 부분] 메인에 있는 변수들의 '가짜 값' 정의 ---
   data:
     redis:
-      host: localhost       # ${REDIS_HOST} 대체
-      port: 6379            # ${REDIS_PORT} 대체
+      host: localhost # ${REDIS_HOST} 대체
+      port: 6379 # ${REDIS_PORT} 대체
 
   kafka:
-    bootstrap-servers: localhost:9092  # ${KAFKA_BOOTSTRAP_SERVERS} 대체
+    bootstrap-servers: localhost:9092 # ${KAFKA_BOOTSTRAP_SERVERS} 대체
 
   elasticsearch:
-    uris: http://localhost:9200        # ${ELASTICSEARCH_URIS} 대체
+    uris: http://localhost:9200 # ${ELASTICSEARCH_URIS} 대체
 
   cloud:
     aws:
@@ -59,6 +59,10 @@ jwt:
 encryption:
   key: "dummy-encryption-key-for-test" # ${ENCRYPTION_KEY} 대체
 
+order:
+  buy-now-pending-timeout-minutes: ${ORDER_BUYNOW_PENDING_TIMEOUT_MINUTES:10}
+  bid-pending-timeout-hours: ${ORDER_BID_PENDING_TIMEOUT_HOURS:24}
+
 payment:
   toss:
     client-key: "test_toss_client_key"
@@ -71,7 +75,7 @@ api:
 
 settlement:
   scheduler:
-    collect-cron: ${SETTLEMENT_SCHEDULER_COLLECT_CRON:0 */5 * * * *}  # (시연용) 5분 마다
-    complete-cron: ${SETTLEMENT_SCHEDULER_COMPLETE_CRON:0 */5 * * * *}  # (시연용) 5분 마다
+    collect-cron: ${SETTLEMENT_SCHEDULER_COLLECT_CRON:0 */5 * * * *} # (시연용) 5분 마다
+    complete-cron: ${SETTLEMENT_SCHEDULER_COMPLETE_CRON:0 */5 * * * *} # (시연용) 5분 마다
   policy:
     waiting-days: ${SETTLEMENT_POLICY_WAITING_DAYS:0} # 구매 확정 후 정산 대기 일수 (0일이면 즉시 정산)
