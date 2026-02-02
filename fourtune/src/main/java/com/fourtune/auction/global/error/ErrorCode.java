@@ -47,6 +47,7 @@ public enum ErrorCode {
     BID_ALREADY_HIGHEST(400, "B006", "이미 최고 입찰자입니다."),
     BID_CANCELLED_NOT_ALLOWED(400, "B007", "취소할 수 없는 입찰입니다."),
     BID_LOCK_FAILED(500, "B008", "입찰 처리 중 오류가 발생했습니다."),
+    BID_PRICE_HIGHER_THAN_BUY_NOW(400, "B009", "입찰 금액이 즉시 구매가보다 높습니다. 즉시 구매를 이용해주세요."),
     
     //Order(주문 관련)
     ORDER_NOT_FOUND(404, "O001", "존재하지 않는 주문입니다."),
