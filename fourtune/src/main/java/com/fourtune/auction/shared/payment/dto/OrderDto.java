@@ -1,7 +1,6 @@
 package com.fourtune.auction.shared.payment.dto;
 
 import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
-import com.fourtune.auction.boundedContext.auction.domain.constant.OrderType;
 import com.fourtune.auction.shared.auction.dto.OrderDetailResponse;
 import com.fourtune.auction.shared.auction.event.OrderCompletedEvent;
 import lombok.AllArgsConstructor;
@@ -9,7 +8,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,16 +20,10 @@ public class OrderDto {
     private String orderNo;
     private Long price;   // 전체 결제 총액 (Total Amount)
     private Long userId;  // 구매자 ID (Buyer)
-    private LocalDateTime paymentDate;
 
     private List<OrderItem> items;
 
-    private String thumbnailUrl;
-    private String winnerNickname;
-    private String sellerNickname;
-    private OrderType orderType;
     private OrderStatus orderStatus;
-    private String paymentKey;
     private LocalDateTime createdAt;
 
     @Getter
@@ -55,7 +47,6 @@ public class OrderDto {
                 .orderNo(event.orderId())
                 .price(event.amount().longValue())
                 .userId(event.winnerId())
-                .paymentDate(event.paidAt())
                 .items(List.of(
                         OrderItem.builder()
                                 .itemId(event.auctionId())// order item id x, 일단 auction id로
@@ -74,7 +65,6 @@ public class OrderDto {
                 .orderNo(response.orderId())
                 .price(response.finalPrice().longValue()) // BigDecimal -> Long
                 .userId(response.winnerId())
-                .paymentDate(response.paidAt())
                 .items(List.of(
                         OrderItem.builder()
                                 .itemId(response.auctionId())
@@ -83,42 +73,8 @@ public class OrderDto {
                                 .itemName(response.auctionTitle())
                                 .build()
                 ))
-                .thumbnailUrl(response.thumbnailUrl())
-                .winnerNickname(response.winnerNickname())
-                .sellerNickname(response.sellerNickname())
-                .orderType(response.orderType())
                 .orderStatus(response.status())
-                .paymentKey(response.paymentKey())
                 .createdAt(response.createdAt())
                 .build();
     }
-
-
-    /**
-     * OrderDto -> OrderDetailResponse 변환 메서드
-     * items가 null이거나 비어있을 경우, 관련 필드에 null을 할당하여 NPE 방지
-     */
-    public OrderDetailResponse toOrderDetailResponse() {
-        // 1. 아이템 리스트 안전하게 가져오기
-        OrderItem firstItem = (this.items != null && !this.items.isEmpty()) ? this.items.get(0) : null;
-
-        return new OrderDetailResponse(
-                this.orderId,
-                this.orderNo,
-                (firstItem != null) ? firstItem.getItemId() : null,   // auctionId
-                (firstItem != null) ? firstItem.getItemName() : null, // auctionTitle
-                this.thumbnailUrl,
-                this.userId,
-                this.winnerNickname,
-                (firstItem != null) ? firstItem.getSellerId() : null, // sellerId
-                this.sellerNickname,
-                (this.price != null) ? BigDecimal.valueOf(this.price) : null, // finalPrice
-                this.orderType,
-                this.orderStatus,
-                this.paymentKey,
-                this.paymentDate,
-                this.createdAt
-        );
-    }
-
 }

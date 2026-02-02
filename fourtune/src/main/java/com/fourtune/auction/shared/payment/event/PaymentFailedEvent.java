@@ -8,10 +8,6 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public class PaymentFailedEvent {
-    private final String resultCode;
     private final String msg;
     private final OrderDto order;
-    private final OrderDetailResponse orderDetailResponse;
-    private final Long pgPaymentAmount;
-    private final Long shortfallAmount;
 }

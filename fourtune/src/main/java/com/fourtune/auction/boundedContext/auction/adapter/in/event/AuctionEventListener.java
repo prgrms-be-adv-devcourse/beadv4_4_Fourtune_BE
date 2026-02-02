@@ -3,8 +3,6 @@ package com.fourtune.auction.boundedContext.auction.adapter.in.event;
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionExtendUseCase;
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionSupport;
 import com.fourtune.auction.boundedContext.auction.application.service.CartSupport;
-import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionPolicy;
-import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.application.service.OrderCompleteUseCase;
 import com.fourtune.auction.shared.auction.event.AuctionClosedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionCreatedEvent;
@@ -13,16 +11,12 @@ import com.fourtune.auction.shared.payment.event.PaymentFailedEvent;
 import com.fourtune.auction.shared.payment.event.PaymentSucceededEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
 
 /**
  * 경매 도메인 이벤트 리스너
@@ -146,7 +140,7 @@ public class AuctionEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentFailed(PaymentFailedEvent event) {
         String orderId = event.getOrder() != null 
-                ? String.valueOf(event.getOrder().getOrderId()) 
+                ? String.valueOf(event.getOrder().getOrderId())
                 : "unknown";
         String resultCode = event.getResultCode();
         String message = event.getMsg();
