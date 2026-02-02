@@ -117,9 +117,10 @@ public class OrderCompleteUseCase {
         order.cancel();
         orderSupport.save(order);
         
-        // 2. 즉시구매 경매면 경매 복구 (이중 제한 적용: Soft Closing + Circuit Breaker)
+        // 2. 경매 상태 복구/유찰 처리
         auctionSupport.findById(order.getAuctionId()).ifPresent(auction -> {
             if (auction.getStatus() == AuctionStatus.SOLD_BY_BUY_NOW) {
+                // Case A: 즉시구매 미결제 → 경매 복구 (이중 제한 적용)
                 auction.recoverFromBuyNowFailure(
                         AuctionPolicy.BUY_NOW_RECOVERY_EXTEND_MINUTES,
                         AuctionPolicy.BUY_NOW_RECOVERY_MAX_PER_AUCTION
@@ -127,6 +128,11 @@ public class OrderCompleteUseCase {
                 auctionSupport.save(auction);
                 log.info("주문 취소로 경매 복구: auctionId={}, orderId={}, buyNowRecoveryCount={}, buyNowDisabled={}",
                         auction.getId(), order.getOrderId(), auction.getBuyNowRecoveryCount(), auction.getBuyNowDisabledByPolicy());
+            } else if (auction.getStatus() == AuctionStatus.SOLD) {
+                // Case B: 낙찰 미결제 → 유찰(FAIL) 처리
+                auction.fail();
+                auctionSupport.save(auction);
+                log.info("낙찰 미결제로 유찰 처리: auctionId={}, orderId={}", auction.getId(), order.getOrderId());
             }
         });
     }
