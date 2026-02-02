@@ -315,6 +315,17 @@ public class AuctionItem extends BaseTimeEntity {
     }
     
     /**
+     * 낙찰자 미결제 시 유찰 처리 (SOLD → FAIL)
+     * 24시간 내 결제하지 않아 주문이 취소된 경우 호출
+     */
+    public void fail() {
+        if (this.status != AuctionStatus.SOLD) {
+            throw new BusinessException(ErrorCode.AUCTION_NOT_MODIFIABLE);
+        }
+        this.status = AuctionStatus.FAIL;
+    }
+
+    /**
      * 즉시구매 취소 시 경매 복구 (SOLD_BY_BUY_NOW → ACTIVE)
      * 주문 취소/만료로 결제가 이뤄지지 않았을 때만 호출
      */

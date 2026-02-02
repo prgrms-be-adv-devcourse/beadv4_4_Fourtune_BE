@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.auction.domain.constant;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -9,8 +10,9 @@ import java.math.BigDecimal;
 @Component
 @ConfigurationProperties(prefix = "auction")
 @Getter
+@Setter
 public class AuctionPolicy {
-    
+
     private Integer bidUnit = 1000;
     private Integer autoExtendMinutes = 3;
     private Integer autoExtendThresholdMinutes = 5;
