@@ -1,6 +1,8 @@
 package com.fourtune.auction.boundedContext.search.application.service;
 
 import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
+import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
+import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
 import com.fourtune.auction.boundedContext.search.port.out.SearchLogRepository;
 import com.fourtune.auction.shared.search.event.SearchAuctionItemEvent;
 import org.junit.jupiter.api.DisplayName;
@@ -42,18 +44,22 @@ class SearchFacadeTest {
         SearchCondition condition = new SearchCondition(keyword, Collections.emptySet(), null, Collections.emptySet(),
                 null, 1);
 
+        SearchResultPage<SearchAuctionItemView> emptyResult = new SearchResultPage<>(Collections.emptyList(), 0, 1, 10,
+                false);
+        org.mockito.BDDMockito.given(searchQueryUseCase.search(condition)).willReturn(emptyResult);
+
         // when
         searchFacade.search(userId, condition);
 
         // then
-        // 1. 로그 저장 검증
+        // 1. 검색 유스케이스 호출 검증 (먼저 호출됨)
+        verify(searchQueryUseCase, times(1)).search(condition);
+
+        // 2. 로그 저장 검증
         verify(searchLogRepository, times(1)).save(any());
 
-        // 2. 이벤트 발행 검증
+        // 3. 이벤트 발행 검증
         verify(eventPublisher, times(1)).publishEvent(any(SearchAuctionItemEvent.class));
-
-        // 3. 검색 유스케이스 호출 검증
-        verify(searchQueryUseCase, times(1)).search(condition);
     }
 
     @Test
@@ -65,17 +71,21 @@ class SearchFacadeTest {
         SearchCondition condition = new SearchCondition(keyword, Collections.emptySet(), null, Collections.emptySet(),
                 null, 1);
 
+        SearchResultPage<SearchAuctionItemView> emptyResult = new SearchResultPage<>(Collections.emptyList(), 0, 1, 10,
+                false);
+        org.mockito.BDDMockito.given(searchQueryUseCase.search(condition)).willReturn(emptyResult);
+
         // when
         searchFacade.search(userId, condition);
 
         // then
-        // 1. 로그 저장 안됨
+        // 1. 검색 유스케이스는 호출되어야 함
+        verify(searchQueryUseCase, times(1)).search(condition);
+
+        // 2. 로그 저장 안됨
         verify(searchLogRepository, times(0)).save(any());
 
-        // 2. 이벤트 발행 안됨
+        // 3. 이벤트 발행 안됨
         verify(eventPublisher, times(0)).publishEvent(any());
-
-        // 3. 검색 유스케이스는 호출되어야 함
-        verify(searchQueryUseCase, times(1)).search(condition);
     }
 }
