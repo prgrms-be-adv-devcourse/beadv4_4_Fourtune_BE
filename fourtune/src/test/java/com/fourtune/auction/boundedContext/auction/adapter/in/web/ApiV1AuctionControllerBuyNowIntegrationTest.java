@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.auction.adapter.in.web;
 
+import com.fourtune.auction.boundedContext.auction.application.service.OrderCompleteUseCase;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
 import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
@@ -31,8 +32,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -60,6 +59,9 @@ class ApiV1AuctionControllerBuyNowIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private OrderCompleteUseCase orderCompleteUseCase;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -184,5 +186,61 @@ class ApiV1AuctionControllerBuyNowIntegrationTest {
                 .orElseThrow();
         assertThat(unchangedAuction.getStatus()).isEqualTo(AuctionStatus.ACTIVE);
         assertThat(orderRepository.count()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("즉시구매 후 결제 실패(failPayment) 시 경매가 ACTIVE로 복구된다")
+    void testBuyNow_FailPayment_ThenAuctionRestoredToActive() throws Exception {
+        // Given: 즉시구매 실행
+        String orderId = mockMvc.perform(post("/api/v1/auctions/{id}/buy-now", activeAuction.getId())
+                        .header("Authorization", "Bearer " + buyerToken))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        orderId = orderId.replace("\"", "").trim();
+
+        AuctionItem afterBuyNow = auctionRepository.findById(activeAuction.getId()).orElseThrow();
+        assertThat(afterBuyNow.getStatus()).isEqualTo(AuctionStatus.SOLD_BY_BUY_NOW);
+
+        // When: 결제 실패 처리 (즉시구매 실패 시나리오)
+        orderCompleteUseCase.failPayment(orderId, "test failure");
+
+        // Then: 경매가 ACTIVE로 복구됨
+        AuctionItem afterFail = auctionRepository.findById(activeAuction.getId()).orElseThrow();
+        assertThat(afterFail.getStatus()).isEqualTo(AuctionStatus.ACTIVE);
+
+        Order order = orderRepository.findByOrderId(orderId).orElseThrow();
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+    }
+
+    @Test
+    @DisplayName("이미 즉시구매된 경매(SOLD_BY_BUY_NOW)에 즉시구매 요청 시 BN006 에러가 반환된다")
+    void testBuyNow_AlreadySoldByBuyNow_ReturnsBN006() throws Exception {
+        // Given: 이미 즉시구매된 경매
+        activeAuction = AuctionItem.builder()
+                .sellerId(seller.getId())
+                .title("테스트 경매")
+                .description("테스트 설명")
+                .category(Category.ELECTRONICS)
+                .status(AuctionStatus.SOLD_BY_BUY_NOW)
+                .startPrice(BigDecimal.valueOf(50000))
+                .currentPrice(BigDecimal.valueOf(100000))
+                .bidUnit(1000)
+                .buyNowPrice(BigDecimal.valueOf(100000))
+                .buyNowEnabled(true)
+                .auctionStartTime(LocalDateTime.now().minusHours(1))
+                .auctionEndTime(LocalDateTime.now().plusHours(1))
+                .build();
+        activeAuction = auctionRepository.save(activeAuction);
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/auctions/{id}/buy-now", activeAuction.getId())
+                        .header("Authorization", "Bearer " + buyerToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BN006"));
+
+        AuctionItem unchanged = auctionRepository.findById(activeAuction.getId()).orElseThrow();
+        assertThat(unchanged.getStatus()).isEqualTo(AuctionStatus.SOLD_BY_BUY_NOW);
     }
 }
