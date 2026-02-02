@@ -1,6 +1,5 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
-import com.fourtune.auction.boundedContext.payment.adapter.out.external.TossPaymentAdapter;
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
 import com.fourtune.auction.boundedContext.payment.domain.constant.PaymentStatus;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Payment;
@@ -11,7 +10,6 @@ import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionRes
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentGatewayPort;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentRepository;
 import com.fourtune.auction.boundedContext.payment.port.out.RefundRepository;
-import com.fourtune.auction.boundedContext.payment.port.out.WalletRepository;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
@@ -30,14 +28,13 @@ public class PaymentCancelUseCase {
     private final PaymentSupport paymentSupport;
     /**
      * 결제 취소 (환불) 요청
-     * @param paymentKey PG사 결제 고유 키
      * @param cancelReason 취소 사유
      * @param cancelAmount 취소 요청 금액 (null이면 전액 취소)
+     * @param orderDto 취소할 주문 데이터
      */
-    public Refund cancelPayment(String paymentKey, String cancelReason, Long cancelAmount, OrderDto orderDto) {
-
-        // 1. [조회] 결제 이력 확인
-        Payment payment = paymentRepository.findByPaymentKey(paymentKey)
+    public Refund cancelPayment(String cancelReason, Long cancelAmount, OrderDto orderDto) {
+        // 1. [조회] 주문에 해당하는 결제 내역 조회
+        Payment payment = paymentRepository.findPaymentByOrderNo(orderDto.getOrderNo())
                 .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
 
         // 2. [검증] 이미 취소된 건인지 확인
@@ -72,7 +69,7 @@ public class PaymentCancelUseCase {
 
         // 6. [외부] PG사 취소 요청
         // 내부 지갑 정리가 끝났으므로 실제 돈을 돌려줌
-        PaymentExecutionResult result = paymentGatewayPort.cancel(paymentKey, cancelReason, requestAmount);
+        PaymentExecutionResult result = paymentGatewayPort.cancel(payment.getPaymentKey(), cancelReason, requestAmount);
 
         // 7. [상태 변경] DB 업데이트
         if (result.isSuccess()) {
@@ -80,7 +77,9 @@ public class PaymentCancelUseCase {
         }
 
         Refund refund = Refund.create(payment, requestAmount, cancelReason, null);
+
         refundRepository.save(refund);
+        paymentRepository.save(payment);
 
         return refund;
     }

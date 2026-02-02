@@ -108,8 +108,8 @@ public class PaymentFacade {
     }
 
     @Transactional
-    public PaymentRefundResponse cancelPayment(String paymentKey, String cancelReason, Long cancelAmount, OrderDto dto){
-        Refund refund = paymentCancelUseCase.cancelPayment(paymentKey, cancelReason, cancelAmount, dto);
+    public PaymentRefundResponse cancelPayment(String cancelReason, Long cancelAmount, OrderDto orderDto){
+        Refund refund = paymentCancelUseCase.cancelPayment(cancelReason, cancelAmount, orderDto);
         return PaymentRefundResponse.from(refund);
     }
 }
