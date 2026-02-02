@@ -52,8 +52,10 @@ public class PaymentConfirmUseCase {
                                         .build();
 
                                 eventPublisher.publish(new PaymentFailedEvent(
+                                        orderDto,
                                         "결제 취소 실패(관리자 문의)",
-                                        orderDto
+                                        "P311",
+                                        null
                                 ));
 
                                 throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
@@ -67,8 +69,10 @@ public class PaymentConfirmUseCase {
 
                         // 실패 이벤트 발행
                         eventPublisher.publish(new PaymentFailedEvent(
+                                orderDto,
                                 "내부 시스템 오류로 결제가 취소되었습니다.",
-                                orderDto
+                                "500",
+                                null
                         ));
 
                         throw e; // 컨트롤러에게 예외 다시 던짐

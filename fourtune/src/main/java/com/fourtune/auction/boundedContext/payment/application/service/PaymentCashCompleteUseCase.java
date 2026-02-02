@@ -81,8 +81,10 @@ public class PaymentCashCompleteUseCase {
         } else {
             eventPublisher.publish(
                     new PaymentFailedEvent(
+                            orderDto,
+                            "충전은 완료했지만 %번 주문을 결제완료처리를 하기에는 예치금이 부족합니다.".formatted(orderDto.getOrderId()),
                             "400-1",
-                            orderDto
+                            orderDto.getPrice() - customerWallet.getBalance()
                     )
             );
             throw new BusinessException(ErrorCode.PAYMENT_WALLET_INSUFFICIENT_BALANCE);

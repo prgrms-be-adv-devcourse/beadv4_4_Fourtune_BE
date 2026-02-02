@@ -23,6 +23,8 @@ public class OrderDto {
 
     private List<OrderItem> items;
 
+    private LocalDateTime paymentDate;
+    private Long shortfallAmount;
     private OrderStatus orderStatus;
     private LocalDateTime createdAt;
 
@@ -47,6 +49,7 @@ public class OrderDto {
                 .orderNo(event.orderId())
                 .price(event.amount().longValue())
                 .userId(event.winnerId())
+                .paymentDate(event.paidAt())
                 .items(List.of(
                         OrderItem.builder()
                                 .itemId(event.auctionId())// order item id x, 일단 auction id로
@@ -65,6 +68,7 @@ public class OrderDto {
                 .orderNo(response.orderId())
                 .price(response.finalPrice().longValue()) // BigDecimal -> Long
                 .userId(response.winnerId())
+                .paymentDate(response.paidAt())
                 .items(List.of(
                         OrderItem.builder()
                                 .itemId(response.auctionId())

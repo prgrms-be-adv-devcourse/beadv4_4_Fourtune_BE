@@ -150,8 +150,8 @@ public class AuctionEventListener {
                 : "unknown";
         String resultCode = event.getResultCode();
         String message = event.getMsg();
-        Long shortfallAmount = event.getShortfallAmount();
-        
+        Long shortfallAmount = event.getShortFallAmount();
+
         log.info("❌ [결제 실패 이벤트 수신] orderId={}, resultCode={}, message={}, shortfallAmount={}", 
                 orderId, resultCode, message, shortfallAmount);
         
