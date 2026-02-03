@@ -128,7 +128,7 @@ public class NotificationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentSucceededEvent(PaymentSucceededEvent event) {
         log.info("결제 성공 이벤트 수신 - orderId={}, userId={}",
-                event.getOrder().getOrderId(), event.getOrder().getUserId());
+                event.getOrder().getAuctionOrderId(), event.getOrder().getUserId());
 
         // 결제 성공 알림 (OrderDto의 items에서 첫 번째 item의 itemId를 auctionId로 사용)
         Long userId = event.getOrder().getUserId();
@@ -136,7 +136,7 @@ public class NotificationEventListener {
             Long auctionId = event.getOrder().getItems().get(0).getItemId();
             notificationFacade.createNotification(userId, auctionId, NotificationType.PAYMENT_SUCCESS);
         } else {
-            log.warn("결제 성공 이벤트 처리 실패: Order에 items가 없음 - orderId={}", event.getOrder().getOrderId());
+            log.warn("결제 성공 이벤트 처리 실패: Order에 items가 없음 - orderId={}", event.getOrder().getAuctionOrderId());
         }
     }
 
@@ -144,7 +144,7 @@ public class NotificationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentFailedEvent(PaymentFailedEvent event) {
         log.info("결제 실패 이벤트 수신 - orderId={}, msg={}",
-                event.getOrder() != null ? event.getOrder().getOrderId() : "null", event.getMsg());
+                event.getOrder() != null ? event.getOrder().getAuctionOrderId() : "null", event.getMsg());
 
         // 결제 실패 알림
         if (event.getOrder() != null) {
@@ -154,7 +154,7 @@ public class NotificationEventListener {
                 notificationFacade.createNotification(userId, auctionId, NotificationType.PAYMENT_FAILED);
             } else {
                 log.warn("결제 실패 이벤트 처리 실패: Order에 items가 없음 - orderId={}",
-                        event.getOrder().getOrderId());
+                        event.getOrder().getAuctionOrderId());
             }
         }
     }

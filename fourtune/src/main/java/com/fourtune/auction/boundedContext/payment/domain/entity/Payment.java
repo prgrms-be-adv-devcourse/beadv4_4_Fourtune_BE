@@ -19,10 +19,10 @@ public class Payment extends BaseIdAndTime {
     private String paymentKey; // PG사 결제 고유 키 (Toss paymentKey)
 
     @Column(nullable = false)
-    private Long orderId; // Auction 모듈의 주문 ID
+    private String orderId; // Auction 모듈의 주문 UUID
 
     @Column(nullable = false)
-    private String orderNo; // Auction 모듈의 주문 ID
+    private Long auctionOrderId; // Auction 모듈의 주문 ID
 
     @ManyToOne(fetch = FetchType.LAZY)
     private PaymentUser paymentUser; // 구매자 ID (결제 이력 조회용)
@@ -44,10 +44,10 @@ public class Payment extends BaseIdAndTime {
     private String cancelReason; // (전액) 취소 사유
 
     @Builder
-    public Payment(String paymentKey, Long orderId, String orderNo, PaymentUser paymentUser, Long amount, Long pgPaymentAmount, PaymentStatus status) {
+    public Payment(String paymentKey, String orderId, Long auctionOrderId, PaymentUser paymentUser, Long amount, Long pgPaymentAmount, PaymentStatus status) {
         this.paymentKey = paymentKey;
         this.orderId = orderId;
-        this.orderNo = orderNo;
+        this.auctionOrderId = auctionOrderId;
         this.paymentUser = paymentUser;
         this.amount = amount;
         this.pgPaymentAmount = pgPaymentAmount;
@@ -88,7 +88,7 @@ public class Payment extends BaseIdAndTime {
                 .paymentId(getId())
                 .paymentKey(paymentKey)
                 .orderId(orderId)
-                .orderNo(orderNo)
+                .auctionOrderId(auctionOrderId)
                 .userId(this.paymentUser.getId())
                 .pgPaymentAmount(pgPaymentAmount)
                 .amount(amount)

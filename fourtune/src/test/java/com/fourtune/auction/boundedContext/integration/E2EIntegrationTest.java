@@ -2,7 +2,6 @@ package com.fourtune.auction.boundedContext.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fourtune.auction.boundedContext.auction.application.service.AuctionFacade;
 import com.fourtune.auction.boundedContext.auction.application.service.BidSupport;
 import com.fourtune.auction.boundedContext.auction.application.service.OrderCreateUseCase;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
@@ -135,8 +134,8 @@ class E2EIntegrationTest {
                         // 여기서는 기본값으로 설정하고, 실제 테스트에서는 정상 플로우가 진행되므로
                         // 실패 이벤트가 발생하지 않음
                         return com.fourtune.auction.shared.payment.dto.OrderDto.builder()
-                                .orderId(1L)  // 기본값 (실제 테스트에서는 덮어씀)
-                                .orderNo(orderNo)
+                                .auctionOrderId(1L)  // 기본값 (실제 테스트에서는 덮어씀)
+                                .orderId(orderNo)
                                 .price(100000L)
                                 .userId(1L)
                                 .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING)
@@ -325,8 +324,8 @@ class E2EIntegrationTest {
         // AuctionPort 모킹 업데이트: 실제 주문 정보 반환
         when(auctionPort.getOrder(orderNo))
                 .thenReturn(com.fourtune.auction.shared.payment.dto.OrderDto.builder()
-                        .orderId(orderId)
-                        .orderNo(orderNo)
+                        .auctionOrderId(orderId)
+                        .orderId(orderNo)
                         .price(amount)
                         .userId(userRepository.findByEmail(email).orElseThrow().getId())
                         .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING)
@@ -441,8 +440,8 @@ class E2EIntegrationTest {
         // AuctionPort 모킹 업데이트: 실제 주문 정보 반환
         when(auctionPort.getOrder(orderNo))
                 .thenReturn(com.fourtune.auction.shared.payment.dto.OrderDto.builder()
-                        .orderId(orderId)
-                        .orderNo(orderNo)
+                        .auctionOrderId(orderId)
+                        .orderId(orderNo)
                         .price(amount)
                         .userId(userRepository.findByEmail(email).orElseThrow().getId())
                         .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING)

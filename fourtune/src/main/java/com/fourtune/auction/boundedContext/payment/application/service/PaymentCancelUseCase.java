@@ -34,7 +34,7 @@ public class PaymentCancelUseCase {
      */
     public Refund cancelPayment(String cancelReason, Long cancelAmount, OrderDto orderDto) {
         // 1. [조회] 주문에 해당하는 결제 내역 조회
-        Payment payment = paymentRepository.findPaymentByOrderNo(orderDto.getOrderNo())
+        Payment payment = paymentRepository.findPaymentByOrderId(orderDto.getOrderId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
 
         // 2. [검증] 이미 취소된 건인지 확인
@@ -64,8 +64,8 @@ public class PaymentCancelUseCase {
             log.warn("결제 취소 실패 - 시스템 지갑 잔액 부족. user={}, amount={}", payment.getPaymentUser().getId(), requestAmount);
             throw new BusinessException(ErrorCode.PAYMENT_WALLET_INSUFFICIENT_BALANCE);
         }
-        systemWallet.debit(requestAmount, CashEventType.환불__주문취소__결제금액, "Order", orderDto.getOrderId());
-        payerWallet.credit(requestAmount, CashEventType.환불__주문취소__결제금액, "Order", orderDto.getOrderId());
+        systemWallet.debit(requestAmount, CashEventType.환불__주문취소__결제금액, "Order", orderDto.getAuctionOrderId());
+        payerWallet.credit(requestAmount, CashEventType.환불__주문취소__결제금액, "Order", orderDto.getAuctionOrderId());
 
         // 6. [외부] PG사 취소 요청
         // 내부 지갑 정리가 끝났으므로 실제 돈을 돌려줌

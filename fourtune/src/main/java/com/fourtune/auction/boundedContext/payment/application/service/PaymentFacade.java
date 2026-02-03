@@ -22,6 +22,7 @@ public class PaymentFacade {
     private final CompleteSettlementUseCase completeSettlementUseCase;
     private final PaymentSyncUserUseCase paymentSyncUserUseCase;
     private final CreateWalletUseCase createWalletUseCase;
+    private final PaymentCancelUseCase paymentCancelUseCase;
     private final CashLogRepository cashLogRepository;
 
 

@@ -14,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -46,7 +44,7 @@ public class PaymentConfirmUseCase {
                                 log.error("CRITICAL: 결제 취소 실패! (수동 환불 필요) paymentKey={}, error={}", paymentKey, cancelEx.getMessage());
 
                                 OrderDto orderDto =OrderDto.builder()
-                                        .orderNo(orderNo)
+                                        .orderId(orderNo)
                                         .userId(userId)
                                         .items(null)
                                         .build();
@@ -64,7 +62,7 @@ public class PaymentConfirmUseCase {
                         }
 
                         OrderDto orderDto =OrderDto.builder()
-                                .orderNo(orderNo)
+                                .orderId(orderNo)
                                 .userId(userId)
                                 .items(null)
                                 .build();
