@@ -7,13 +7,12 @@ import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.shared.auth.dto.TokenResponse;
 import com.fourtune.auction.shared.user.dto.UserLoginRequest;
-import com.fourtune.auction.shared.user.dto.UserLoginResponse;
 import com.fourtune.auction.shared.user.dto.UserSignUpRequest;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,10 +100,6 @@ class UserFacadeTest {
         // 3. Then: 검증
         assertThat(response.getAccessToken()).isNotBlank();
         assertThat(response.getRefreshToken()).isNotBlank();
-
-        // DB에 리프레시 토큰이 잘 저장되었는지 확인 (UserSupport 로직 검증)
-        User user = userRepository.findByEmail("login@test.com").get();
-        assertThat(user.getRefreshToken()).isEqualTo(response.getRefreshToken());
     }
 
 }
