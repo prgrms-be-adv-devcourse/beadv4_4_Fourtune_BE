@@ -34,6 +34,7 @@ public class AuthService {
     @Transactional
     public TokenResponse login(UserLoginRequest request) {
         User user = userSupport.findActiveUserByEmailOrThrow(request.email());
+        user.isAvailableUser();
         UserResponse userResponse = UserResponse.from(user);
 
         validatePassword(request.password(), user.getPassword());

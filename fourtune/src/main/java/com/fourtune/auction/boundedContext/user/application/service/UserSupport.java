@@ -1,6 +1,5 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
-import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
 import com.fourtune.auction.global.error.ErrorCode;
@@ -15,6 +14,7 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserSupport {
 
     private final UserRepository userRepository;
@@ -42,6 +42,7 @@ public class UserSupport {
         return userRepository.findAllById(ids);
     }
 
+    @Transactional
     public User save(User user){
         return userRepository.save(user);
     }
@@ -67,20 +68,6 @@ public class UserSupport {
         }
 
         return user;
-    }
-
-    @Transactional
-    public User findOrCreate(String email, String name, String provider, String providerId) {
-        return userRepository.findByEmail(email)
-                .map(user -> user.update(name))
-                .orElseGet(() -> userRepository.save(User.builder()
-                        .email(email)
-                        .nickname(name)
-                        .provider(provider)
-                        .providerId(providerId)
-                        .role(Role.USER)
-                        .build())
-                );
     }
 
 }
