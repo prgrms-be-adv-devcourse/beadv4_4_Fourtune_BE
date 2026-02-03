@@ -22,6 +22,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -42,7 +43,8 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
             "docker.elastic.co/elasticsearch/elasticsearch:9.2.3")
             .withEnv("xpack.security.enabled", "false")
             .withEnv("discovery.type", "single-node")
-            .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
+            .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
+            .withStartupTimeout(Duration.ofMinutes(5)); // 타임아웃 시간을 5분으로 연장
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
