@@ -127,6 +127,10 @@ services:
       - AWS_S3_BUCKET=${AWS_S3_BUCKET}
       - S3_USER_ID=dev
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY:-toss_sk_randomtestsecretkey}
+      - OAUTH_BACKEND_URI=${OAUTH_BACKEND_URI}/login/oauth2/code/google
+      - OAUTH_FRONTEND_URI=${OAUTH_FRONTEND_URI}/login-success
+      - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
+      - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
     ports:
       - "8080:8080"
     depends_on:

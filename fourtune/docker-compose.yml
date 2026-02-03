@@ -142,6 +142,11 @@ services:
       - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY:-test_ck_YZ1aOwX7K8m5POogaBGV3yQxzvNP}
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY:-test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R}
       - KAKAO_ADMIN_KEY=${KAKAO_ADMIN_KEY:-}
+      # OAUTH 설정
+      - OAUTH_BACKEND_URI=${OAUTH_BACKEND_URI}/login/oauth2/code/google
+      - OAUTH_FRONTEND_URI=${OAUTH_FRONTEND_URI}/login-success
+      - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
+      - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
     ports:
       - "8080:8080"
       - "5005:5005"  # 디버깅 포트
