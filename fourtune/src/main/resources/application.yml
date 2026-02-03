@@ -7,7 +7,6 @@ spring:
 
   profiles:
     active: local
-    include: oauth
 
   jpa:
     open-in-view: false
@@ -23,6 +22,21 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 50MB
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${OAUTH_CLIENT_ID}
+            client-secret: ${OAUTH_CLIENT_SECRET}
+            redirect-uri: ${OAUTH_BACKEND_URI}/login/oauth2/code/google
+            scope:
+              - profile
+              - email
+app:
+  oauth2:
+    redirect-uri: ${OAUTH_FRONTEND_URI}/login-success
 
 # SpringDoc OpenAPI (Swagger) 설정
 springdoc:
@@ -400,3 +414,4 @@ logging:
 api:
   auction:
     base-url: http://localhost:8080
+
