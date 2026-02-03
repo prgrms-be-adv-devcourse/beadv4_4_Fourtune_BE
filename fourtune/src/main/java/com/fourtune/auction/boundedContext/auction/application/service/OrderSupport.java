@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
+import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Order;
 import com.fourtune.auction.boundedContext.auction.port.out.OrderRepository;
 import com.fourtune.auction.global.error.ErrorCode;
@@ -7,6 +8,7 @@ import com.fourtune.auction.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,6 +89,44 @@ public class OrderSupport {
         if (existsByAuctionId(auctionId)) {
             throw new BusinessException(ErrorCode.ORDER_ALREADY_EXISTS);
         }
+    }
+
+    /**
+     * 결제 대기(PENDING) 중 만료된 주문 조회
+     * created_at < dateTime 인 PENDING 주문 목록
+     * @deprecated 주문 유형별 만료 정책 적용으로 findExpiredPendingBuyNowOrders, findExpiredPendingBidOrders 사용
+     */
+    @Deprecated
+    public List<Order> findExpiredPendingOrders(LocalDateTime dateTime) {
+        return orderRepository.findByStatusAndCreatedAtBefore(OrderStatus.PENDING, dateTime);
+    }
+
+    /**
+     * 만료된 즉시구매 PENDING 주문 조회
+     * ORDER_PAYMENT_POLICY: 즉시구매 10분 유예
+     */
+    public List<Order> findExpiredPendingBuyNowOrders(LocalDateTime cutoff) {
+        return orderRepository.findExpiredPendingBuyNowOrders(
+                OrderStatus.PENDING, cutoff, Order.ORDER_NAME_PREFIX_BUY_NOW);
+    }
+
+    /**
+     * 만료된 낙찰 PENDING 주문 조회
+     * ORDER_PAYMENT_POLICY: 낙찰 24시간 유예
+     */
+    public List<Order> findExpiredPendingBidOrders(LocalDateTime cutoff) {
+        return orderRepository.findExpiredPendingBidOrders(
+                OrderStatus.PENDING, cutoff, Order.ORDER_NAME_PREFIX_BUY_NOW);
+    }
+
+    /**
+     * 경매당 유저당 취소된 즉시구매 주문 개수
+     * ORDER_PAYMENT_POLICY 이중 제한 - 유저당 2회 초과 시 3번째 시도 거부용
+     */
+    public long countCancelledBuyNowOrdersByAuctionAndWinner(Long auctionId, Long winnerId) {
+        return orderRepository.countByAuctionIdAndWinnerIdAndStatusAndOrderNameStartingWith(
+                auctionId, winnerId, OrderStatus.CANCELLED, Order.ORDER_NAME_PREFIX_BUY_NOW + "%"
+        );
     }
 
 }

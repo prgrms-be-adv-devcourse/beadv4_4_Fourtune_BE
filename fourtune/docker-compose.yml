@@ -132,6 +132,12 @@ services:
       # JWT & 암호화 (로컬 개발용)
       - JWT_SECRET=${JWT_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      # AWS
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - S3_USER_ID=${S3_USER_ID}
       # PG 테스트 API
       - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY:-test_ck_YZ1aOwX7K8m5POogaBGV3yQxzvNP}
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY:-test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R}
