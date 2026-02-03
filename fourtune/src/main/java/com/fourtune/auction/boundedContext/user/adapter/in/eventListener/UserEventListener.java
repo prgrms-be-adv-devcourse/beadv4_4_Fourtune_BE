@@ -1,5 +1,8 @@
 package com.fourtune.auction.boundedContext.user.adapter.in.eventListener;
 
+import com.fourtune.auction.boundedContext.user.application.service.UserSupport;
+import com.fourtune.auction.boundedContext.user.domain.entity.User;
+import com.fourtune.auction.shared.auction.event.AuctionPenaltyEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -12,10 +15,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class UserEventListener {
 
+    private final UserSupport userSupport;
+
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleUserPenaltyEvent(PaymentPenaltyEvent event){
-
+    public void handleUserPenaltyEvent(AuctionPenaltyEvent event){
+        User user = userSupport.findByIdOrThrow(event.userId());
+        user.getPenalty();
     }
 
 

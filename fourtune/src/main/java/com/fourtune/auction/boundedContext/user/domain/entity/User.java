@@ -59,7 +59,7 @@ public class User extends BaseTimeEntity {
     public void getPenalty(){
         this.penaltyScore -= 10;
 
-        if(penaltyScore <= 30)
+        if(penaltyScore <= -30)
             bannedUser();
     }
 
