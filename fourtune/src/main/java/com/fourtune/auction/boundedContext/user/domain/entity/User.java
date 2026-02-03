@@ -100,6 +100,11 @@ public class User extends BaseTimeEntity{
         return this;
     }
 
+    public void updateOauth(String provider, String providerId){
+        this.provider = provider;
+        this.providerId = providerId;
+    }
+
     public UserResponse toDto(){
         return new UserResponse(
                 this.id,

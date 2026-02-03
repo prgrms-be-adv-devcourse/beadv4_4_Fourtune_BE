@@ -46,6 +46,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         if (existingUser.isPresent()) {
             user = existingUser.get();
+            user.updateOauth(provider, providerId);
+            userSupport.save(user);
         } else {
             User newUser = User.builder()
                     .email(email)
