@@ -54,6 +54,19 @@ public class User extends BaseTimeEntity {
     private String provider;
     private String providerId;
 
+    private long penaltyScore;
+
+    public void getPenalty(){
+        this.penaltyScore -= 10;
+
+        if(penaltyScore <= 30)
+            bannedUser();
+    }
+
+    private void bannedUser(){
+        this.status = Status.INACTIVE;
+    }
+
     public void updateProfile(String newNickname, String newPhoneNumber) {
         this.nickname = newNickname;
         this.phoneNumber = newPhoneNumber;
