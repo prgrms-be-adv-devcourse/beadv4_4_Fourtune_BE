@@ -41,7 +41,7 @@ public class PaymentConfirmUseCase {
 
                         // 3. [보상 트랜잭션] 내부 로직 실패 시 Toss 결제 취소
                         try{
-                                paymentGatewayPort.cancel(paymentKey, "System Logic Failed: " + e.getMessage());
+                                paymentGatewayPort.cancel(paymentKey, "System Logic Failed: " + e.getMessage(), null);
                         }catch (Exception cancelEx){
                                 log.error("CRITICAL: 결제 취소 실패! (수동 환불 필요) paymentKey={}, error={}", paymentKey, cancelEx.getMessage());
 
