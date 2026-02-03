@@ -18,6 +18,17 @@ public class UserModifiedUseCase {
     private final EventPublisher eventPublisher;
 
     @Transactional
+    public void penalty(Long userId) {
+        User user = userSupport.findByIdOrThrow(userId);
+        user.imposePenalty();
+
+        if (user.getPenaltyScore() <= -30) {
+            user.bannedUser();
+            eventPublisher.publish(new UserModifiedEvent(user.toDto()));
+        }
+    }
+
+    @Transactional
     public void update(Long userId, UserUpdateRequest request){
         User user = userSupport.findByIdOrThrow(userId);
 

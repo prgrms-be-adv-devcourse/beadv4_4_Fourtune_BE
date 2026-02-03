@@ -5,8 +5,10 @@ import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import com.fourtune.auction.global.common.BaseTimeEntity;
 import com.fourtune.auction.shared.user.dto.UserResponse;
+import com.fourtune.auction.shared.user.event.UserModifiedEvent;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.time.LocalDateTime;
 
@@ -18,7 +20,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User extends BaseTimeEntity {
+public class User extends BaseTimeEntity{
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -56,14 +58,11 @@ public class User extends BaseTimeEntity {
 
     private long penaltyScore;
 
-    public void getPenalty(){
+    public void imposePenalty(){
         this.penaltyScore -= 10;
-
-        if(penaltyScore <= -30)
-            bannedUser();
     }
 
-    private void bannedUser(){
+    public void bannedUser(){
         this.status = Status.INACTIVE;
     }
 
@@ -95,8 +94,9 @@ public class User extends BaseTimeEntity {
         return false;
     }
 
-    public User update(String name) {
-        this.nickname = name;
+    public User update(String nickname){
+        this.nickname = nickname;
+
         return this;
     }
 
