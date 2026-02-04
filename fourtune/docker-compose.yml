@@ -1,6 +1,6 @@
 # 로컬 개발 환경용 Docker Compose
 # 사용법: docker-compose up -d
-version: '3.8'
+version: "3.8"
 
 services:
   # PostgreSQL Database
@@ -57,7 +57,8 @@ services:
     networks:
       - fourtune-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -107,7 +108,13 @@ services:
     networks:
       - fourtune-network
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      test:
+        [
+          "CMD",
+          "kafka-broker-api-versions",
+          "--bootstrap-server",
+          "localhost:9092",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -149,7 +156,7 @@ services:
       - OAUTH_CLIENT_SECRET
     ports:
       - "8080:8080"
-      - "5005:5005"  # 디버깅 포트
+      - "5005:5005" # 디버깅 포트
     depends_on:
       postgres:
         condition: service_healthy
@@ -176,4 +183,3 @@ volumes:
 networks:
   fourtune-network:
     driver: bridge
-

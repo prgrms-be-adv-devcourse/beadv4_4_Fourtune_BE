@@ -51,7 +51,7 @@ public class OrderDto {
      */
     public static OrderDto from(OrderCompletedEvent event) {
         return OrderDto.builder()
-                // event.orderId()는 String(UUID)이므로 orderNo에 매핑
+                // event.orderId()는 String(UUID)
                 .orderId(event.orderId())
                 .price(event.amount().longValue())
                 .userId(event.winnerId())
