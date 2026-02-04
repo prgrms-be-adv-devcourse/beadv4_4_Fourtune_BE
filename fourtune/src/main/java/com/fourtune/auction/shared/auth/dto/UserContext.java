@@ -9,19 +9,19 @@ import java.util.Map;
 
 public record UserContext(
         Long id,
-        String email,
         String password,
         Collection<? extends GrantedAuthority> authorities,
         Map<String, Object> attributes
 ) implements UserDetails, OAuth2User {
 
-    public UserContext(Long id, String email, String password, Collection<? extends GrantedAuthority> authorities) {
-        this(id, email, password, authorities, Map.of());
+    public UserContext(Long id, String password, Collection<? extends GrantedAuthority> authorities) {
+        this(id, password, authorities, Map.of());
     }
 
     @Override
     public String getUsername() {
-        return email;
+        return String.valueOf(id
+        );
     }
 
     @Override

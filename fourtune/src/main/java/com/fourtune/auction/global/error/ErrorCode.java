@@ -47,6 +47,7 @@ public enum ErrorCode {
     BID_ALREADY_HIGHEST(400, "B006", "이미 최고 입찰자입니다."),
     BID_CANCELLED_NOT_ALLOWED(400, "B007", "취소할 수 없는 입찰입니다."),
     BID_LOCK_FAILED(500, "B008", "입찰 처리 중 오류가 발생했습니다."),
+    BID_PRICE_HIGHER_THAN_BUY_NOW(400, "B009", "입찰 금액이 즉시 구매가보다 높습니다. 즉시 구매를 이용해주세요."),
     
     //Order(주문 관련)
     ORDER_NOT_FOUND(404, "O001", "존재하지 않는 주문입니다."),
@@ -71,6 +72,9 @@ public enum ErrorCode {
     AUCTION_NOT_ACTIVE(400, "BN003", "진행 중인 경매가 아닙니다."),
     CANNOT_ADD_TO_CART(400, "BN004", "장바구니에 담을 수 없는 경매 상품입니다."),
     CANNOT_BUY_OWN_ITEM(400, "BN005", "자신의 상품은 구매할 수 없습니다."),
+    AUCTION_ALREADY_SOLD_BY_BUY_NOW(400, "BN006", "이미 즉시구매된 경매입니다."),
+    BUY_NOW_DISABLED_BY_POLICY(400, "BN007", "이 경매에서 즉시구매가 비활성화되었습니다. 입찰로만 참여할 수 있습니다."),
+    BUY_NOW_USER_LIMIT_REACHED(400, "BN008", "이 경매에서 즉시구매 미결제가 2회 있습니다. 입찰로만 참여할 수 있습니다."),
 
     // Search(검색 관련)
     SEARCH_INVALID_CONDITION(400, "S001", "검색 조건이 올바르지 않습니다."),

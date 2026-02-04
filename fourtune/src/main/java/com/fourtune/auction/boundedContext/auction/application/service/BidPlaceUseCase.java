@@ -99,6 +99,8 @@ public class BidPlaceUseCase {
                 auctionItem.getStatus(),
                 auctionItem.getStartPrice(),
                 auctionItem.getCurrentPrice(),
+                auctionItem.getBuyNowPrice(),
+                auctionItem.getBuyNowEnabled(),
                 auctionItem.getAuctionStartTime(),
                 auctionItem.getAuctionEndTime(),
                 thumbnailUrl,
@@ -146,13 +148,20 @@ public class BidPlaceUseCase {
             throw new BusinessException(ErrorCode.BID_SELF_AUCTION);
         }
         
-        // 4. 이미 최고 입찰자인지 확인
+        // 4. 가격 역전 방지: 입찰가가 즉시구매가 이상이면 차단 (즉시구매 유도)
+        if (Boolean.TRUE.equals(auctionItem.getBuyNowEnabled()) && auctionItem.getBuyNowPrice() != null) {
+            if (bidAmount.compareTo(auctionItem.getBuyNowPrice()) >= 0) {
+                throw new BusinessException(ErrorCode.BID_PRICE_HIGHER_THAN_BUY_NOW);
+            }
+        }
+        
+        // 5. 이미 최고 입찰자인지 확인
         Optional<Bid> highestBid = bidSupport.findHighestBid(auctionItem.getId());
         if (highestBid.isPresent() && highestBid.get().getBidderId().equals(bidderId)) {
             throw new BusinessException(ErrorCode.BID_ALREADY_HIGHEST);
         }
         
-        // 5. 입찰 금액이 현재가 + 입찰단위 이상인지
+        // 6. 입찰 금액이 현재가 + 입찰단위 이상인지
         BigDecimal currentPrice = auctionItem.getCurrentPrice() != null 
                 ? auctionItem.getCurrentPrice() 
                 : auctionItem.getStartPrice();

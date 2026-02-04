@@ -83,7 +83,14 @@ public class AuctionItem extends BaseTimeEntity {
     
     @Builder.Default
     private Integer extensionCount = 0;
-    
+
+    // 즉시구매 악용 방지 (이중 제한) - ORDER_PAYMENT_POLICY.md 참고
+    @Builder.Default
+    private Integer buyNowRecoveryCount = 0;       // 즉시구매 미결제 복구 횟수 (경매당)
+
+    @Builder.Default
+    private Boolean buyNowDisabledByPolicy = false; // 3진 아웃 시 즉시구매 영구 비활성화
+
     @OneToMany(mappedBy = "auctionItem", cascade = ALL, orphanRemoval = true)
     @Builder.Default
     private List<ItemImage> images = new ArrayList<>();
@@ -136,6 +143,8 @@ public class AuctionItem extends BaseTimeEntity {
                 .watchlistCount(0)
                 .bidCount(0)
                 .extensionCount(0)
+                .buyNowRecoveryCount(0)
+                .buyNowDisabledByPolicy(false)
                 .images(new ArrayList<>())
                 .build();
     }
@@ -290,6 +299,9 @@ public class AuctionItem extends BaseTimeEntity {
         if (!this.buyNowEnabled) {
             throw new BusinessException(ErrorCode.BUY_NOW_NOT_ENABLED);
         }
+        if (Boolean.TRUE.equals(this.buyNowDisabledByPolicy)) {
+            throw new BusinessException(ErrorCode.BUY_NOW_DISABLED_BY_POLICY);
+        }
         if (this.buyNowPrice == null) {
             throw new BusinessException(ErrorCode.BUY_NOW_PRICE_NOT_SET);
         }
@@ -303,13 +315,64 @@ public class AuctionItem extends BaseTimeEntity {
     }
     
     /**
+     * 낙찰자 미결제 시 유찰 처리 (SOLD → FAIL)
+     * 24시간 내 결제하지 않아 주문이 취소된 경우 호출
+     */
+    public void fail() {
+        if (this.status != AuctionStatus.SOLD) {
+            throw new BusinessException(ErrorCode.AUCTION_NOT_MODIFIABLE);
+        }
+        this.status = AuctionStatus.FAIL;
+    }
+
+    /**
+     * 즉시구매 취소 시 경매 복구 (SOLD_BY_BUY_NOW → ACTIVE)
+     * 주문 취소/만료로 결제가 이뤄지지 않았을 때만 호출
+     */
+    public void releaseFromBuyNow() {
+        if (this.status != AuctionStatus.SOLD_BY_BUY_NOW) {
+            throw new BusinessException(ErrorCode.AUCTION_NOT_MODIFIABLE);
+        }
+        this.status = AuctionStatus.ACTIVE;
+    }
+
+    /**
+     * 즉시구매 미결제 취소 시 경매 복구 (이중 제한 적용)
+     * - SOLD_BY_BUY_NOW → ACTIVE
+     * - 종료 시각 지났으면 N분 연장 (Soft Closing)
+     * - 연장 N회 초과 시 즉시구매 영구 비활성화 (Circuit Breaker)
+     */
+    public void recoverFromBuyNowFailure(int extendMinutes, int maxRecoveryCount) {
+        if (this.status != AuctionStatus.SOLD_BY_BUY_NOW) {
+            throw new BusinessException(ErrorCode.AUCTION_NOT_MODIFIABLE);
+        }
+        this.status = AuctionStatus.ACTIVE;
+
+        // null-safe (기존 DB 마이그레이션 시 호환)
+        int currentCount = (this.buyNowRecoveryCount != null ? this.buyNowRecoveryCount : 0);
+
+        // 종료 시각 지났으면 연장 (Soft Closing)
+        if (LocalDateTime.now().isAfter(this.auctionEndTime)) {
+            this.auctionEndTime = LocalDateTime.now().plusMinutes(extendMinutes);
+            currentCount++;
+            this.buyNowRecoveryCount = currentCount;
+        }
+
+        // 경매당 3회 초과 시 즉시구매 영구 비활성화 (Circuit Breaker)
+        if (currentCount >= maxRecoveryCount) {
+            this.buyNowDisabledByPolicy = true;
+        }
+    }
+    
+    /**
      * 장바구니 담기 가능 여부 확인
-     * 조건: 즉시구매 활성화 + ACTIVE 상태
+     * 조건: 즉시구매 활성화 + ACTIVE 상태 + 정책에 의해 비활성화되지 않음
      */
     public boolean canAddToCart() {
-        return this.status == AuctionStatus.ACTIVE 
-                && this.buyNowEnabled 
-                && this.buyNowPrice != null;
+        return this.status == AuctionStatus.ACTIVE
+                && this.buyNowEnabled
+                && this.buyNowPrice != null
+                && !Boolean.TRUE.equals(this.buyNowDisabledByPolicy);
     }
     
     /**

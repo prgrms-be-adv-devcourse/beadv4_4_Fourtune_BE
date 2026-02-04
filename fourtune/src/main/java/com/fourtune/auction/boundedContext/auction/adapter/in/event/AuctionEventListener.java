@@ -146,7 +146,7 @@ public class AuctionEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentFailed(PaymentFailedEvent event) {
         String orderId = event.getOrder() != null 
-                ? String.valueOf(event.getOrder().getOrderId()) 
+                ? String.valueOf(event.getOrder().getOrderNo()) 
                 : "unknown";
         String resultCode = event.getResultCode();
         String message = event.getMsg();

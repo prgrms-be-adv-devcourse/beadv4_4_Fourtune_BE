@@ -10,6 +10,7 @@ import java.util.List;
 public record AuctionItemDetailResponse(
     Long id,
     Long sellerId,
+    String sellerNickname,
     String title,
     String description,
     Category category,
@@ -18,6 +19,7 @@ public record AuctionItemDetailResponse(
     Integer bidUnit,
     BigDecimal buyNowPrice,
     Boolean buyNowEnabled,
+    Boolean buyNowDisabledByPolicy,
     AuctionStatus status,
     LocalDateTime auctionStartTime,
     LocalDateTime auctionEndTime,
@@ -27,20 +29,31 @@ public record AuctionItemDetailResponse(
     List<String> imageUrls
 ) {
     /**
-     * AuctionItem 엔티티로부터 상세 응답 DTO 생성
+     * AuctionItem 엔티티만으로 생성 (sellerNickname 없음, 내부/테스트용)
      */
     public static AuctionItemDetailResponse from(
             com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem auctionItem
     ) {
-        List<String> imageUrls = auctionItem.getImages() != null 
+        return from(auctionItem, null);
+    }
+
+    /**
+     * AuctionItem 엔티티 + 판매자 닉네임으로 상세 응답 DTO 생성 (API 응답용)
+     */
+    public static AuctionItemDetailResponse from(
+            com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem auctionItem,
+            String sellerNickname
+    ) {
+        List<String> imageUrls = auctionItem.getImages() != null
                 ? auctionItem.getImages().stream()
                     .map(com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage::getImageUrl)
                     .toList()
                 : List.of();
-        
+
         return new AuctionItemDetailResponse(
                 auctionItem.getId(),
                 auctionItem.getSellerId(),
+                sellerNickname,
                 auctionItem.getTitle(),
                 auctionItem.getDescription(),
                 auctionItem.getCategory(),
@@ -49,6 +62,7 @@ public record AuctionItemDetailResponse(
                 auctionItem.getBidUnit(),
                 auctionItem.getBuyNowPrice(),
                 auctionItem.getBuyNowEnabled(),
+                auctionItem.getBuyNowDisabledByPolicy(),
                 auctionItem.getStatus(),
                 auctionItem.getAuctionStartTime(),
                 auctionItem.getAuctionEndTime(),

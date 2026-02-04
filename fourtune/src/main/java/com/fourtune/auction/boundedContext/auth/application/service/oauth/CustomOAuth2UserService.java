@@ -46,6 +46,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         if (existingUser.isPresent()) {
             user = existingUser.get();
+            user.updateOauth(provider, providerId);
+            userSupport.save(user);
         } else {
             User newUser = User.builder()
                     .email(email)
@@ -64,7 +66,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         return new UserContext(
                 user.getId(),
-                user.getEmail(),
                 null,
                 List.of(new SimpleGrantedAuthority(user.getRole().name())),
                 oAuth2User.getAttributes()

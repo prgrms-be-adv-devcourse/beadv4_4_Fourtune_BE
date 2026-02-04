@@ -3,6 +3,9 @@ package com.fourtune.auction.boundedContext.integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionFacade;
+import com.fourtune.auction.boundedContext.auction.application.service.BidSupport;
+import com.fourtune.auction.boundedContext.auction.application.service.OrderCreateUseCase;
+import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
 import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
@@ -75,7 +78,10 @@ class E2EIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private AuctionFacade auctionFacade;
+    private BidSupport bidSupport;
+
+    @Autowired
+    private OrderCreateUseCase orderCreateUseCase;
 
     @Autowired
     private com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade paymentFacade;
@@ -272,19 +278,28 @@ class E2EIntegrationTest {
                 .andExpect(jsonPath("$.data.bidAmount").value(60000));
 
         // 1-3. 낙찰 확정(시스템 처리)
-        // 경매 종료 시간을 과거로 설정하여 낙찰 처리 (리플렉션 사용)
+        // 테스트 트랜잭션 내에서 직접 경매 종료 처리 (REQUIRES_NEW 트랜잭션 문제 우회)
         auction = auctionRepository.findById(auctionId).orElseThrow();
-        try {
-            java.lang.reflect.Field endTimeField = auction.getClass().getDeclaredField("auctionEndTime");
-            endTimeField.setAccessible(true);
-            endTimeField.set(auction, LocalDateTime.now().minusMinutes(1));
-            auctionRepository.save(auction);
-        } catch (Exception e) {
-            throw new RuntimeException("경매 종료 시간 설정 실패", e);
-        }
 
-        // 경매 종료 처리 (낙찰 확정)
-        auctionFacade.closeExpiredAuctions();
+        // 최고가 입찰 조회
+        java.util.Optional<Bid> highestBidOpt = bidSupport.findHighestBid(auctionId);
+        assertThat(highestBidOpt).isPresent();
+        Bid winningBid = highestBidOpt.get();
+
+        // 경매 상태 변경 (ACTIVE -> ENDED -> SOLD)
+        auction.close();
+        auction.sell();
+        auctionRepository.save(auction);
+
+        // 낙찰 입찰 처리
+        winningBid.win();
+        bidSupport.save(winningBid);
+
+        // Order 생성
+        orderCreateUseCase.createWinningOrder(auction, winningBid.getBidderId(), winningBid.getBidAmount());
+
+        // 실패한 입찰 처리
+        bidSupport.failAllActiveBids(auctionId);
 
         // 경매 상태 확인
         AuctionItem closedAuction = auctionRepository.findById(auctionId).orElseThrow();

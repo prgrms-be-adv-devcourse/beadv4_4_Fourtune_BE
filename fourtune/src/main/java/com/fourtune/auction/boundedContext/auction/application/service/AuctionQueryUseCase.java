@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
+import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
 import com.fourtune.auction.shared.auction.dto.AuctionItemDetailResponse;
 import com.fourtune.auction.shared.auction.dto.AuctionItemResponse;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 경매 조회 UseCase
@@ -21,6 +25,7 @@ public class AuctionQueryUseCase {
 
     private final AuctionSupport auctionSupport;
     private final BidSupport bidSupport;
+    private final UserFacade userFacade;
     // private final RedisService redisService; // TODO: 나중에 추가
 
     /**
@@ -29,7 +34,9 @@ public class AuctionQueryUseCase {
     public AuctionItemResponse getAuctionById(Long auctionId) {
         com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem auctionItem =
                 auctionSupport.findByIdOrThrow(auctionId);
-        return AuctionItemResponse.from(auctionItem);
+        String sellerNickname = userFacade.getNicknamesByIds(Set.of(auctionItem.getSellerId()))
+                .get(auctionItem.getSellerId());
+        return AuctionItemResponse.from(auctionItem, sellerNickname);
     }
 
     /**
@@ -39,9 +46,11 @@ public class AuctionQueryUseCase {
         // 1. 경매 조회
         com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem auctionItem =
                 auctionSupport.findByIdOrThrow(auctionId);
-        
-        // 2. DTO 변환 후 반환
-        return AuctionItemDetailResponse.from(auctionItem);
+        // 2. 판매자 닉네임 조회
+        String sellerNickname = userFacade.getNicknamesByIds(Set.of(auctionItem.getSellerId()))
+                .get(auctionItem.getSellerId());
+        // 3. DTO 변환 후 반환
+        return AuctionItemDetailResponse.from(auctionItem, sellerNickname);
     }
 
     /**
@@ -63,9 +72,13 @@ public class AuctionQueryUseCase {
             // 필터 없으면 전체 조회
             auctionPage = auctionSupport.findAll(pageable);
         }
-        
-        // 2. DTO 변환 후 반환
-        return auctionPage.map(AuctionItemResponse::from);
+
+        // 2. 판매자 닉네임 일괄 조회 후 DTO 변환
+        Set<Long> sellerIds = auctionPage.getContent().stream()
+                .map(com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem::getSellerId)
+                .collect(Collectors.toSet());
+        var nicknames = userFacade.getNicknamesByIds(sellerIds);
+        return auctionPage.map(item -> AuctionItemResponse.from(item, nicknames.get(item.getSellerId())));
     }
 
     /**
@@ -75,9 +88,10 @@ public class AuctionQueryUseCase {
         // 1. 판매자의 경매 목록 조회
         Page<com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem> auctionPage =
                 auctionSupport.findBySellerIdPaged(sellerId, pageable);
-        
-        // 2. DTO 변환 후 반환
-        return auctionPage.map(AuctionItemResponse::from);
+        // 2. 판매자 닉네임 조회 (동일 판매자)
+        String sellerNickname = userFacade.getNicknamesByIds(Set.of(sellerId)).get(sellerId);
+        // 3. DTO 변환 후 반환
+        return auctionPage.map(item -> AuctionItemResponse.from(item, sellerNickname));
     }
 
     /**

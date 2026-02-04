@@ -36,6 +36,12 @@ public class SearchAuctionItemDocument {
     @Field(type = FieldType.Scaled_Float, scalingFactor = 100)
     private BigDecimal currentPrice;
 
+    @Field(type = FieldType.Scaled_Float, scalingFactor = 100)
+    private BigDecimal buyNowPrice;
+
+    @Field(type = FieldType.Boolean)
+    private Boolean buyNowEnabled;
+
     @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
     private LocalDateTime startAt;
 

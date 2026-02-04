@@ -38,17 +38,6 @@ public class UserTest {
     }
 
     @Test
-    @DisplayName("리프레시 토큰이 정상적으로 업데이트 되어야 한다")
-    void updateRefreshTokenTest() {
-        User user = User.builder().build();
-        String newToken = "new-refresh-token-123";
-
-        user.updateRefreshToken(newToken);
-
-        assertThat(user.getRefreshToken()).isEqualTo(newToken);
-    }
-
-    @Test
     @DisplayName("사용자 상태가 ACTIVE일 때만 isAvailableUser가 true를 반환한다")
     void isAvailableUserTest() {
         User activeUser = User.builder().status(Status.ACTIVE).build();

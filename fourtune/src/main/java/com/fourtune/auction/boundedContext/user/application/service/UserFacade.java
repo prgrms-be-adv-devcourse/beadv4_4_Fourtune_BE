@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
+import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.shared.user.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,26 @@ public class UserFacade {
 
     public Long count(){
         return userSupport.count();
+    }
+
+    /**
+     * ID로 유저 정보 조회 (id, email, nickname, status 등)
+     */
+    @Transactional(readOnly = true)
+    public UserResponse getUserById(Long id) {
+        return UserResponse.from(userSupport.findByIdOrThrow(id));
+    }
+
+    /**
+     * ID 목록으로 닉네임 맵 조회 (경매/입찰/주문 DTO용, N+1 방지)
+     */
+    @Transactional(readOnly = true)
+    public java.util.Map<Long, String> getNicknamesByIds(java.util.Set<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return java.util.Map.of();
+        }
+        return userSupport.findByIdIn(ids).stream()
+                .collect(java.util.stream.Collectors.toMap(User::getId, User::getNickname, (a, b) -> a));
     }
 
 }

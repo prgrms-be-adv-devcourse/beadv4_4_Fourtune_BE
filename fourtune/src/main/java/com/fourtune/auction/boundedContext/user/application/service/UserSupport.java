@@ -1,7 +1,5 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
-import com.fourtune.auction.boundedContext.user.domain.constant.Role;
-import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
 import com.fourtune.auction.global.error.ErrorCode;
@@ -10,10 +8,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserSupport {
 
     private final UserRepository userRepository;
@@ -31,6 +32,17 @@ public class UserSupport {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
+    /**
+     * ID 목록으로 유저 목록 조회 (N+1 방지용 일괄 조회)
+     */
+    public List<User> findByIdIn(Set<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return userRepository.findAllById(ids);
+    }
+
+    @Transactional
     public User save(User user){
         return userRepository.save(user);
     }
@@ -56,20 +68,6 @@ public class UserSupport {
         }
 
         return user;
-    }
-
-    @Transactional
-    public User findOrCreate(String email, String name, String provider, String providerId) {
-        return userRepository.findByEmail(email)
-                .map(user -> user.update(name))
-                .orElseGet(() -> userRepository.save(User.builder()
-                        .email(email)
-                        .nickname(name)
-                        .provider(provider)
-                        .providerId(providerId)
-                        .role(Role.USER)
-                        .build())
-                );
     }
 
 }
