@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public record AuctionItemResponse(
     Long id,
     Long sellerId,
+    String sellerNickname,
     String title,
     Category category,
     BigDecimal startPrice,
@@ -22,14 +23,28 @@ public record AuctionItemResponse(
     Integer bidCount,
     String thumbnailUrl
 ) {
+    /**
+     * 엔티티만으로 생성 (sellerNickname 없음, 내부/테스트용)
+     */
     public static AuctionItemResponse from(com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem auctionItem) {
+        return from(auctionItem, null);
+    }
+
+    /**
+     * 엔티티 + 판매자 닉네임으로 생성 (API 응답용)
+     */
+    public static AuctionItemResponse from(
+            com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem auctionItem,
+            String sellerNickname
+    ) {
         String thumbnailUrl = auctionItem.getImages() != null && !auctionItem.getImages().isEmpty()
                 ? auctionItem.getImages().get(0).getImageUrl()
                 : null;
-        
+
         return new AuctionItemResponse(
                 auctionItem.getId(),
                 auctionItem.getSellerId(),
+                sellerNickname,
                 auctionItem.getTitle(),
                 auctionItem.getCategory(),
                 auctionItem.getStartPrice(),

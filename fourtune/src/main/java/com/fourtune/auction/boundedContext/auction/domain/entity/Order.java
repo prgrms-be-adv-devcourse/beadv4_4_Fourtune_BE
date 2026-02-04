@@ -166,7 +166,7 @@ public class Order extends BaseTimeEntity {
     public boolean isCancelled() {
         return this.status == OrderStatus.CANCELLED;
     }
-    
+
     // ==================== 검증 메서드 (private) ====================
     
     /**

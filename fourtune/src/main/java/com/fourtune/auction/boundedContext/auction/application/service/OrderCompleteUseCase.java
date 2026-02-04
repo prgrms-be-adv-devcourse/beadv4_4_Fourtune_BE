@@ -7,6 +7,8 @@ import com.fourtune.auction.boundedContext.auction.domain.entity.Order;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.shared.auction.constant.CancelReason;
+import com.fourtune.auction.shared.auction.event.OrderCancelledEvent;
 import com.fourtune.auction.shared.auction.event.OrderCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -80,12 +82,8 @@ public class OrderCompleteUseCase {
      */
     @Transactional
     public void cancelOrder(String orderId) {
-        // 1. 주문 조회
         Order order = orderSupport.findByOrderIdOrThrow(orderId);
-        
-        // 2. 내부 메서드로 위임
         cancelOrderInternal(order);
-        
         log.info("주문 취소 처리: orderId={}", orderId);
     }
 
@@ -94,17 +92,11 @@ public class OrderCompleteUseCase {
      */
     @Transactional
     public void cancelOrderById(Long id, Long userId) {
-        // 1. 주문 조회
         Order order = orderSupport.findByIdOrThrow(id);
-        
-        // 2. 본인 확인 (구매자)
         if (!order.getWinnerId().equals(userId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
-        
-        // 3. 내부 메서드로 위임
         cancelOrderInternal(order);
-        
         log.info("주문 취소 처리: id={}, userId={}", id, userId);
     }
 
@@ -113,14 +105,11 @@ public class OrderCompleteUseCase {
      * - 주문 취소 후 즉시구매 경매(SOLD_BY_BUY_NOW)면 경매를 ACTIVE로 복구
      */
     private void cancelOrderInternal(Order order) {
-        // 1. 주문 취소 (Order 엔티티에서 취소 가능 여부 검증)
         order.cancel();
         orderSupport.save(order);
-        
-        // 2. 경매 상태 복구/유찰 처리
+
         auctionSupport.findById(order.getAuctionId()).ifPresent(auction -> {
             if (auction.getStatus() == AuctionStatus.SOLD_BY_BUY_NOW) {
-                // Case A: 즉시구매 미결제 → 경매 복구 (이중 제한 적용)
                 auction.recoverFromBuyNowFailure(
                         AuctionPolicy.BUY_NOW_RECOVERY_EXTEND_MINUTES,
                         AuctionPolicy.BUY_NOW_RECOVERY_MAX_PER_AUCTION
@@ -129,7 +118,6 @@ public class OrderCompleteUseCase {
                 log.info("주문 취소로 경매 복구: auctionId={}, orderId={}, buyNowRecoveryCount={}, buyNowDisabled={}",
                         auction.getId(), order.getOrderId(), auction.getBuyNowRecoveryCount(), auction.getBuyNowDisabledByPolicy());
             } else if (auction.getStatus() == AuctionStatus.SOLD) {
-                // Case B: 낙찰 미결제 → 유찰(FAIL) 처리
                 auction.fail();
                 auctionSupport.save(auction);
                 log.info("낙찰 미결제로 유찰 처리: auctionId={}, orderId={}", auction.getId(), order.getOrderId());
@@ -139,7 +127,7 @@ public class OrderCompleteUseCase {
 
     /**
      * 만료된 PENDING 주문 취소 (스케줄러에서 호출)
-     * 주문 취소 + 즉시구매 경매 복구 동일 적용
+     * 문서: 취소 사유 결정 → cancelOrderInternal → OrderCancelledEvent 발행 (유저 도메인에서 수신 후 패널티 판단)
      */
     @Transactional
     public void cancelExpiredOrder(String orderId) {
@@ -147,8 +135,29 @@ public class OrderCompleteUseCase {
         if (order.getStatus() != OrderStatus.PENDING) {
             return;
         }
+        // 1. 취소 사유 결정 (cancelOrderInternal 호출 전에 경매 상태로 구분)
+        CancelReason reason = resolveCancelReasonForExpired(order);
+        // 2. 기존대로 취소 + 경매 복구/유찰
         cancelOrderInternal(order);
-        log.info("만료된 주문 자동 취소: orderId={}", orderId);
+        // 3. 제보: 취소 사유를 담아 OrderCancelledEvent 발행
+        eventPublisher.publish(new OrderCancelledEvent(
+                order.getWinnerId(),
+                order.getId(),
+                order.getAuctionId(),
+                reason
+        ));
+        log.info("만료된 주문 자동 취소: orderId={}, reason={}", orderId, reason);
     }
 
+    /**
+     * 만료 자동 취소 시 사유 결정 (즉시구매 vs 낙찰)
+     * 경매 상태는 cancelOrderInternal 호출 전에 조회 (호출 후에는 이미 ACTIVE/FAIL로 바뀜)
+     */
+    private CancelReason resolveCancelReasonForExpired(Order order) {
+        return auctionSupport.findById(order.getAuctionId())
+                .filter(a -> a.getStatus() == AuctionStatus.SOLD_BY_BUY_NOW)
+                .isPresent()
+                ? CancelReason.BUY_NOW_PAYMENT_TIMEOUT
+                : CancelReason.WINNER_PAYMENT_TIMEOUT;
+    }
 }
