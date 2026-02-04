@@ -56,7 +56,8 @@ public class User extends BaseTimeEntity{
     private String provider;
     private String providerId;
 
-    private long penaltyScore;
+    @Builder.Default
+    private Long penaltyScore = 0L;
 
     public void imposePenalty(){
         this.penaltyScore -= 10;

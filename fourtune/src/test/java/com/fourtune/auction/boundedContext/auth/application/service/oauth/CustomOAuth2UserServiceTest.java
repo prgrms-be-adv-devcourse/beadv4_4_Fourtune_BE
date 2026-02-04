@@ -77,7 +77,7 @@ class CustomOAuth2UserServiceTest {
         // Then
         assertThat(result).isInstanceOf(UserContext.class);
         UserContext userContext = (UserContext) result;
-        assertThat(userContext.email()).isEqualTo(email);
+        assertThat(userContext.id()).isEqualTo(1L);
 
         // 3. 검증: findByEmail과 save가 호출되었는지 확인
         verify(userSupport).findByEmail(email);

@@ -102,13 +102,11 @@ public class JwtTokenProvider {
 
         String role = claims.get("role", String.class);
         Long userId = Long.valueOf(claims.getSubject());
-        String email = claims.get("email", String.class);
-
 
         Collection<? extends GrantedAuthority> authorities =
                 Collections.singletonList(new SimpleGrantedAuthority(role));
 
-        UserContext principal = new UserContext(userId, email, "", authorities);
+        UserContext principal = new UserContext(userId, "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
