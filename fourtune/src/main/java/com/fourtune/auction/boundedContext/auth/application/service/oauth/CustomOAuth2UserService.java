@@ -66,7 +66,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         return new UserContext(
                 user.getId(),
-                user.getEmail(),
                 null,
                 List.of(new SimpleGrantedAuthority(user.getRole().name())),
                 oAuth2User.getAttributes()
