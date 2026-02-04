@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+/**
+ * 유저 도메인 이벤트 수신
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -18,9 +21,7 @@ public class UserEventListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleUserPenaltyEvent(AuctionPenaltyEvent event){
+    public void handleUserPenaltyEvent(AuctionPenaltyEvent event) {
         userModifiedUseCase.penalty(event.userId());
     }
-
-
 }
