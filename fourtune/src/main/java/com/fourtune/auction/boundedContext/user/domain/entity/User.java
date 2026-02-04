@@ -5,8 +5,10 @@ import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.global.common.BaseIdAndTime;
 import com.fourtune.auction.global.common.BaseTimeEntity;
 import com.fourtune.auction.shared.user.dto.UserResponse;
+import com.fourtune.auction.shared.user.event.UserModifiedEvent;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.time.LocalDateTime;
 
@@ -18,7 +20,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User extends BaseTimeEntity {
+public class User extends BaseTimeEntity{
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -48,14 +50,22 @@ public class User extends BaseTimeEntity {
 
     private LocalDateTime deletedAt;
 
-    @Column(length = 1000)
-    private String refreshToken;
-
     @Version
     private Long version;
 
     private String provider;
     private String providerId;
+
+    @Builder.Default
+    private Long penaltyScore = 0L;
+
+    public void imposePenalty(){
+        this.penaltyScore -= 10;
+    }
+
+    public void bannedUser(){
+        this.status = Status.INACTIVE;
+    }
 
     public void updateProfile(String newNickname, String newPhoneNumber) {
         this.nickname = newNickname;
@@ -79,19 +89,21 @@ public class User extends BaseTimeEntity {
         this.deletedAt = LocalDateTime.now();
     }
 
-    public void updateRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
     public boolean isAvailableUser(){
         if(this.status == Status.ACTIVE) return true;
 
         return false;
     }
 
-    public User update(String name) {
-        this.nickname = name;
+    public User update(String nickname){
+        this.nickname = nickname;
+
         return this;
+    }
+
+    public void updateOauth(String provider, String providerId){
+        this.provider = provider;
+        this.providerId = providerId;
     }
 
     public UserResponse toDto(){
