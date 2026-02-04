@@ -35,11 +35,11 @@ public class PaymentController {
             @AuthenticationPrincipal UserContext user,
             @RequestBody ConfirmPaymentRequest confirmPaymentRequest
     ) {
-        String orderNo = confirmPaymentRequest.orderId();
+        String orderId = confirmPaymentRequest.orderId();
         Long amount = confirmPaymentRequest.amount();
         String paymentKey = confirmPaymentRequest.paymentKey();
 
-        paymentFacade.confirmPayment(paymentKey, orderNo, amount, user.id());
+        paymentFacade.confirmPayment(paymentKey, orderId, amount, user.id());
     }
 
     /**
