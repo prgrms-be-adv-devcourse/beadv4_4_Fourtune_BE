@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class AuctionActionService {
+public class AuctionStartUseCase {
 
     private final AuctionSupport auctionSupport;
     private final EventPublisher eventPublisher;
@@ -29,8 +29,7 @@ public class AuctionActionService {
                 auction.getTitle(),
                 auction.getSellerId(),
                 auction.getStartPrice(),
-                auction.getAuctionEndTime()
-        ));
+                auction.getAuctionEndTime()));
 
         // Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(auction);
@@ -51,8 +50,7 @@ public class AuctionActionService {
                 auction.getUpdatedAt(),
                 auction.getViewCount(),
                 auction.getBidCount(),
-                auction.getWatchlistCount()
-        ));
+                auction.getWatchlistCount()));
     }
 
     private String extractThumbnailUrl(AuctionItem auctionItem) {

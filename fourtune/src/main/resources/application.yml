@@ -60,6 +60,20 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
+# Feature Flags (이벤트 발행 방식 전환)
+feature:
+  kafka:
+    enabled: false
+    user-events:
+      enabled: false
+
+# Outbox 설정
+outbox:
+  publisher:
+    batch-size: 100
+    max-retry-count: 3
+    poll-interval-ms: 1000
+
 # application.yml
 settlement:
   scheduler:
@@ -345,7 +359,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
 
   data:

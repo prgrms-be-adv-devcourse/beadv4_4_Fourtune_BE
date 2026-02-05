@@ -70,8 +70,7 @@ public class AuctionSupport {
     public Page<AuctionItem> findByStatusAndCategory(
             AuctionStatus status,
             com.fourtune.auction.boundedContext.auction.domain.constant.Category category,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
         return auctionItemRepository.findByStatusAndCategory(status, category, pageable);
     }
 
@@ -81,14 +80,14 @@ public class AuctionSupport {
     public Page<AuctionItem> findByStatus(AuctionStatus status, Pageable pageable) {
         return auctionItemRepository.findByStatus(status, pageable);
     }
-    
+
     /**
      * 전체 경매 목록 조회 (페이징)
      */
     public Page<AuctionItem> findAll(Pageable pageable) {
         return auctionItemRepository.findAll(pageable);
     }
-    
+
     /**
      * 판매자별 경매 목록 조회 (페이징)
      */
@@ -104,31 +103,21 @@ public class AuctionSupport {
     }
 
     /**
-     * 종료 예정 경매 목록 조회 (자동 연장 체크용)
-     */
-    public List<AuctionItem> findEndingSoonAuctions() {
-        // TODO: Repository에 findEndingSoonAuctions() 메서드 추가 필요
-        return List.of();
-    }
-    
-    /**
      * 종료 시간이 지난 경매 목록 조회
      */
     public List<AuctionItem> findExpiredAuctions(java.time.LocalDateTime now) {
         return auctionItemRepository.findByAuctionEndTimeBeforeAndStatus(
                 now,
-                AuctionStatus.ACTIVE
-        );
+                AuctionStatus.ACTIVE);
     }
-    
+
     /**
      * 시작 시간이 되었지만 아직 시작되지 않은 경매 목록 조회
      */
     public List<AuctionItem> findScheduledAuctionsToStart(java.time.LocalDateTime now) {
         return auctionItemRepository.findByAuctionStartTimeLessThanEqualAndStatus(
                 now,
-                AuctionStatus.SCHEDULED
-        );
+                AuctionStatus.SCHEDULED);
     }
 
     /**
