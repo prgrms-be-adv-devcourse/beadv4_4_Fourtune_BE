@@ -102,13 +102,8 @@ spring:
     consumer:
       group-id: fourtune-consumer-group
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
     producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
 
   cloud:
     aws:
@@ -120,6 +115,12 @@ spring:
       s3:
         bucket: ${AWS_S3_BUCKET}
         path-prefix: "local/${S3_USER_ID}"
+
+feature:
+  kafka:
+    enabled: true
+
+
 # JWT 설정
 jwt:
   secret: ${JWT_SECRET}
@@ -194,7 +195,6 @@ spring:
     consumer:
       group-id: fourtune-test-consumer-group
       auto-offset-reset: earliest
-
   cloud:
     aws:
       credentials:
@@ -205,6 +205,10 @@ spring:
       s3:
         bucket: ${AWS_S3_BUCKET:test-bucket}
         path-prefix: "test"
+
+feature:
+  kafka:
+    enabled: true
 
 # Test에서는 Swagger 비활성화
 springdoc:
@@ -275,6 +279,10 @@ spring:
       s3:
         bucket: ${AWS_S3_BUCKET}
         path-prefix: "dev"
+
+feature:
+  kafka:
+    enabled: true
 
 jwt:
   secret: ${JWT_SECRET}
@@ -368,6 +376,11 @@ spring:
       s3:
         bucket: ${AWS_S3_BUCKET}
         path-prefix: "prod"
+
+feature:
+  kafka:
+    enabled: false
+
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 3600000
