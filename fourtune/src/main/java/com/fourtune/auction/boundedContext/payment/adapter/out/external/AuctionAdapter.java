@@ -27,9 +27,9 @@ public class AuctionAdapter implements AuctionPort {
             "/api/v1/orders/public/";
 
     @Override
-    public OrderDto getOrder(String orderNo) {
+    public OrderDto getOrder(String orderId) {
         try {
-            String url = BASE_URL + AUCTION_MODULE_URL + orderNo;
+            String url = BASE_URL + AUCTION_MODULE_URL + orderId;
 
             ApiResponse<OrderDetailResponse> response = webclient.webClient()
                     .get()
@@ -40,7 +40,7 @@ public class AuctionAdapter implements AuctionPort {
 
             // 2. 전체 응답 또는 내부 데이터(data)가 없는 경우 예외 처리
             if (response == null || response.getData() == null) {
-                log.error("경매 모듈 응답 데이터 없음 - 주문번호: {}", orderNo);
+                log.error("경매 모듈 응답 데이터 없음 - 주문번호: {}", orderId);
                 throw new BusinessException(ErrorCode.PAYMENT_AUCTION_ORDER_NOT_FOUND);
             }
 

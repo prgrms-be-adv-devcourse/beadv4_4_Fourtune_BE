@@ -38,7 +38,7 @@ public class PaymentCashCompleteUseCase {
                     pgAmount,
                     CashEventType.충전__PG결제_토스페이먼츠,
                     "Order",
-                    orderDto.getOrderId()
+                    orderDto.getAuctionOrderId()
             );
         }
 
@@ -49,14 +49,14 @@ public class PaymentCashCompleteUseCase {
                     orderDto.getPrice(),
                     CashEventType.사용__주문결제,
                     "Order",
-                    orderDto.getOrderId()
+                    orderDto.getAuctionOrderId()
             );
 
             systemWallet.credit(
                     orderDto.getPrice(),
                     CashEventType.임시보관__주문결제,
                     "Order",
-                    orderDto.getOrderId()
+                    orderDto.getAuctionOrderId()
             );
 
             // 결제 정보 저장
@@ -65,7 +65,7 @@ public class PaymentCashCompleteUseCase {
                     Payment.builder()
                         .paymentKey(paymentKey)
                         .orderId(orderDto.getOrderId())
-                        .orderNo(orderDto.getOrderNo())
+                        .auctionOrderId(orderDto.getAuctionOrderId())
                         .paymentUser(paymentUser)
                         .amount(orderDto.getPrice())
                         .pgPaymentAmount(pgAmount)
@@ -84,7 +84,7 @@ public class PaymentCashCompleteUseCase {
             eventPublisher.publish(
                     new PaymentFailedEvent(
                             "400-1",
-                            "충전은 완료했지만 %번 주문을 결제완료처리를 하기에는 예치금이 부족합니다.".formatted(orderDto.getOrderId()),
+                            "충전은 완료했지만 %번 주문을 결제완료처리를 하기에는 예치금이 부족합니다.".formatted(orderDto.getAuctionOrderId()),
                             orderDto,
                             orderDto.toOrderDetailResponse(),
                             pgAmount,

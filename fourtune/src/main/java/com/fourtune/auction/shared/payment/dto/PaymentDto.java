@@ -11,8 +11,8 @@ import lombok.Getter;
 public class PaymentDto {
     private Long paymentId;
     private String paymentKey; // PG사 결제 고유 키 (Toss paymentKey)
-    private Long orderId; // Auction 모듈의 주문 ID
-    private String orderNo; // Auction 모듈의 주문 ID
+    private String orderId; // Auction 모듈의 주문 UUID
+    private Long auctionOrderId; // Auction 모듈의 주문 ID
     private Long userId; // 구매자 ID (결제 이력 조회용)
     private Long amount; // 최초 결제 금액
     private Long balanceAmount; // 취소 가능 잔액 (부분 취소 시 차감됨)

@@ -13,5 +13,5 @@ public interface PaymentGatewayPort {
      * 결제 취소 요청 (보상 트랜잭션용)
      * 내부 로직 실패 시 이미 승인된 결제를 취소하기 위함
      */
-    void cancel(String paymentKey, String reason);
+    PaymentExecutionResult cancel(String paymentKey, String reason, Long requestAmount);
 }

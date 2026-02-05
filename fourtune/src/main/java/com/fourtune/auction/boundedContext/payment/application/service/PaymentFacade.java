@@ -22,6 +22,7 @@ public class PaymentFacade {
     private final CompleteSettlementUseCase completeSettlementUseCase;
     private final PaymentSyncUserUseCase paymentSyncUserUseCase;
     private final CreateWalletUseCase createWalletUseCase;
+    private final PaymentCancelUseCase paymentCancelUseCase;
     private final CashLogRepository cashLogRepository;
 
 
@@ -50,8 +51,8 @@ public class PaymentFacade {
         return paymentSupport.findPlatformWallet();
     }
 
-    public PaymentExecutionResult confirmPayment(String paymentKey, String orderNo, Long amount, Long userId) {
-        return paymentConfirmUseCase.confirmPayment(paymentKey, orderNo, amount, userId);
+    public PaymentExecutionResult confirmPayment(String paymentKey, String orderId, Long amount, Long userId) {
+        return paymentConfirmUseCase.confirmPayment(paymentKey, orderId, amount, userId);
     }
 
     @Transactional(readOnly = true)

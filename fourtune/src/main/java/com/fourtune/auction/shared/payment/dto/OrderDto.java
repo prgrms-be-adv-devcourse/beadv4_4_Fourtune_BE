@@ -18,8 +18,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderDto {
-    private Long orderId;
-    private String orderNo;
+    private Long auctionOrderId;
+    private String orderId;
     private Long price;   // 전체 결제 총액 (Total Amount)
     private Long userId;  // 구매자 ID (Buyer)
     private LocalDateTime paymentDate;
@@ -51,8 +51,8 @@ public class OrderDto {
      */
     public static OrderDto from(OrderCompletedEvent event) {
         return OrderDto.builder()
-                // event.orderId()는 String(UUID)이므로 orderNo에 매핑
-                .orderNo(event.orderId())
+                // event.orderId()는 String(UUID)
+                .orderId(event.orderId())
                 .price(event.amount().longValue())
                 .userId(event.winnerId())
                 .paymentDate(event.paidAt())
@@ -70,8 +70,8 @@ public class OrderDto {
 
     public static OrderDto from(OrderDetailResponse response) {
         return OrderDto.builder()
-                .orderId(response.id())
-                .orderNo(response.orderId())
+                .auctionOrderId(response.id())
+                .orderId(response.orderId())
                 .price(response.finalPrice().longValue()) // BigDecimal -> Long
                 .userId(response.winnerId())
                 .paymentDate(response.paidAt())
@@ -103,8 +103,8 @@ public class OrderDto {
         OrderItem firstItem = (this.items != null && !this.items.isEmpty()) ? this.items.get(0) : null;
 
         return new OrderDetailResponse(
+                this.auctionOrderId,
                 this.orderId,
-                this.orderNo,
                 (firstItem != null) ? firstItem.getItemId() : null,   // auctionId
                 (firstItem != null) ? firstItem.getItemName() : null, // auctionTitle
                 this.thumbnailUrl,
