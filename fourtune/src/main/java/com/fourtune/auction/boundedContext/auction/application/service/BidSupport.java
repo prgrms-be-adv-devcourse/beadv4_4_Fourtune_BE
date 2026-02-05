@@ -24,13 +24,6 @@ public class BidSupport {
     private final BidRepository bidRepository;
 
     /**
-     * ID로 입찰 조회 (Optional)
-     */
-    public Optional<Bid> findById(Long bidId) {
-        return bidRepository.findById(bidId);
-    }
-
-    /**
      * ID로 입찰 조회 (예외 발생)
      */
     public Bid findByIdOrThrow(Long bidId) {
@@ -57,9 +50,8 @@ public class BidSupport {
      */
     public Optional<Bid> findHighestBid(Long auctionId) {
         return bidRepository.findTopByAuctionIdAndStatusOrderByBidAmountDesc(
-                auctionId, 
-                BidStatus.ACTIVE
-        );
+                auctionId,
+                BidStatus.ACTIVE);
     }
 
     /**
