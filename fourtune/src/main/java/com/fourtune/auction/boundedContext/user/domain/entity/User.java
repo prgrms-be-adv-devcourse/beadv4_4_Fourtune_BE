@@ -60,6 +60,10 @@ public class User extends BaseTimeEntity{
     private Long penaltyScore = 0L;
 
     public void imposePenalty(){
+        if(this.penaltyScore == null){
+            this.penaltyScore = 0L;
+        }
+
         this.penaltyScore -= 10;
     }
 
