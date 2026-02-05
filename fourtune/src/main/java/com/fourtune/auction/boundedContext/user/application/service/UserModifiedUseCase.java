@@ -1,9 +1,11 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
+import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.global.outbox.service.OutboxService;
 import com.fourtune.auction.shared.user.dto.UserUpdateRequest;
 import com.fourtune.auction.shared.user.event.UserModifiedEvent;
 import jakarta.transaction.Transactional;
@@ -16,6 +18,8 @@ public class UserModifiedUseCase {
 
     private final UserSupport userSupport;
     private final EventPublisher eventPublisher;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final OutboxService outboxService;
 
     @Transactional
     public void penalty(Long userId) {
@@ -24,7 +28,7 @@ public class UserModifiedUseCase {
 
         if (user.getPenaltyScore() <= -30) {
             user.bannedUser();
-            eventPublisher.publish(new UserModifiedEvent(user.toDto()));
+            publishUserModifiedEvent(user);
         }
     }
 
@@ -36,7 +40,15 @@ public class UserModifiedUseCase {
         validateUpdate(user, request);
 
         user.updateProfile(request.nickname(), request.phoneNumber());
-        eventPublisher.publish(new UserModifiedEvent(user.toDto()));
+        publishUserModifiedEvent(user);
+    }
+
+    private void publishUserModifiedEvent(User user) {
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            outboxService.saveUserModifiedEvent(user.toDto());
+        } else {
+            eventPublisher.publish(new UserModifiedEvent(user.toDto()));
+        }
     }
 
     private void validateUpdate(User user, UserUpdateRequest request) {
