@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
+import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.global.error.ErrorCode;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserDeletedUseCase {
+
+    private static final String AGGREGATE_TYPE = "User";
 
     private final UserSupport userSupport;
     private final PasswordEncoder passwordEncoder;
@@ -43,7 +46,7 @@ public class UserDeletedUseCase {
 
     private void publishUserDeletedEvent(User user) {
         if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
-            outboxService.saveUserDeletedEvent(user.toDto());
+            outboxService.append(AGGREGATE_TYPE, user.getId(), UserEventType.USER_DELETED.name(), user.toDto());
         } else {
             eventPublisher.publish(new UserDeletedEvent(user.toDto()));
         }

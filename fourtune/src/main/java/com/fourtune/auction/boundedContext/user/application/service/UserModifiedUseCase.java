@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
+import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.global.error.ErrorCode;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserModifiedUseCase {
+
+    private static final String AGGREGATE_TYPE = "User";
 
     private final UserSupport userSupport;
     private final EventPublisher eventPublisher;
@@ -45,7 +48,7 @@ public class UserModifiedUseCase {
 
     private void publishUserModifiedEvent(User user) {
         if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
-            outboxService.saveUserModifiedEvent(user.toDto());
+            outboxService.append(AGGREGATE_TYPE, user.getId(), UserEventType.USER_MODIFIED.name(), user.toDto());
         } else {
             eventPublisher.publish(new UserModifiedEvent(user.toDto()));
         }

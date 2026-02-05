@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.global.outbox.domain.OutboxEvent;
 import com.fourtune.auction.global.outbox.repository.OutboxEventRepository;
-import com.fourtune.auction.shared.user.dto.UserResponse;
-import com.fourtune.auction.shared.user.kafka.UserEventMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,52 +18,29 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class OutboxService {
 
-    private static final String AGGREGATE_TYPE_USER = "User";
-
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public void saveUserJoinedEvent(UserResponse user) {
-        saveUserEvent(user, UserEventMessage.UserEventType.USER_JOINED);
-    }
-
-    @Transactional
-    public void saveUserModifiedEvent(UserResponse user) {
-        saveUserEvent(user, UserEventMessage.UserEventType.USER_MODIFIED);
-    }
-
-    @Transactional
-    public void saveUserDeletedEvent(UserResponse user) {
-        saveUserEvent(user, UserEventMessage.UserEventType.USER_DELETED);
-    }
-
-    private void saveUserEvent(UserResponse user, UserEventMessage.UserEventType eventType) {
+    public void append(String aggregateType, Long aggregateId, String eventType, Object payload) {
         try {
-            UserEventMessage message = createUserEventMessage(user, eventType);
-            String payload = objectMapper.writeValueAsString(message);
+            String payloadJson = objectMapper.writeValueAsString(payload);
 
             OutboxEvent outboxEvent = OutboxEvent.builder()
-                    .aggregateType(AGGREGATE_TYPE_USER)
-                    .aggregateId(user.id())
-                    .eventType(eventType.name())
-                    .payload(payload)
+                    .aggregateType(aggregateType)
+                    .aggregateId(aggregateId)
+                    .eventType(eventType)
+                    .payload(payloadJson)
                     .build();
 
             outboxEventRepository.save(outboxEvent);
-            log.debug("Outbox 이벤트 저장 완료: type={}, userId={}", eventType, user.id());
+            log.debug("Outbox 이벤트 저장 완료: aggregateType={}, aggregateId={}, eventType={}",
+                    aggregateType, aggregateId, eventType);
 
         } catch (JsonProcessingException e) {
-            log.error("Outbox 이벤트 직렬화 실패: type={}, userId={}", eventType, user.id(), e);
+            log.error("Outbox 이벤트 직렬화 실패: aggregateType={}, aggregateId={}, eventType={}",
+                    aggregateType, aggregateId, eventType, e);
             throw new RuntimeException("이벤트 직렬화 실패", e);
         }
-    }
-
-    private UserEventMessage createUserEventMessage(UserResponse user, UserEventMessage.UserEventType eventType) {
-        return switch (eventType) {
-            case USER_JOINED -> UserEventMessage.fromUserJoined(user);
-            case USER_MODIFIED -> UserEventMessage.fromUserModified(user);
-            case USER_DELETED -> UserEventMessage.fromUserDeleted(user);
-        };
     }
 }

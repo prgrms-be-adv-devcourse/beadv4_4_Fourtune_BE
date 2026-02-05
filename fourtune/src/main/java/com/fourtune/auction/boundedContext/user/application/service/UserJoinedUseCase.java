@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
+import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.global.error.ErrorCode;
@@ -19,6 +20,8 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserJoinedUseCase {
+
+    private static final String AGGREGATE_TYPE = "User";
 
     private final UserSupport userSupport;
     private final PasswordEncoder passwordEncoder;
@@ -45,7 +48,7 @@ public class UserJoinedUseCase {
 
     private void publishUserJoinedEvent(User user) {
         if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
-            outboxService.saveUserJoinedEvent(user.toDto());
+            outboxService.append(AGGREGATE_TYPE, user.getId(), UserEventType.USER_JOINED.name(), user.toDto());
         } else {
             eventPublisher.publish(new UserJoinedEvent(user.toDto()));
         }
