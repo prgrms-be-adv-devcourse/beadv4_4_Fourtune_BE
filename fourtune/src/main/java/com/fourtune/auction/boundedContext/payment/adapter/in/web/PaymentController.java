@@ -2,6 +2,7 @@ package com.fourtune.auction.boundedContext.payment.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.payment.adapter.in.web.dto.ConfirmPaymentRequest;
 import com.fourtune.auction.boundedContext.payment.adapter.in.web.dto.WalletResponse;
+import com.fourtune.auction.boundedContext.payment.application.service.PaymentCancelUseCase;
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
 import com.fourtune.auction.boundedContext.payment.domain.entity.CashLog;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Payment;
@@ -9,6 +10,10 @@ import com.fourtune.auction.boundedContext.payment.domain.entity.Refund;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
 import com.fourtune.auction.global.common.ApiResponse;
 import com.fourtune.auction.shared.auth.dto.UserContext;
+import com.fourtune.auction.shared.payment.dto.OrderDto;
+import com.fourtune.auction.shared.payment.dto.RefundRequest;
+import com.fourtune.auction.shared.payment.dto.RefundResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +28,7 @@ import java.util.List;
 @RequestMapping("/api/payments")
 public class PaymentController {
     private final PaymentFacade paymentFacade;
+    private final PaymentCancelUseCase paymentCancelUseCase;
     /**
       * 토스페이먼츠 성공 리다이렉트가 아래와 같음
       * URL 예시: /api/payments/toss/success?paymentKey=...&orderId=...&amount=...
@@ -92,5 +98,29 @@ public class PaymentController {
         List<CashLog> cashLogs = paymentFacade.getRecentCashLogs(user.id(), 10);
         return ResponseEntity.ok(ApiResponse.success(WalletResponse.of(wallet.getBalance(), cashLogs))
         );
+    }
+
+    @PostMapping("/refund")
+    public ResponseEntity<ApiResponse<RefundResponse>> refundPayment(@RequestBody @Valid RefundRequest request) {
+
+        // 1. DTO 변환 (Service 계층의 OrderDto로 변환)
+        // OrderDto에 생성자나 Builder가 있다고 가정합니다.
+        OrderDto orderDto = OrderDto.builder()
+                .orderId(request.getOrderId())
+                .auctionOrderId(request.getAuctionOrderId())
+                .build();
+
+        // 2. 환불 유스케이스 실행
+        // cancelAmount가 null이면 서비스 로직에서 전액 환불로 처리됨
+        Refund refund = paymentCancelUseCase.cancelPayment(
+                request.getCancelReason(),
+                request.getCancelAmount(),
+                orderDto
+        );
+
+        // 3. 응답 생성
+        RefundResponse response = RefundResponse.from(refund);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
