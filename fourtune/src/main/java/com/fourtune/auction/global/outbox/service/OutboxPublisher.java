@@ -1,13 +1,10 @@
 package com.fourtune.auction.global.outbox.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.global.outbox.domain.OutboxEvent;
 import com.fourtune.auction.global.outbox.domain.OutboxEventStatus;
+import com.fourtune.auction.global.outbox.handler.OutboxEventHandler;
 import com.fourtune.auction.global.outbox.repository.OutboxEventRepository;
-import com.fourtune.auction.shared.user.kafka.UserEventMessage;
-import com.fourtune.auction.shared.user.kafka.UserKafkaProducer;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Outbox 이벤트 발행자
@@ -24,20 +23,30 @@ import java.util.List;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 @ConditionalOnProperty(name = "feature.kafka.enabled", havingValue = "true", matchIfMissing = false)
 public class OutboxPublisher {
 
     private final OutboxEventRepository outboxEventRepository;
-    private final UserKafkaProducer userKafkaProducer;
-    private final ObjectMapper objectMapper;
     private final EventPublishingConfig eventPublishingConfig;
+    private final Map<String, OutboxEventHandler> handlers;
 
     @Value("${outbox.publisher.batch-size:100}")
     private int batchSize;
 
     @Value("${outbox.publisher.max-retry-count:3}")
     private int maxRetryCount;
+
+    public OutboxPublisher(
+            OutboxEventRepository outboxEventRepository,
+            EventPublishingConfig eventPublishingConfig,
+            List<OutboxEventHandler> handlerList
+    ) {
+        this.outboxEventRepository = outboxEventRepository;
+        this.eventPublishingConfig = eventPublishingConfig;
+        this.handlers = handlerList.stream()
+                .collect(Collectors.toMap(OutboxEventHandler::getAggregateType, h -> h));
+        log.info("OutboxPublisher 초기화 완료: 등록된 핸들러={}", handlers.keySet());
+    }
 
     /**
      * 대기 중인 이벤트 발행 (1초마다 실행)
@@ -111,11 +120,12 @@ public class OutboxPublisher {
     }
 
     private void publishEvent(OutboxEvent event) throws Exception {
-        if ("User".equals(event.getAggregateType())) {
-            UserEventMessage message = objectMapper.readValue(event.getPayload(), UserEventMessage.class);
-            userKafkaProducer.publishSync(message);
+        OutboxEventHandler handler = handlers.get(event.getAggregateType());
+        if (handler != null) {
+            handler.handle(event.getPayload());
         } else {
             log.warn("알 수 없는 aggregate type: {}", event.getAggregateType());
+            throw new IllegalArgumentException("처리할 수 없는 aggregate type: " + event.getAggregateType());
         }
     }
 }

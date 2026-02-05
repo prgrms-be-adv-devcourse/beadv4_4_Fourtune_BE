@@ -1,5 +1,6 @@
 package com.fourtune.auction.shared.user.kafka;
 
+import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
 import com.fourtune.auction.shared.user.dto.UserResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,12 +28,6 @@ public class UserEventMessage {
     private LocalDateTime userCreatedAt;
     private LocalDateTime userUpdatedAt;
     private LocalDateTime eventTimestamp;
-
-    public enum UserEventType {
-        USER_JOINED,
-        USER_MODIFIED,
-        USER_DELETED
-    }
 
     public static UserEventMessage fromUserJoined(UserResponse user) {
         return UserEventMessage.builder()
