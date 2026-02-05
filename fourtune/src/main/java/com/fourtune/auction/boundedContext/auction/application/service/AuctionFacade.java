@@ -32,7 +32,7 @@ public class AuctionFacade {
     private final AuctionExtendUseCase auctionExtendUseCase;
     private final AuctionQueryUseCase auctionQueryUseCase;
     private final AuctionBuyNowUseCase auctionBuyNowUseCase;
-    private final AuctionActionService auctionActionService;
+    private final AuctionStartUseCase auctionStartUseCase;
 
     /**
      * 경매 생성
@@ -40,10 +40,10 @@ public class AuctionFacade {
     public AuctionItemResponse createAuction(Long sellerId, AuctionItemCreateRequest request, List<?> images) {
         // 1. 이미지 업로드는 MVP에서 제외 (Mock URL 사용)
         // TODO: S3Service로 이미지 업로드 추가 필요
-        
+
         // 2. AuctionCreateUseCase 호출
         Long auctionId = auctionCreateUseCase.createAuction(sellerId, request);
-        
+
         // 3. 생성된 경매 조회 및 DTO 변환 (readOnly 트랜잭션으로 분리)
         return getAuctionByIdInReadOnlyTransaction(auctionId);
     }
@@ -54,7 +54,7 @@ public class AuctionFacade {
     public AuctionItemResponse updateAuction(Long auctionId, Long userId, AuctionItemUpdateRequest request) {
         // 1. AuctionUpdateUseCase 호출
         auctionUpdateUseCase.updateAuction(auctionId, userId, request);
-        
+
         // 2. 수정된 경매 조회 및 DTO 변환 (readOnly 트랜잭션으로 분리)
         return getAuctionByIdInReadOnlyTransaction(auctionId);
     }
@@ -72,9 +72,8 @@ public class AuctionFacade {
      */
     public void closeExpiredAuctions() {
         // 1. 종료 시간이 지난 경매 목록 조회 (readOnly 트랜잭션으로 분리)
-        List<com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem> expiredAuctions =
-                findExpiredAuctionsInReadOnlyTransaction();
-        
+        List<com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem> expiredAuctions = findExpiredAuctionsInReadOnlyTransaction();
+
         // 2. 각 경매마다 독립 트랜잭션으로 종료 처리
         for (com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem auction : expiredAuctions) {
             try {
@@ -108,10 +107,10 @@ public class AuctionFacade {
     public AuctionItemDetailResponse getAuctionDetail(Long auctionId) {
         // 1. AuctionQueryUseCase.getAuctionDetail 호출
         AuctionItemDetailResponse response = auctionQueryUseCase.getAuctionDetail(auctionId);
-        
+
         // 2. 조회수 증가는 별도 엔드포인트에서 처리 (PATCH /auctions/{id}/view)
         // TODO: 비동기 처리로 변경 고려
-        
+
         return response;
     }
 
@@ -161,8 +160,8 @@ public class AuctionFacade {
         // TODO: Redis 캐싱 및 비동기 처리는 나중에 추가
     }
 
-    public void startAuctionInTransaction(Long auctionId){
-        auctionActionService.startAuctionInTransaction(auctionId);
+    public void startAuctionInTransaction(Long auctionId) {
+        auctionStartUseCase.startAuctionInTransaction(auctionId);
     }
 
 }
