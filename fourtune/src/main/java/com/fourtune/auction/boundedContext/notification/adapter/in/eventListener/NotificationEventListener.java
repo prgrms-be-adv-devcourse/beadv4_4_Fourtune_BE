@@ -3,6 +3,7 @@ package com.fourtune.auction.boundedContext.notification.adapter.in.eventListene
 import com.fourtune.auction.boundedContext.notification.application.NotificationFacade;
 import com.fourtune.auction.boundedContext.notification.application.NotificationSettingsService;
 import com.fourtune.auction.boundedContext.notification.domain.constant.NotificationType;
+import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.shared.auction.event.AuctionBuyNowEvent;
 import com.fourtune.auction.shared.auction.event.AuctionClosedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionExtendedEvent;
@@ -30,11 +31,16 @@ public class NotificationEventListener {
 
     private final NotificationFacade notificationFacade;
     private final NotificationSettingsService notificationSettingsService;
+    private final EventPublishingConfig eventPublishingConfig;
 
-    // 유저 변경 이벤트
+    // 유저 변경 이벤트 (Kafka 활성화 시 비활성화)
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserJoinEvent(UserJoinedEvent event) {
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            log.debug("[Notification] User 이벤트는 Kafka로 처리됨 - Spring Event 무시");
+            return;
+        }
         log.info("현재 스레드: {}", Thread.currentThread().getName());
         notificationFacade.syncUser(event.getUser());
         notificationSettingsService.createNotificationSettings(event.getUser());
@@ -43,12 +49,18 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserModifiedEvent(UserModifiedEvent event) {
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            return;
+        }
         notificationFacade.syncUser(event.getUser());
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserDeletedEvent(UserDeletedEvent event) {
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            return;
+        }
         notificationFacade.syncUser(event.getUser());
     }
 

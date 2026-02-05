@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.settlement.adapter.in.event;
 
 import com.fourtune.auction.boundedContext.settlement.application.service.SettlementFacade;
+import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.shared.auction.event.OrderCompletedEvent;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
 import com.fourtune.auction.shared.settlement.event.SettlementCompletedEvent;
@@ -23,14 +24,20 @@ import static org.springframework.transaction.event.TransactionPhase.AFTER_COMMI
 public class SettlementListener {
 
     private final SettlementFacade settlementFacade;
+    private final EventPublishingConfig eventPublishingConfig;
 
     /**
      * [수정] fallbackExecution = true 추가
      * 트랜잭션이 없는 곳(InitData 등)에서 발행된 이벤트도 처리하기 위함
+     * Kafka 활성화 시 비활성화
      */
     @TransactionalEventListener(phase = AFTER_COMMIT, fallbackExecution = true)
     @Transactional(propagation = REQUIRES_NEW)
     public void handle(UserJoinedEvent event) {
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            log.debug("[Settlement] User 이벤트는 Kafka로 처리됨 - Spring Event 무시");
+            return;
+        }
         log.info("[SettlementListener] UserJoinedEvent 수신: {}", event.getUser().email());
         settlementFacade.syncUser(event.getUser());
     }
@@ -38,12 +45,18 @@ public class SettlementListener {
     @TransactionalEventListener(phase = AFTER_COMMIT, fallbackExecution = true)
     @Transactional(propagation = REQUIRES_NEW)
     public void handle(UserModifiedEvent event) {
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            return;
+        }
         settlementFacade.syncUser(event.getUser());
     }
 
     @TransactionalEventListener(phase = AFTER_COMMIT, fallbackExecution = true)
     @Transactional(propagation = REQUIRES_NEW)
     public void handle(UserDeletedEvent event) {
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            return;
+        }
         settlementFacade.deleteUser(event.getUser());
     }
 
