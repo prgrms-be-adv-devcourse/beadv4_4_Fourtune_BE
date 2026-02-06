@@ -35,14 +35,6 @@ public class KafkaConfig {
     @Value("${spring.kafka.consumer.group-id:fourtune-consumer-group}")
     private String consumerGroupId;
 
-    // ObjectMapper는 스프링 부트가 이미 만들어둔 빈을 주입받아도 됩니다.
-    @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
-
-    // --- Producer 설정 ---
-
     @Bean
     public ProducerFactory<String, Object> producerFactory(ObjectMapper objectMapper) {
         Map<String, Object> configProps = new HashMap<>();

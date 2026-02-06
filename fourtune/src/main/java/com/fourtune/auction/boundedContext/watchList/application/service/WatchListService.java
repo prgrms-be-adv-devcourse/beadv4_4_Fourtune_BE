@@ -45,7 +45,7 @@ public class WatchListService {
     }
 
     public List<WatchListResponseDto> getMyWatchLists(Long userId) {
-        return watchListSupport.findAllByUserId(userId).stream()
+        return watchListSupport.findAllByUserIdWithFetchJoin(userId).stream()
                 .map(WatchListResponseDto::from)
                 .collect(Collectors.toList());
     }

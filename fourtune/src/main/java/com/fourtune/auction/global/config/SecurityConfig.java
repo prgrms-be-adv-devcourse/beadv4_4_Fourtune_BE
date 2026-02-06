@@ -52,7 +52,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/orders/public/**").permitAll() // 주문 조회 (결제 페이지용, 인증 없음)
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/prometheus").permitAll()
+                        .requestMatchers("/api/test/**").permitAll() // 성능 테스트용 (local, dev 프로필에서만 컨트롤러 활성화)
 
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
