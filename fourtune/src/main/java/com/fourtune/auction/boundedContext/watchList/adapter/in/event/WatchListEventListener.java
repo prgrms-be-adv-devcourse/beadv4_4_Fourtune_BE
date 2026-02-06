@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.watchList.adapter.in.event;
 
 import com.fourtune.auction.boundedContext.watchList.application.service.WatchListService;
+import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.shared.auction.event.AuctionClosedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionItemCreatedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
@@ -21,22 +22,33 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class WatchListEventListener {
 
     private final WatchListService watchListService;
+    private final EventPublishingConfig eventPublishingConfig;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserJoinEvent(UserJoinedEvent event){
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            log.debug("[WatchList] User 이벤트는 Kafka로 처리됨 - Spring Event 무시");
+            return;
+        }
         watchListService.syncUser(event.getUser());
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserModifiedEvent(UserModifiedEvent event){
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            return;
+        }
         watchListService.syncUser(event.getUser());
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserDeletedEvent(UserDeletedEvent event){
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            return;
+        }
         watchListService.syncUser(event.getUser());
     }
 
