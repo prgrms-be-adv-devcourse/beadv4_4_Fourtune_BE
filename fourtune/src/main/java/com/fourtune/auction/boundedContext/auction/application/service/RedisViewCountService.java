@@ -4,17 +4,25 @@ import com.fourtune.auction.boundedContext.auction.port.out.AuctionItemRepositor
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
  * 조회수 Redis 캐시 서비스
  * - INCR로 조회수 증가 (DB 부하 감소)
- * - 1분마다 Redis → DB 동기화 (원자적 GETDEL 후 벌크 업데이트)
+ * - 1분마다 Redis → DB 동기화: SCAN으로 키 수집, MGET 1번으로 값 조회, DB 반영 후 커밋 성공 시 Pipeline으로 DECRBY 일괄 전송
+ *   (DB 롤백 시 유실 방지; SCAN으로 KEYS 블로킹 방지; MGET+Pipeline으로 Redis 왕복 최소화)
  * - 상세/목록 응답 시 DB + Redis 합산 값 제공
  */
 @Slf4j
@@ -74,21 +82,38 @@ public class RedisViewCountService {
     }
 
     /**
-     * Redis 값 → DB 벌크 반영 후 Redis 원자적 초기화, 이벤트 발행. use-redis=false면 스킵
+     * Redis 값 → DB 반영 후, DB 커밋 성공 시에만 Redis에서 해당 delta만큼 DECRBY.
+     * SCAN으로 키 수집(KEYS 블로킹 방지), MGET 1번으로 값 조회, afterCommit에서 Pipeline으로 DECRBY 일괄 전송.
      */
     @Transactional
     @Scheduled(fixedDelayString = "${app.view-count.sync-interval-ms:60000}")
+    @SuppressWarnings("deprecation") // connection.scan(ScanOptions) 대체 API 전까지 SCAN 사용(블로킹 방지)
     public void syncToDatabase() {
         if (!useRedis) return;
-        Set<String> keys = redisTemplate.keys(keyPrefix + "*");
-        if (keys == null || keys.isEmpty()) return;
 
+        Set<String> keySet = redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
+            Set<String> result = new HashSet<>();
+            ScanOptions options = ScanOptions.scanOptions().match(keyPrefix + "*").count(100).build();
+            try (Cursor<byte[]> cursor = connection.scan(options)) {
+                while (cursor.hasNext()) {
+                    result.add(new String(cursor.next(), StandardCharsets.UTF_8));
+                }
+            }
+            return result;
+        });
+        if (keySet == null || keySet.isEmpty()) return;
+
+        List<String> keyList = new ArrayList<>(keySet);
+        List<String> values = redisTemplate.opsForValue().multiGet(keyList);
+        if (values == null) return;
+
+        List<String> keysToAdjust = new ArrayList<>();
         List<Long> auctionIds = new ArrayList<>();
         List<Long> deltas = new ArrayList<>();
 
-        for (String key : keys) {
-            // 원자적: 값 읽고 키 삭제 (GETDEL, Redis 6.2+). 없으면 getAndDelete 반환 null.
-            String val = redisTemplate.opsForValue().getAndDelete(key);
+        for (int i = 0; i < keyList.size(); i++) {
+            String key = keyList.get(i);
+            String val = (i < values.size()) ? values.get(i) : null;
             if (val == null || val.isEmpty()) continue;
             long delta;
             try {
@@ -101,6 +126,7 @@ public class RedisViewCountService {
             String suffix = key.substring(keyPrefix.length());
             try {
                 long auctionId = Long.parseLong(suffix);
+                keysToAdjust.add(key);
                 auctionIds.add(auctionId);
                 deltas.add(delta);
             } catch (NumberFormatException e) {
@@ -113,6 +139,25 @@ public class RedisViewCountService {
         for (int i = 0; i < auctionIds.size(); i++) {
             auctionItemRepository.addViewCount(auctionIds.get(i), deltas.get(i));
         }
+
+        List<String> keysForCallback = new ArrayList<>(keysToAdjust);
+        List<Long> deltasForCallback = new ArrayList<>(deltas);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                redisTemplate.executePipelined(new SessionCallback<Object>() {
+                    @Override
+                    @SuppressWarnings({"rawtypes", "unchecked"})
+                    public Object execute(org.springframework.data.redis.core.RedisOperations operations) {
+                        for (int i = 0; i < keysForCallback.size(); i++) {
+                            operations.opsForValue().decrement(keysForCallback.get(i), deltasForCallback.get(i));
+                        }
+                        return null;
+                    }
+                });
+            }
+        });
+
         log.info("[VIEW] synced to DB auctionIds={} count={}", auctionIds.size(), auctionIds);
     }
 }
