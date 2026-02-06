@@ -2,6 +2,7 @@ package com.fourtune.auction.boundedContext.payment.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.payment.adapter.in.web.dto.ConfirmPaymentRequest;
 import com.fourtune.auction.boundedContext.payment.adapter.in.web.dto.WalletResponse;
+import com.fourtune.auction.boundedContext.payment.application.service.PaymentCancelUseCase;
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
 import com.fourtune.auction.boundedContext.payment.domain.entity.CashLog;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Payment;
@@ -9,6 +10,10 @@ import com.fourtune.auction.boundedContext.payment.domain.entity.Refund;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
 import com.fourtune.auction.global.common.ApiResponse;
 import com.fourtune.auction.shared.auth.dto.UserContext;
+import com.fourtune.auction.shared.payment.dto.OrderDto;
+import com.fourtune.auction.shared.payment.dto.RefundRequest;
+import com.fourtune.auction.shared.payment.dto.RefundResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +28,7 @@ import java.util.List;
 @RequestMapping("/api/payments")
 public class PaymentController {
     private final PaymentFacade paymentFacade;
+    private final PaymentCancelUseCase paymentCancelUseCase;
     /**
       * 토스페이먼츠 성공 리다이렉트가 아래와 같음
       * URL 예시: /api/payments/toss/success?paymentKey=...&orderId=...&amount=...

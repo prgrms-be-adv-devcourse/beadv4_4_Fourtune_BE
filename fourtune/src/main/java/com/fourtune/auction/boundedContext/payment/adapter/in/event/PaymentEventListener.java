@@ -9,7 +9,6 @@ import com.fourtune.auction.shared.user.event.UserJoinedEvent;
 import com.fourtune.auction.shared.user.event.UserModifiedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -58,8 +57,8 @@ public class PaymentEventListener {
         paymentFacade.createWallet(event.getPaymentUserDto());
     }
 
-    // 현금처리 예외 발생시 정산까지 롤백
-    @EventListener
+    @TransactionalEventListener(phase = AFTER_COMMIT)
+    @Transactional(propagation = REQUIRES_NEW)
     public void handle(SettlementCompletedEvent event) {
         paymentFacade.completeSettlement(event.getSettlementDto());
     }
