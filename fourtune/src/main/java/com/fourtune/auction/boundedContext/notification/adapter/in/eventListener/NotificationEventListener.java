@@ -3,6 +3,7 @@ package com.fourtune.auction.boundedContext.notification.adapter.in.eventListene
 import com.fourtune.auction.boundedContext.notification.application.NotificationFacade;
 import com.fourtune.auction.boundedContext.notification.application.NotificationSettingsService;
 import com.fourtune.auction.boundedContext.notification.domain.constant.NotificationType;
+import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.shared.auction.event.AuctionBuyNowEvent;
 import com.fourtune.auction.shared.auction.event.AuctionClosedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionExtendedEvent;
@@ -30,11 +31,16 @@ public class NotificationEventListener {
 
     private final NotificationFacade notificationFacade;
     private final NotificationSettingsService notificationSettingsService;
+    private final EventPublishingConfig eventPublishingConfig;
 
-    // 유저 변경 이벤트
+    // 유저 변경 이벤트 (Kafka 활성화 시 비활성화)
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserJoinEvent(UserJoinedEvent event) {
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            log.debug("[Notification] User 이벤트는 Kafka로 처리됨 - Spring Event 무시");
+            return;
+        }
         log.info("현재 스레드: {}", Thread.currentThread().getName());
         notificationFacade.syncUser(event.getUser());
         notificationSettingsService.createNotificationSettings(event.getUser());
@@ -43,12 +49,18 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserModifiedEvent(UserModifiedEvent event) {
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            return;
+        }
         notificationFacade.syncUser(event.getUser());
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserDeletedEvent(UserDeletedEvent event) {
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            return;
+        }
         notificationFacade.syncUser(event.getUser());
     }
 
@@ -128,7 +140,7 @@ public class NotificationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentSucceededEvent(PaymentSucceededEvent event) {
         log.info("결제 성공 이벤트 수신 - orderId={}, userId={}",
-                event.getOrder().getOrderId(), event.getOrder().getUserId());
+                event.getOrder().getAuctionOrderId(), event.getOrder().getUserId());
 
         // 결제 성공 알림 (OrderDto의 items에서 첫 번째 item의 itemId를 auctionId로 사용)
         Long userId = event.getOrder().getUserId();
@@ -136,7 +148,7 @@ public class NotificationEventListener {
             Long auctionId = event.getOrder().getItems().get(0).getItemId();
             notificationFacade.createNotification(userId, auctionId, NotificationType.PAYMENT_SUCCESS);
         } else {
-            log.warn("결제 성공 이벤트 처리 실패: Order에 items가 없음 - orderId={}", event.getOrder().getOrderId());
+            log.warn("결제 성공 이벤트 처리 실패: Order에 items가 없음 - orderId={}", event.getOrder().getAuctionOrderId());
         }
     }
 
@@ -144,7 +156,7 @@ public class NotificationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentFailedEvent(PaymentFailedEvent event) {
         log.info("결제 실패 이벤트 수신 - orderId={}, msg={}",
-                event.getOrder() != null ? event.getOrder().getOrderId() : "null", event.getMsg());
+                event.getOrder() != null ? event.getOrder().getAuctionOrderId() : "null", event.getMsg());
 
         // 결제 실패 알림
         if (event.getOrder() != null) {
@@ -154,7 +166,7 @@ public class NotificationEventListener {
                 notificationFacade.createNotification(userId, auctionId, NotificationType.PAYMENT_FAILED);
             } else {
                 log.warn("결제 실패 이벤트 처리 실패: Order에 items가 없음 - orderId={}",
-                        event.getOrder().getOrderId());
+                        event.getOrder().getAuctionOrderId());
             }
         }
     }

@@ -85,9 +85,9 @@ class SearchFacadeTest {
         // given
         Long userId = 1L;
         SearchCondition condition = new SearchCondition(
-                "test", 
-                Collections.emptySet(), 
-                null, 
+                "test",
+                Collections.emptySet(),
+                null,
                 Collections.emptySet(),
                 com.fourtune.auction.boundedContext.search.domain.constant.SearchSort.ENDS_SOON, // 마감임박순
                 1
