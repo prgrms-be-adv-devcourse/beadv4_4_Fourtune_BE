@@ -1,10 +1,13 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
+import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
+import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.global.outbox.service.OutboxService;
 import com.fourtune.auction.shared.user.dto.UserSignUpRequest;
 import com.fourtune.auction.shared.user.event.UserJoinedEvent;
 import jakarta.transaction.Transactional;
@@ -18,9 +21,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserJoinedUseCase {
 
+    private static final String AGGREGATE_TYPE = "User";
+
     private final UserSupport userSupport;
     private final PasswordEncoder passwordEncoder;
     private final EventPublisher eventPublisher;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final OutboxService outboxService;
 
     @Transactional
     public void userJoin(UserSignUpRequest request) {
@@ -29,13 +36,21 @@ public class UserJoinedUseCase {
         if(existingUser.isPresent()){
             User user = existingUser.get();
             isSuspendedUser(user, request);
-            eventPublisher.publish(new UserJoinedEvent(user.toDto()));
+            publishUserJoinedEvent(user);
         }
         else{
             validateSignUp(request);
             User newUser = request.toEntity(passwordEncoder.encode(request.password()));
             userSupport.save(newUser);
-            eventPublisher.publish(new UserJoinedEvent(newUser.toDto()));
+            publishUserJoinedEvent(newUser);
+        }
+    }
+
+    private void publishUserJoinedEvent(User user) {
+        if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE, user.getId(), UserEventType.USER_JOINED.name(), user.toDto());
+        } else {
+            eventPublisher.publish(new UserJoinedEvent(user.toDto()));
         }
     }
 

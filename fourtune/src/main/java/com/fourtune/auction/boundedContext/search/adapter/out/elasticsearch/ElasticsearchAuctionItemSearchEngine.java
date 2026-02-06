@@ -145,6 +145,13 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
                     Sort.Order.desc("createdAt"));
         }
 
+        // 마감임박순: endAt asc (종료 시간 빠른 순)
+        if (s == SearchSort.ENDS_SOON) {
+            return Sort.by(
+                    Sort.Order.asc("endAt"),
+                    Sort.Order.desc("createdAt")); // 시간 같으면 최신순
+        }
+
         return Sort.by(Sort.Order.desc("createdAt"));
     }
 

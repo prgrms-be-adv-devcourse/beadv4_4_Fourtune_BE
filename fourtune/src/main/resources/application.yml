@@ -138,6 +138,7 @@ feature:
   kafka:
     enabled: true
 
+
 # JWT 설정
 jwt:
   secret: ${JWT_SECRET}
