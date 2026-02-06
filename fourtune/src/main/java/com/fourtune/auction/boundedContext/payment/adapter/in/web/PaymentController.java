@@ -99,28 +99,4 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success(WalletResponse.of(wallet.getBalance(), cashLogs))
         );
     }
-
-    @PostMapping("/refund")
-    public ResponseEntity<ApiResponse<RefundResponse>> refundPayment(@RequestBody @Valid RefundRequest request) {
-
-        // 1. DTO 변환 (Service 계층의 OrderDto로 변환)
-        // OrderDto에 생성자나 Builder가 있다고 가정합니다.
-        OrderDto orderDto = OrderDto.builder()
-                .orderId(request.getOrderId())
-                .auctionOrderId(request.getAuctionOrderId())
-                .build();
-
-        // 2. 환불 유스케이스 실행
-        // cancelAmount가 null이면 서비스 로직에서 전액 환불로 처리됨
-        Refund refund = paymentCancelUseCase.cancelPayment(
-                request.getCancelReason(),
-                request.getCancelAmount(),
-                orderDto
-        );
-
-        // 3. 응답 생성
-        RefundResponse response = RefundResponse.from(refund);
-
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
 }
