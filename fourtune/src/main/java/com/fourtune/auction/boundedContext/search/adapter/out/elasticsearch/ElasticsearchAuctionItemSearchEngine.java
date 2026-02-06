@@ -19,7 +19,10 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.json.JsonData;
+import co.elastic.clients.elasticsearch._types.SortOptions;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+
+import java.io.StringReader;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -55,11 +58,17 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
         // NativeQuery 생성
         Query query = buildNativeQuery(condition);
 
-        NativeQuery nativeQuery = NativeQuery.builder()
+        var nativeQueryBuilder = NativeQuery.builder()
                 .withQuery(query)
-                .withPageable(PageRequest.of(page - 1, size))
-                .withSort(buildSort(condition.sort()))
-                .build();
+                .withPageable(PageRequest.of(page - 1, size));
+
+        if (condition.sort() == SearchSort.POPULAR) {
+            nativeQueryBuilder.withSort(buildPopularScriptSort());
+        } else {
+            nativeQueryBuilder.withSort(buildSort(condition.sort()));
+        }
+
+        NativeQuery nativeQuery = nativeQueryBuilder.build();
 
         SearchHits<SearchAuctionItemDocument> hits = operations.search(nativeQuery, SearchAuctionItemDocument.class);
 
@@ -138,13 +147,6 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
             return Sort.by(Sort.Order.desc("createdAt"));
         }
 
-        // 인기순(MVP): viewCount desc, tie-break createdAt desc
-        if (s == SearchSort.POPULAR) {
-            return Sort.by(
-                    Sort.Order.desc("viewCount"),
-                    Sort.Order.desc("createdAt"));
-        }
-
         // 마감임박순: endAt asc (종료 시간 빠른 순)
         if (s == SearchSort.ENDS_SOON) {
             return Sort.by(
@@ -154,6 +156,49 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
 
         return Sort.by(Sort.Order.desc("createdAt"));
     }
+
+    private SortOptions buildPopularScriptSort() {
+        // [신선도 가중 인기순 정렬 공식]
+        // 최종 점수 = 활동 점수 (Base) / 신선도 감가 (Decay)
+        String scriptCode = """
+            long now = params.now;
+            long createdAt = doc['createdAt'].value.toInstant().toEpochMilli();
+            double hoursOld = (now - createdAt) / 3600000.0;
+            double viewVal = (doc['viewCount'].size() > 0) ? doc['viewCount'].value : 0;
+            double viewScore = Math.log10(viewVal + 1);
+            double watchVal = (doc['watchlistCount'].size() > 0) ? doc['watchlistCount'].value : 0;
+            double bidVal = (doc['bidCount'].size() > 0) ? doc['bidCount'].value : 0;
+            double baseScore = (viewScore * 1.0) + (watchVal * 3.0) + (bidVal * 5.0);
+            double decay = Math.pow(hoursOld + 2, 0.5);
+            return baseScore / decay;
+            """;
+            
+        // Escape script for JSON
+        String escapedScript = scriptCode.replace("\n", " ").replace("\"", "\\\"");
+        long nowParam = System.currentTimeMillis();
+
+        String json = String.format("""
+            {
+                "_script": {
+                    "type": "number",
+                    "script": {
+                        "source": "%s",
+                        "lang": "painless",
+                        "params": {
+                            "now": %d
+                        }
+                    },
+                    "order": "desc"
+                }
+            }
+            """, escapedScript, nowParam);
+
+        return co.elastic.clients.elasticsearch._types.SortOptions.of(s -> s
+                .withJson(new StringReader(json))
+        );
+    }
+
+
 
     private SearchAuctionItemView toView(SearchAuctionItemDocument d) {
         return new SearchAuctionItemView(
