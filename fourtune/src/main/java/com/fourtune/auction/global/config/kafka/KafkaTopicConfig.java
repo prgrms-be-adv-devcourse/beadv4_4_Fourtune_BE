@@ -10,7 +10,7 @@ import org.springframework.kafka.config.TopicBuilder;
 @ConditionalOnProperty(name = "feature.kafka.enabled", havingValue = "true", matchIfMissing = false)
 public class KafkaTopicConfig {
 
-    public static final String USER_EVENTS_TOPIC = "user-events";
+    public static final String USER_EVENTS_TOPIC = "user-account-events";
     public static final String USER_EVENTS_DLQ_TOPIC = "user-events-dlq";
 
     @Bean
