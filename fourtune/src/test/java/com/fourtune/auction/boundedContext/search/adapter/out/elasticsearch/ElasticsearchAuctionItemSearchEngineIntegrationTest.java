@@ -253,6 +253,8 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
         SearchResultPage<SearchAuctionItemView> result = searchEngine.search(condition);
 
         // then
+        result.items().forEach(item -> System.out.println("Result Item: " + item.title() + ", View: " + item.viewCount()));
+
         assertThat(result.items()).hasSize(3);
         assertThat(result.items().get(0).title()).isEqualTo("인기 많음");
         assertThat(result.items().get(1).title()).isEqualTo("인기 보통");
