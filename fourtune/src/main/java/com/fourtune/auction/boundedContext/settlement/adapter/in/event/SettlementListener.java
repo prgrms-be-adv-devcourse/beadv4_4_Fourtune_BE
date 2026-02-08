@@ -4,6 +4,8 @@ import com.fourtune.auction.boundedContext.settlement.application.service.Settle
 import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.shared.auction.event.OrderCompletedEvent;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
+import com.fourtune.auction.shared.payment.dto.RefundDto;
+import com.fourtune.auction.shared.payment.event.AuctionRefundCompletedEvent;
 import com.fourtune.auction.shared.settlement.event.SettlementCompletedEvent;
 import com.fourtune.auction.shared.settlement.event.SettlementUserCreatedEvent;
 import com.fourtune.auction.shared.user.event.UserDeletedEvent;
@@ -92,5 +94,18 @@ public class SettlementListener {
         OrderDto orderDto = OrderDto.from(event);
 
         settlementFacade.addSettlementCandidatedItem(orderDto);
+    }
+
+    /**
+     * 환불 완료시 정산 후보 등록 (역방향)
+     */
+    @TransactionalEventListener(phase = AFTER_COMMIT, fallbackExecution = true)
+    @Transactional(propagation = REQUIRES_NEW)
+    public void handle(AuctionRefundCompletedEvent event) {
+        log.info("[SettlementListener] 환불 완료 확인: refundId={}, orderId={}",
+                event.refundId(), event.orderId());
+
+        RefundDto refundDto = RefundDto.from(event);
+        settlementFacade.addRefundSettlementCandidatedItem(refundDto);
     }
 }
