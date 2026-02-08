@@ -72,4 +72,15 @@ public record AuctionItemDetailResponse(
                 imageUrls
         );
     }
+
+    /**
+     * 조회수만 바꾼 복사 (Redis 합산 값 반영용)
+     */
+    public AuctionItemDetailResponse withViewCount(long viewCount) {
+        return new AuctionItemDetailResponse(
+                id, sellerId, sellerNickname, title, description, category,
+                startPrice, currentPrice, bidUnit, buyNowPrice, buyNowEnabled, buyNowDisabledByPolicy,
+                status, auctionStartTime, auctionEndTime, viewCount, watchlistCount, bidCount, imageUrls
+        );
+    }
 }
