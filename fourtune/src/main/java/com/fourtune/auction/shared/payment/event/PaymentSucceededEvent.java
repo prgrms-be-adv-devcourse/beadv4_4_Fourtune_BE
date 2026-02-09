@@ -9,6 +9,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class PaymentSucceededEvent {
     private final OrderDto order;
-    private final OrderDetailResponse orderDetailResponse;
     private final long pgPaymentAmount;
 }
