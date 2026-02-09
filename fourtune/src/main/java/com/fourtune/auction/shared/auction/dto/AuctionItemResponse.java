@@ -20,6 +20,7 @@ public record AuctionItemResponse(
     AuctionStatus status,
     LocalDateTime auctionEndTime,
     Long viewCount,
+    Integer watchlistCount,
     Integer bidCount,
     String thumbnailUrl
 ) {
@@ -55,6 +56,7 @@ public record AuctionItemResponse(
                 auctionItem.getStatus(),
                 auctionItem.getAuctionEndTime(),
                 auctionItem.getViewCount(),
+                auctionItem.getWatchlistCount(),
                 auctionItem.getBidCount(),
                 thumbnailUrl
         );
@@ -67,7 +69,7 @@ public record AuctionItemResponse(
         return new AuctionItemResponse(
                 id, sellerId, sellerNickname, title, category,
                 startPrice, currentPrice, buyNowPrice, buyNowEnabled, buyNowDisabledByPolicy,
-                status, auctionEndTime, viewCount, bidCount, thumbnailUrl
+                status, auctionEndTime, viewCount, watchlistCount, bidCount, thumbnailUrl
         );
     }
 }
