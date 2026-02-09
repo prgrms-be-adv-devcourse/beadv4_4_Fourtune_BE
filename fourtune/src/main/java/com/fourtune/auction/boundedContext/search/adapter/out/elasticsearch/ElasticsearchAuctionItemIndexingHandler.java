@@ -7,6 +7,8 @@ import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.math.BigDecimal;
 
 // 정본 변경을 ES에 반영
@@ -46,11 +48,11 @@ public class ElasticsearchAuctionItemIndexingHandler implements AuctionItemIndex
                 .currentPrice(currentPrice)
                 .buyNowPrice(v.buyNowPrice())
                 .buyNowEnabled(v.buyNowEnabled())
-                .startAt(v.startAt())
-                .endAt(v.endAt())
+                .startAt(v.startAt() != null ? v.startAt().atZone(ZoneId.of("Asia/Seoul")) : null)
+                .endAt(v.endAt() != null ? v.endAt().atZone(ZoneId.of("Asia/Seoul")) : null)
                 .thumbnailUrl(v.thumbnailUrl())
-                .createdAt(v.createdAt())
-                .updatedAt(v.updatedAt())
+                .createdAt(v.createdAt() != null ? v.createdAt().atZone(ZoneId.of("Asia/Seoul")) : null)
+                .updatedAt(v.updatedAt() != null ? v.updatedAt().atZone(ZoneId.of("Asia/Seoul")) : null)
                 .viewCount(v.viewCount())
                 .watchlistCount(v.watchlistCount())
                 .bidCount(v.bidCount())
