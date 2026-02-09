@@ -3,6 +3,7 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.boundedContext.auction.port.out.AuctionItemRepository;
+import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.shared.auction.event.AuctionDeletedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionItemDeletedEvent;
@@ -10,6 +11,8 @@ import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 /**
  * 경매 삭제 UseCase
@@ -24,6 +27,7 @@ public class AuctionDeleteUseCase {
     private final BidSupport bidSupport;
     private final AuctionItemRepository auctionItemRepository;
     private final EventPublisher eventPublisher;
+    private final UserFacade userFacade;
 
     /**
      * 경매 삭제
@@ -84,8 +88,12 @@ public class AuctionDeleteUseCase {
         
         // 5. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(auctionItem);
+        String sellerName = userFacade.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
+
         eventPublisher.publish(new AuctionItemUpdatedEvent(
                 auctionItem.getId(),
+                auctionItem.getSellerId(),
+                sellerName,
                 auctionItem.getTitle(),
                 auctionItem.getDescription(),
                 auctionItem.getCategory(),

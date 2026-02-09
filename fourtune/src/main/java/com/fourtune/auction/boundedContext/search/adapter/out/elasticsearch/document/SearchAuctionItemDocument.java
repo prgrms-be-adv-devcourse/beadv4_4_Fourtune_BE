@@ -65,4 +65,10 @@ public class SearchAuctionItemDocument {
 
     @Field(type = FieldType.Integer)
     private Integer bidCount;
+
+    @Field(type = FieldType.Long)
+    private Long sellerId;
+
+    @Field(type = FieldType.Keyword)
+    private String sellerName;
 }

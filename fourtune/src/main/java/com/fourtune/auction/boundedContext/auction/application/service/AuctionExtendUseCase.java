@@ -4,6 +4,7 @@ import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionPolicy
 import com.fourtune.auction.boundedContext.auction.domain.constant.BidPolicy;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
+import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 /**
  * 경매 자동 연장 UseCase
@@ -27,6 +29,7 @@ public class AuctionExtendUseCase {
     private final AuctionSupport auctionSupport;
     private final EventPublisher eventPublisher;
     private final BidPolicy bidPolicy;
+    private final UserFacade userFacade;
 
     /**
      * [진입점] 경매 자동 연장
@@ -73,8 +76,12 @@ public class AuctionExtendUseCase {
         
         // 5. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(auctionItem);
+        String sellerName = userFacade.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
+
         eventPublisher.publish(new AuctionItemUpdatedEvent(
                 auctionItem.getId(),
+                auctionItem.getSellerId(),
+                sellerName,
                 auctionItem.getTitle(),
                 auctionItem.getDescription(),
                 auctionItem.getCategory(),
