@@ -2,11 +2,14 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
+import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.shared.auction.dto.AuctionItemCreateRequest;
 import com.fourtune.auction.shared.auction.event.AuctionCreatedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionItemCreatedEvent;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,7 @@ public class AuctionCreateUseCase {
 
     private final AuctionSupport auctionSupport;
     private final EventPublisher eventPublisher;
+    private final UserFacade userFacade;
     // private final S3Service s3Service; // TODO: 나중에 추가
 
     /**
@@ -55,8 +59,11 @@ public class AuctionCreateUseCase {
         
         // 4. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(savedAuction);
+        String sellerName = userFacade.getNicknamesByIds(Set.of(sellerId)).getOrDefault(sellerId, null);
         eventPublisher.publish(new AuctionItemCreatedEvent(
                 savedAuction.getId(),
+                sellerId,
+                sellerName,
                 savedAuction.getTitle(),
                 savedAuction.getDescription(),
                 savedAuction.getCategory(),

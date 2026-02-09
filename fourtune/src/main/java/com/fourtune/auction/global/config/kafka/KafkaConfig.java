@@ -35,11 +35,13 @@ public class KafkaConfig {
     @Value("${spring.kafka.consumer.group-id:fourtune-consumer-group}")
     private String consumerGroupId;
 
-    // ObjectMapper는 스프링 부트가 이미 만들어둔 빈을 주입받아도 됩니다.
-    @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
+    // ObjectMapper는 JacksonConfig에서 정의한 단일 빈을 주입받음 (중복 빈 충돌 방지, JavaTimeModule로 UserEventMessage 등 날짜 필드 직렬화 보장)
+    // 상세: docs/reference/OBJECTMAPPER_KAFKA_JACKSON_ANALYSIS.md
+    // 혹시 모를 롤백용: 아래 주석 해제 시 이 클래스에서 ObjectMapper 빈 정의 (JacksonConfig와 중복 시 충돌)
+    // @Bean
+    // public ObjectMapper objectMapper() {
+    //     return new ObjectMapper();
+    // }
 
     // --- Producer 설정 ---
 

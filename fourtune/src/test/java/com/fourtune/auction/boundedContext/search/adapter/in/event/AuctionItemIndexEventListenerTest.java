@@ -105,6 +105,8 @@ class AuctionItemIndexEventListenerTest {
         LocalDateTime now = LocalDateTime.now();
         AuctionItemCreatedEvent event = new AuctionItemCreatedEvent(
                 100L,
+                1L,
+                "TestSeller",
                 "Complete Test Auction",
                 "Detailed description",
                 Category.ELECTRONICS,
@@ -149,6 +151,8 @@ class AuctionItemIndexEventListenerTest {
     private AuctionItemCreatedEvent createTestCreatedEvent() {
         return new AuctionItemCreatedEvent(
                 1L,
+                1L,
+                "TestSeller",
                 "Test Auction",
                 "Test Description",
                 Category.ELECTRONICS,
