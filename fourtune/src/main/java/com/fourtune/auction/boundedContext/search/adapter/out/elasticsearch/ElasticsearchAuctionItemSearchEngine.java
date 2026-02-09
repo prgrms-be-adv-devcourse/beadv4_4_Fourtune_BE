@@ -164,6 +164,9 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
             long now = params.now;
             long createdAt = doc['createdAt'].value.toInstant().toEpochMilli();
             double hoursOld = (now - createdAt) / 3600000.0;
+            if (hoursOld < 0) {
+                hoursOld = 0;
+            }
             double viewVal = (doc['viewCount'].size() > 0) ? doc['viewCount'].value : 0;
             double viewScore = Math.log10(viewVal + 1);
             double watchVal = (doc['watchlistCount'].size() > 0) ? doc['watchlistCount'].value : 0;
