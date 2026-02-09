@@ -20,5 +20,7 @@ public record SearchAuctionItemView(
         LocalDateTime updatedAt,
         long viewCount,
         int watchlistCount,
-        int bidCount
+        int bidCount,
+        Long sellerId,
+        String sellerName
 ) {}

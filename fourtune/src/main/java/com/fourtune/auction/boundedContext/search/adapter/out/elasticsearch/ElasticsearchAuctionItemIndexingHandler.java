@@ -56,6 +56,8 @@ public class ElasticsearchAuctionItemIndexingHandler implements AuctionItemIndex
                 .viewCount(v.viewCount())
                 .watchlistCount(v.watchlistCount())
                 .bidCount(v.bidCount())
+                .sellerId(v.sellerId())
+                .sellerName(v.sellerName())
                 .build();
     }
 }
