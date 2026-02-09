@@ -25,6 +25,7 @@ import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import java.io.StringReader;
 import java.util.List;
 import java.util.Locale;
+import java.time.ZoneId;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -214,11 +215,11 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
                 d.getCurrentPrice(),
                 d.getBuyNowPrice(),
                 d.getBuyNowEnabled(),
-                d.getStartAt(),
-                d.getEndAt(),
+                d.getStartAt() != null ? d.getStartAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime() : null,
+                d.getEndAt() != null ? d.getEndAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime() : null,
                 d.getThumbnailUrl(),
-                d.getCreatedAt(),
-                d.getUpdatedAt(),
+                d.getCreatedAt() != null ? d.getCreatedAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime() : null,
+                d.getUpdatedAt() != null ? d.getUpdatedAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime() : null,
                 d.getViewCount(),
                 d.getWatchlistCount(),
                 d.getBidCount());
