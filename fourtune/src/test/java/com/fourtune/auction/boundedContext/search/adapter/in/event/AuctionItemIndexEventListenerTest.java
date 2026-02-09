@@ -51,6 +51,8 @@ class AuctionItemIndexEventListenerTest {
         assertThat(capturedView.title()).isEqualTo("Test Auction");
         assertThat(capturedView.category()).isEqualTo("ELECTRONICS");
         assertThat(capturedView.status()).isEqualTo("SCHEDULED");
+        assertThat(capturedView.sellerId()).isEqualTo(1L);
+        assertThat(capturedView.sellerName()).isEqualTo("TestSeller");
     }
 
     @Test
@@ -69,6 +71,10 @@ class AuctionItemIndexEventListenerTest {
         SearchAuctionItemView capturedView = captor.getValue();
         assertThat(capturedView.auctionItemId()).isEqualTo(1L);
         assertThat(capturedView.title()).isEqualTo("Updated Auction");
+        assertThat(capturedView.category()).isEqualTo("ELECTRONICS");
+        assertThat(capturedView.status()).isEqualTo("ACTIVE");
+        assertThat(capturedView.sellerId()).isEqualTo(1L);
+        assertThat(capturedView.sellerName()).isEqualTo("UpdatedSeller");
     }
 
     @Test
@@ -145,6 +151,8 @@ class AuctionItemIndexEventListenerTest {
         assertThat(view.viewCount()).isEqualTo(500L);
         assertThat(view.bidCount()).isEqualTo(10);
         assertThat(view.watchlistCount()).isEqualTo(25);
+        assertThat(view.sellerId()).isEqualTo(1L);
+        assertThat(view.sellerName()).isEqualTo("TestSeller");
     }
 
     // Helper methods
@@ -174,6 +182,8 @@ class AuctionItemIndexEventListenerTest {
     private AuctionItemUpdatedEvent createTestUpdatedEvent() {
         return new AuctionItemUpdatedEvent(
                 1L,
+                1L,
+                "UpdatedSeller",
                 "Updated Auction",
                 "Updated Description",
                 Category.ELECTRONICS,
