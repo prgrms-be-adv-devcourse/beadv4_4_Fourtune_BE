@@ -68,6 +68,8 @@ public class AuctionUpdateUseCase {
         String thumbnailUrl = extractThumbnailUrl(auctionItem);
         eventPublisher.publish(new AuctionItemUpdatedEvent(
                 auctionItem.getId(),
+                auctionItem.getSellerId(),
+                sellerName,
                 auctionItem.getTitle(),
                 auctionItem.getDescription(),
                 auctionItem.getCategory(),

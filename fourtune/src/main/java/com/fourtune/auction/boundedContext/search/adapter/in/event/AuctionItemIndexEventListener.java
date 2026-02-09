@@ -108,7 +108,9 @@ public class AuctionItemIndexEventListener {
                 event.updatedAt(),
                 event.viewCount(),
                 event.watchlistCount(),
-                event.bidCount());
+                event.bidCount(),
+                event.sellerId(),
+                event.sellerName());
     }
 
     // AuctionItemUpdatedEvent를 SearchAuctionItemView로 변환
@@ -130,6 +132,8 @@ public class AuctionItemIndexEventListener {
                 event.updatedAt(),
                 event.viewCount(),
                 event.watchlistCount(),
-                event.bidCount());
+                event.bidCount(),
+                event.sellerId(),
+                event.sellerName());
     }
 }
