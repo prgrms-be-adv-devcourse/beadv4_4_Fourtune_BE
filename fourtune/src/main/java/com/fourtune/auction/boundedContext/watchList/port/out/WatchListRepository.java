@@ -3,6 +3,7 @@ package com.fourtune.auction.boundedContext.watchList.port.out;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchList;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -32,4 +33,18 @@ public interface WatchListRepository extends JpaRepository<WatchList, Long> {
     List<Long> findAllByAuctionItemId(@Param("auctionItemId") Long auctionItemId);
 
     Optional<WatchList> findByUserIdAndAuctionItemId(Long userId, Long auctionItemId);
+
+    // === Bulk UPDATE 메서드 ===
+
+    // 경매 시작 알림 상태 Bulk Update (1회 쿼리로 N건 처리)
+    @Modifying
+    @Query("UPDATE WatchList w SET w.isStartAlertSent = true " +
+           "WHERE w.auctionItem.id = :auctionItemId")
+    int bulkMarkStartAlertSent(@Param("auctionItemId") Long auctionItemId);
+
+    // 경매 종료 알림 상태 Bulk Update (1회 쿼리로 N건 처리)
+    @Modifying
+    @Query("UPDATE WatchList w SET w.isEndAlertSent = true " +
+           "WHERE w.auctionItem.id = :auctionItemId")
+    int bulkMarkEndAlertSent(@Param("auctionItemId") Long auctionItemId);
 }
