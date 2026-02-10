@@ -7,16 +7,20 @@ import com.fourtune.auction.shared.auction.event.AuctionItemDeletedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * AuctionItem 이벤트를 수신하여 ElasticSearch 인덱스를 업데이트하는 리스너
  *
- * 현재: Spring Event 기반 동기 처리
+ * 비동기 처리: @Async + @TransactionalEventListener(AFTER_COMMIT)
+ * - 트랜잭션 커밋 후 별도 스레드에서 인덱싱하여 요청 응답을 블로킹하지 않음
+ * - 커밋 후 실행으로 롤백된 데이터는 인덱싱되지 않음
+ *
  * 향후 계획:
  * Kafka로 확장하여 이벤트 기반 아키텍처 구현
- * 비동기 처리 (@Async + TransactionalEventListener)
  * 재시도 로직 (Spring Retry 또는 Kafka 재시도)
  * Dead Letter Queue 구현
  */
@@ -37,7 +41,8 @@ public class AuctionItemIndexEventListener {
      * 4. 재시도 정책 설정 (max attempts, backoff)
      * 5. DLQ 설정 (실패한 메시지 처리)
      */
-    @EventListener
+    @Async("taskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleCreated(AuctionItemCreatedEvent event) {
         log.info("[SEARCH][INDEX] Received AuctionItemCreatedEvent: auctionItemId={}", event.auctionItemId());
         try {
@@ -57,7 +62,8 @@ public class AuctionItemIndexEventListener {
      * - Topic: auction-item-updated
      * - 나머지는 handleCreated와 동일
      */
-    @EventListener
+    @Async("taskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUpdated(AuctionItemUpdatedEvent event) {
         log.info("[SEARCH][INDEX] Received AuctionItemUpdatedEvent: auctionItemId={}", event.auctionItemId());
         try {
@@ -77,7 +83,8 @@ public class AuctionItemIndexEventListener {
      * - Topic: auction-item-deleted
      * - 나머지는 handleCreated와 동일
      */
-    @EventListener
+    @Async("taskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleDeleted(AuctionItemDeletedEvent event) {
         log.info("[SEARCH][INDEX] Received AuctionItemDeletedEvent: auctionItemId={}", event.auctionItemId());
         try {
