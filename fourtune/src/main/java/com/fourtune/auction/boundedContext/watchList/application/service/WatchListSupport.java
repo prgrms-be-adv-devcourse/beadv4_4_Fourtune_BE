@@ -70,9 +70,13 @@ public class WatchListSupport {
         return watchListRepository.findAllByAuctionItemId(auctionItemId);
     }
 
-    public WatchList findWatchListByAuctionItemIdAndUserId(Long userId, Long auctionItemId){
+    public WatchList findWatchListByAuctionItemIdAndUserId(Long auctionItemId, Long userId){
         return watchListRepository.findByUserIdAndAuctionItemId(userId, auctionItemId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.WATCH_LIST_NOT_FOUND));
+    }
+
+    public List<WatchList> findAllByUserIdWithFetchJoin(Long userId){
+        return watchListRepository.findAllByUserIdWithFetchJoin(userId);
     }
 
 }

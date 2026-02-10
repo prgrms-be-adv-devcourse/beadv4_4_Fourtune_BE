@@ -36,6 +36,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 	
 	// Event (Kafka는 추후 확장)
 	implementation 'org.springframework.boot:spring-boot-starter-kafka'
