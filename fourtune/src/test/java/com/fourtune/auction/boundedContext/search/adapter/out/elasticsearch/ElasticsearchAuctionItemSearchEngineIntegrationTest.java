@@ -253,10 +253,71 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
         SearchResultPage<SearchAuctionItemView> result = searchEngine.search(condition);
 
         // then
+        result.items().forEach(item -> System.out.println("Result Item: " + item.title() + ", View: " + item.viewCount()));
+
         assertThat(result.items()).hasSize(3);
         assertThat(result.items().get(0).title()).isEqualTo("인기 많음");
         assertThat(result.items().get(1).title()).isEqualTo("인기 보통");
         assertThat(result.items().get(2).title()).isEqualTo("인기 없음");
+    }
+
+    @Test
+    @DisplayName("조회수가 같을 경우 최신 상품이 더 상위에 노출되어야 한다")
+    void search_SortByPopularity_SameViewCount_NewerFirst() {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        // A: 100 views, created NOW
+        saveTestDocument("New Item", "New", "ELECTRONICS", "ACTIVE", 10000, 100L, now);
+        // B: 100 views, created 1 day ago
+        saveTestDocument("Old Item", "Old", "ELECTRONICS", "ACTIVE", 10000, 100L, now.minusDays(1));
+        refreshIndex();
+
+        SearchCondition condition = new SearchCondition(
+                null, null, null, null,
+                SearchSort.POPULAR,
+                1);
+
+        // when
+        SearchResultPage<SearchAuctionItemView> result = searchEngine.search(condition);
+
+        // then
+        assertThat(result.items()).hasSize(2);
+        assertThat(result.items().get(0).title()).isEqualTo("New Item");
+        assertThat(result.items().get(1).title()).isEqualTo("Old Item");
+    }
+
+    @Test
+    @DisplayName("신선도 감가(Time Decay)가 작동하여 오래된 인기 상품보다 최신 비인기 상품이 상위일 수 있다")
+    void search_SortByPopularity_FreshnessDecay() {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+
+        // 오래된 인기상품: 조회수 1000, 24시간 전 생성
+        // Base Score ~= log10(1001) ~= 3.0
+        // Decay ~= sqrt(24 + 2) ~= 5.1
+        // 최종값 ~= 0.58
+        saveTestDocument("인기있지만 오래됨", "오래된 상품", "ELECTRONICS", "ACTIVE", 10000, 1000L, now.minusHours(24));
+
+        // 새 상품: 조회수 10, 지금 생성
+        // Base Score ~= log10(11) ~= 1.04
+        // Decay ~= sqrt(0 + 2) ~= 1.41
+        // 최종값 ~= 0.73
+        saveTestDocument("일반적인 새 상품", "새 상품", "ELECTRONICS", "ACTIVE", 10000, 10L, now);
+
+        refreshIndex();
+
+        SearchCondition condition = new SearchCondition(
+                null, null, null, null,
+                SearchSort.POPULAR,
+                1);
+
+        // when
+        SearchResultPage<SearchAuctionItemView> result = searchEngine.search(condition);
+
+        // then
+        assertThat(result.items()).hasSize(2);
+        assertThat(result.items().get(0).title()).isEqualTo("일반적인 새 상품"); // 0.73 > 0.58
+        assertThat(result.items().get(1).title()).isEqualTo("인기있지만 오래됨");
     }
 
     @Test
@@ -290,6 +351,11 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
 
     private void saveTestDocument(String title, String description, String category,
             String status, int price, Long viewCount) {
+        saveTestDocument(title, description, category, status, price, viewCount, LocalDateTime.now());
+    }
+
+    private void saveTestDocument(String title, String description, String category,
+            String status, int price, Long viewCount, LocalDateTime createdAt) {
         SearchAuctionItemDocument doc = SearchAuctionItemDocument.builder()
                 .auctionItemId(System.nanoTime())
                 .title(title)
@@ -298,11 +364,11 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
                 .status(status)
                 .startPrice(BigDecimal.valueOf(price))
                 .currentPrice(BigDecimal.valueOf(price))
-                .startAt(LocalDateTime.now())
-                .endAt(LocalDateTime.now().plusDays(7))
+                .startAt(createdAt.atZone(java.time.ZoneId.of("Asia/Seoul")))
+                .endAt(createdAt.plusDays(7).atZone(java.time.ZoneId.of("Asia/Seoul")))
                 .thumbnailUrl("https://example.com/image.jpg")
-                .createdAt(LocalDateTime.now()) // 최신순 정렬 시 이 값이 중요
-                .updatedAt(LocalDateTime.now())
+                .createdAt(createdAt.atZone(java.time.ZoneId.of("Asia/Seoul"))) // 최신순 정렬 시 이 값이 중요
+                .updatedAt(createdAt.atZone(java.time.ZoneId.of("Asia/Seoul")))
                 .viewCount(viewCount)
                 .watchlistCount(0)
                 .bidCount(0)

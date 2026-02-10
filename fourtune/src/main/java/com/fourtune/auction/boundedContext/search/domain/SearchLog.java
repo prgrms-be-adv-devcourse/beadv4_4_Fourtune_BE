@@ -18,8 +18,8 @@ import java.util.List;
 @Getter
 @Table(name = "search_log", indexes = {
         @Index(name = "idx_search_log_keyword", columnList = "keyword"),
-        @Index(name = "idx_search_log_user_id", columnList = "userId"),
-        @Index(name = "idx_search_log_created_at", columnList = "createdAt")
+        @Index(name = "idx_search_log_user_id", columnList = "user_id"),
+        @Index(name = "idx_search_log_created_at", columnList = "created_at")
 })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)

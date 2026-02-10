@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
  */
 public record AuctionItemCreatedEvent(
     Long auctionItemId,
+    Long sellerId,
+    String sellerName,
     String title,
     String description,
     Category category,

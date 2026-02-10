@@ -2,8 +2,11 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
+import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.shared.auction.dto.AuctionItemUpdateRequest;
+
+import java.util.Set;
 import com.fourtune.auction.shared.auction.event.AuctionUpdatedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ public class AuctionUpdateUseCase {
     private final AuctionSupport auctionSupport;
     private final BidSupport bidSupport;
     private final EventPublisher eventPublisher;
+    private final UserFacade userFacade;
 
     /**
      * 경매 정보 수정
@@ -48,9 +52,11 @@ public class AuctionUpdateUseCase {
         // 5. DB 저장 (dirty checking으로 자동 저장)
         
         // 6. 이벤트 발행
+        String sellerName = userFacade.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
         eventPublisher.publish(new AuctionUpdatedEvent(
                 auctionItem.getId(),
                 auctionItem.getSellerId(),
+                sellerName,
                 auctionItem.getTitle(),
                 auctionItem.getDescription(),
                 auctionItem.getBuyNowPrice(),
@@ -62,6 +68,8 @@ public class AuctionUpdateUseCase {
         String thumbnailUrl = extractThumbnailUrl(auctionItem);
         eventPublisher.publish(new AuctionItemUpdatedEvent(
                 auctionItem.getId(),
+                auctionItem.getSellerId(),
+                sellerName,
                 auctionItem.getTitle(),
                 auctionItem.getDescription(),
                 auctionItem.getCategory(),

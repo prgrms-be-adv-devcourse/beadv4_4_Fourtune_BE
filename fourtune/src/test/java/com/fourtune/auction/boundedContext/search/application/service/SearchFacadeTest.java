@@ -51,7 +51,7 @@ class SearchFacadeTest {
         // 1. 검색 유스케이스 호출 검증 (먼저 호출됨)
         verify(searchQueryUseCase, times(1)).search(condition);
 
-        // 2. 이벤트 발행 검증
+        // 2. 이벤트 발행 검증 (로그 저장은 리스너 책임이므로 Facade 테스트에서는 제외)
         verify(eventPublisher, times(1)).publishEvent(any(SearchAuctionItemEvent.class));
     }
 
@@ -77,5 +77,30 @@ class SearchFacadeTest {
 
         // 2. 이벤트 발행 안됨
         verify(eventPublisher, times(0)).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("마감임박순 정렬 조건이 정상적으로 쿼리 유스케이스에 전달된다.")
+    void search_WithEndsSoonSort_ShouldPassCondition() {
+        // given
+        Long userId = 1L;
+        SearchCondition condition = new SearchCondition(
+                "test",
+                Collections.emptySet(),
+                null,
+                Collections.emptySet(),
+                com.fourtune.auction.boundedContext.search.domain.constant.SearchSort.ENDS_SOON, // 마감임박순
+                1
+        );
+
+        SearchResultPage<SearchAuctionItemView> emptyResult = new SearchResultPage<>(Collections.emptyList(), 0, 1, 10, false);
+        org.mockito.BDDMockito.given(searchQueryUseCase.search(condition)).willReturn(emptyResult);
+
+        // when
+        searchFacade.search(userId, condition);
+
+        // then
+        // 유스케이스가 해당 정렬 조건(ENDS_SOON)을 포함한 condition으로 호출되었는지 검증
+        verify(searchQueryUseCase, times(1)).search(eq(condition));
     }
 }

@@ -6,14 +6,17 @@ import com.fourtune.auction.shared.auction.dto.AuctionItemResponse;
 import com.fourtune.auction.shared.auction.dto.AuctionItemUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 경매 Facade
@@ -33,6 +36,10 @@ public class AuctionFacade {
     private final AuctionQueryUseCase auctionQueryUseCase;
     private final AuctionBuyNowUseCase auctionBuyNowUseCase;
     private final AuctionStartUseCase auctionStartUseCase;
+    private final RedisViewCountService redisViewCountService;
+
+    @Value("${app.view-count.use-redis:true}")
+    private boolean viewCountUseRedis;
 
     /**
      * 경매 생성
@@ -105,12 +112,11 @@ public class AuctionFacade {
      */
     @Transactional(readOnly = true)
     public AuctionItemDetailResponse getAuctionDetail(Long auctionId) {
-        // 1. AuctionQueryUseCase.getAuctionDetail 호출
         AuctionItemDetailResponse response = auctionQueryUseCase.getAuctionDetail(auctionId);
-
-        // 2. 조회수 증가는 별도 엔드포인트에서 처리 (PATCH /auctions/{id}/view)
-        // TODO: 비동기 처리로 변경 고려
-
+        if (viewCountUseRedis) {
+            long combined = redisViewCountService.getViewCount(auctionId, response.viewCount());
+            response = response.withViewCount(combined);
+        }
         return response;
     }
 
@@ -129,8 +135,18 @@ public class AuctionFacade {
             com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus status,
             com.fourtune.auction.boundedContext.auction.domain.constant.Category category,
             Pageable pageable) {
-        // AuctionQueryUseCase 호출 (status, category 필터링 적용)
-        return auctionQueryUseCase.getAuctionList(status, category, pageable);
+        Page<AuctionItemResponse> page = auctionQueryUseCase.getAuctionList(status, category, pageable);
+        if (viewCountUseRedis && !page.isEmpty()) {
+            List<AuctionItemResponse> content = page.getContent();
+            List<Long> ids = content.stream().map(AuctionItemResponse::id).toList();
+            Map<Long, Long> dbMap = content.stream().collect(Collectors.toMap(AuctionItemResponse::id, r -> r.viewCount() != null ? r.viewCount() : 0L));
+            Map<Long, Long> combined = redisViewCountService.getViewCounts(ids, dbMap);
+            List<AuctionItemResponse> newContent = content.stream()
+                    .map(r -> r.withViewCount(combined.getOrDefault(r.id(), r.viewCount() != null ? r.viewCount() : 0L)))
+                    .toList();
+            return new PageImpl<>(newContent, page.getPageable(), page.getTotalElements());
+        }
+        return page;
     }
 
     /**
@@ -138,8 +154,18 @@ public class AuctionFacade {
      */
     @Transactional(readOnly = true)
     public Page<AuctionItemResponse> getSellerAuctions(Long sellerId, Pageable pageable) {
-        // AuctionQueryUseCase 호출
-        return auctionQueryUseCase.getSellerAuctions(sellerId, pageable);
+        Page<AuctionItemResponse> page = auctionQueryUseCase.getSellerAuctions(sellerId, pageable);
+        if (viewCountUseRedis && !page.isEmpty()) {
+            List<AuctionItemResponse> content = page.getContent();
+            List<Long> ids = content.stream().map(AuctionItemResponse::id).toList();
+            Map<Long, Long> dbMap = content.stream().collect(Collectors.toMap(AuctionItemResponse::id, r -> r.viewCount() != null ? r.viewCount() : 0L));
+            Map<Long, Long> combined = redisViewCountService.getViewCounts(ids, dbMap);
+            List<AuctionItemResponse> newContent = content.stream()
+                    .map(r -> r.withViewCount(combined.getOrDefault(r.id(), r.viewCount() != null ? r.viewCount() : 0L)))
+                    .toList();
+            return new PageImpl<>(newContent, page.getPageable(), page.getTotalElements());
+        }
+        return page;
     }
 
     /**
@@ -152,12 +178,14 @@ public class AuctionFacade {
     }
 
     /**
-     * 조회수 증가
+     * 조회수 증가 (Redis 사용 시 INCR, 미사용 시 DB 직접 증가)
      */
     public void increaseViewCount(Long auctionId) {
-        // AuctionQueryUseCase.increaseViewCount 호출
-        auctionQueryUseCase.increaseViewCount(auctionId);
-        // TODO: Redis 캐싱 및 비동기 처리는 나중에 추가
+        if (viewCountUseRedis) {
+            redisViewCountService.incrementViewCount(auctionId);
+        } else {
+            auctionQueryUseCase.increaseViewCount(auctionId);
+        }
     }
 
     public void startAuctionInTransaction(Long auctionId) {

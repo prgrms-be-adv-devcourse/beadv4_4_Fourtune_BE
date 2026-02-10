@@ -5,6 +5,7 @@ import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
+import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
@@ -18,8 +19,9 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
 
-    /**
+/**
      * 입찰 등록 UseCase
      * - 입찰 처리
      * - 동시성 제어 (DB 레벨 Pessimistic Lock)
@@ -34,6 +36,7 @@ public class BidPlaceUseCase {
     private final BidSupport bidSupport;
     private final AuctionExtendUseCase auctionExtendUseCase;
     private final EventPublisher eventPublisher;
+    private final UserFacade userFacade;
 
     /**
      * 입찰 등록
@@ -91,8 +94,12 @@ public class BidPlaceUseCase {
         
         // 8. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(auctionItem);
+        String sellerName = userFacade.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
+
         eventPublisher.publish(new AuctionItemUpdatedEvent(
                 auctionItem.getId(),
+                auctionItem.getSellerId(),
+                sellerName,
                 auctionItem.getTitle(),
                 auctionItem.getDescription(),
                 auctionItem.getCategory(),

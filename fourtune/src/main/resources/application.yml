@@ -36,6 +36,10 @@ spring:
 app:
   oauth2:
     redirect-uri: ${OAUTH_FRONTEND_URI}/login-success
+  view-count:
+    use-redis: ${VIEW_COUNT_USE_REDIS:true}
+    key-prefix: "auction:view:"
+    sync-interval-ms: 60000  # 1분마다 Redis → DB 동기화
 
 # SpringDoc OpenAPI (Swagger) 설정
 springdoc:
@@ -453,4 +457,3 @@ logging:
 api:
   auction:
     base-url: http://localhost:8080
-
