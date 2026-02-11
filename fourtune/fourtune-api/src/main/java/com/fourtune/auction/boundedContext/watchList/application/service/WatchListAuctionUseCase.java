@@ -23,7 +23,7 @@ public class WatchListAuctionUseCase {
 
         List<Long> targetUsers = watchListUsers.stream()
                 .filter(userId -> {
-                    WatchList watchList = watchListSupport.findWatchListByAuctionItemIdAndUserId(auctionItemId, userId);
+                    WatchList watchList = watchListSupport.findWatchListByUserIdAndAuctionItemId(userId, auctionItemId);
                     return !watchList.isStartAlertSent();
                 })
                 .toList();
@@ -44,14 +44,14 @@ public class WatchListAuctionUseCase {
 
     private void markStartAlertSent(List<Long> watchListUsers, Long auctionItemId){
         for (Long userId : watchListUsers) {
-            WatchList watchList = watchListSupport.findWatchListByAuctionItemIdAndUserId(userId, auctionItemId);
+            WatchList watchList = watchListSupport.findWatchListByUserIdAndAuctionItemId(userId, auctionItemId);
             watchList.markStartAlertSent();
         }
     }
 
     private void markEndAlertSent(List<Long> watchListUsers, Long auctionItemId){
         for (Long userId : watchListUsers) {
-            WatchList watchList = watchListSupport.findWatchListByAuctionItemIdAndUserId(userId, auctionItemId);
+            WatchList watchList = watchListSupport.findWatchListByUserIdAndAuctionItemId(userId, auctionItemId);
             watchList.markEndAlertSent();
         }
     }

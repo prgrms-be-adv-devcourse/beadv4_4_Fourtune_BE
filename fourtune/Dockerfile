@@ -3,6 +3,8 @@ FROM eclipse-temurin:25-jdk-alpine AS builder
 
 WORKDIR /app
 
+ARG MODULE_NAME
+
 # Copy Gradle wrapper and build files
 COPY gradlew .
 COPY gradle gradle
@@ -16,22 +18,23 @@ RUN chmod +x gradlew
 RUN ./gradlew dependencies --no-daemon || true
 
 # Copy source code
-COPY src src
+COPY . .
 
 # Build application
-RUN ./gradlew build -x test --no-daemon
+RUN ./gradlew :${MODULE_NAME}:bootjar -x test --no-daemon
 
 # Runtime stage
 FROM eclipse-temurin:25-jre-alpine
 
 WORKDIR /app
 
+ARG MODULE_NAME
 # Add non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
 # Copy jar from builder
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY --from=builder /app/${MODULE_NAME}/build/libs/*.jar app.jar
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \

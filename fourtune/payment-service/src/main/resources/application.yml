@@ -1,0 +1,26 @@
+server:
+  port: 8081
+
+spring:
+  profiles:
+    active: local
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/fourtune_db}
+    username: ${DB_USERNAME:fourtune_user}
+    password: ${DB_PASSWORD:fourtune}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

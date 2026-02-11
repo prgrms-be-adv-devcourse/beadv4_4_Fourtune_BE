@@ -457,3 +457,8 @@ logging:
 api:
   auction:
     base-url: http://localhost:8080
+
+custom:
+  services:
+    payout_url: http://payment-service:8000
+    cash_url: http://payment-service:8080
