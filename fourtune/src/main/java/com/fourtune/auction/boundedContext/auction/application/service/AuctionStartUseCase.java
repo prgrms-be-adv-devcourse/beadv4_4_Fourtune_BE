@@ -2,6 +2,7 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
+import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
 import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionStartedEvent;
@@ -10,12 +11,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class AuctionStartUseCase {
 
     private final AuctionSupport auctionSupport;
     private final EventPublisher eventPublisher;
+    private final UserFacade userFacade;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void startAuctionInTransaction(Long auctionId) {
@@ -33,8 +37,12 @@ public class AuctionStartUseCase {
 
         // Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(auction);
+        String sellerName = userFacade.getNicknamesByIds(Set.of(auction.getSellerId())).getOrDefault(auction.getSellerId(), null);
+
         eventPublisher.publish(new AuctionItemUpdatedEvent(
                 auction.getId(),
+                auction.getSellerId(),
+                sellerName,
                 auction.getTitle(),
                 auction.getDescription(),
                 auction.getCategory(),

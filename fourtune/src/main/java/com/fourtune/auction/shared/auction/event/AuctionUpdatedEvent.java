@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 public record AuctionUpdatedEvent(
     Long auctionId,
     Long sellerId,
+    String sellerName,
     String title,
     String description,
     BigDecimal buyNowPrice,

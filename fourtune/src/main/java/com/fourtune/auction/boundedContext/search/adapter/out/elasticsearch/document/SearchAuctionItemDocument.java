@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -42,20 +42,20 @@ public class SearchAuctionItemDocument {
     @Field(type = FieldType.Boolean)
     private Boolean buyNowEnabled;
 
-    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
-    private LocalDateTime startAt;
+    @Field(type = FieldType.Date, format = DateFormat.date_time)
+    private ZonedDateTime startAt;
 
-    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
-    private LocalDateTime endAt;
+    @Field(type = FieldType.Date, format = DateFormat.date_time)
+    private ZonedDateTime endAt;
 
     @Field(type = FieldType.Keyword, index = false)
     private String thumbnailUrl;
 
-    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
-    private LocalDateTime createdAt;
+    @Field(type = FieldType.Date, format = DateFormat.date_time)
+    private ZonedDateTime createdAt;
 
-    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
-    private LocalDateTime updatedAt;
+    @Field(type = FieldType.Date, format = DateFormat.date_time)
+    private ZonedDateTime updatedAt;
 
     @Field(type = FieldType.Long)
     private Long viewCount;
@@ -65,4 +65,10 @@ public class SearchAuctionItemDocument {
 
     @Field(type = FieldType.Integer)
     private Integer bidCount;
+
+    @Field(type = FieldType.Long)
+    private Long sellerId;
+
+    @Field(type = FieldType.Keyword)
+    private String sellerName;
 }
