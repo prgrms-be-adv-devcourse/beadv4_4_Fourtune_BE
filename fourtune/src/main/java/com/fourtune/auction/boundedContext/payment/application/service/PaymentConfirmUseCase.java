@@ -53,7 +53,6 @@ public class PaymentConfirmUseCase {
                                         "P311",
                                         "결제 취소 실패(관리자 문의)",
                                         orderDto,
-                                        orderDto.toOrderDetailResponse(),
                                         pgAmount,
                                         0L
                                 ));
@@ -72,7 +71,6 @@ public class PaymentConfirmUseCase {
                                 "500",
                                 "내부 시스템 오류로 결제가 취소되었습니다.",
                                 orderDto,
-                                orderDto.toOrderDetailResponse(),
                                 pgAmount,
                                 0L
                         ));

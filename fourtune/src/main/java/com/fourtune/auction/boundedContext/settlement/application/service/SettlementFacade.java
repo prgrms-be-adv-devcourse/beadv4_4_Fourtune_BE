@@ -6,7 +6,7 @@ import com.fourtune.auction.boundedContext.settlement.domain.entity.Settlement;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementCandidatedItem;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
 import com.fourtune.auction.shared.payment.dto.OrderDto;
-import com.fourtune.auction.shared.settlement.dto.SettlementUserDto;
+import com.fourtune.auction.shared.payment.dto.RefundDto;
 import com.fourtune.auction.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +26,7 @@ public class SettlementFacade {
     private final AddSettlementCandidatedItemsUseCase addSettlementCandidatedItemsUseCase;
     private final CollectSettlementItemChunkUseCase collectSettlementItemChunkUseCase;
     private final CompleteSettlementChunkUseCase completeSettlementChunkUseCase;
+    private final SettlementAddRefundCandidatedItemsUseCase settlementAddRefundCandidatedItemsUseCase;
 
     @Transactional(readOnly = true)
     public Optional<SettlementUser> findSystemHoldingUser(){
@@ -96,5 +97,13 @@ public class SettlementFacade {
     @Transactional
     public void deleteUser(UserResponse user) {
         settlementSupport.deleteUserById(user.id());
+    }
+
+    /**
+     * 환불 완료 시 정산 후보 생성
+     */
+    @Transactional
+    public void addRefundSettlementCandidatedItem(RefundDto refundDto) {
+        settlementAddRefundCandidatedItemsUseCase.addRefundSettlementCandidatedItems(refundDto);
     }
 }
