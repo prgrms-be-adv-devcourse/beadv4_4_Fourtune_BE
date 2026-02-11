@@ -18,7 +18,7 @@ public class NotificationSettings extends BaseTimeEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+    private NotificationUser user;
 
     @Builder.Default
     private boolean isBidPushEnabled = true;
@@ -29,7 +29,7 @@ public class NotificationSettings extends BaseTimeEntity {
     @Builder.Default
     private boolean isWatchListPushEnabled = true;
 
-    public NotificationSettings(User user) {
+    public NotificationSettings(NotificationUser user) {
         this.user = user;
     }
 

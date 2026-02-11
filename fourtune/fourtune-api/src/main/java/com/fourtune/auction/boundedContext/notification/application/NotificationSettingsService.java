@@ -1,9 +1,9 @@
 package com.fourtune.auction.boundedContext.notification.application;
 
 import com.fourtune.auction.boundedContext.notification.domain.NotificationSettings;
+import com.fourtune.auction.boundedContext.notification.domain.NotificationUser;
 import com.fourtune.auction.boundedContext.notification.port.out.NotificationSettingsRepository;
-import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
+import com.fourtune.auction.boundedContext.notification.port.out.NotificationUserRepository;
 import com.fourtune.auction.global.error.ErrorCode;
 import com.fourtune.auction.global.error.exception.BusinessException;
 import com.fourtune.auction.shared.notification.dto.NotificationSettingsResponse;
@@ -19,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationSettingsService {
 
     private final NotificationSettingsRepository notificationSettingsRepository;
-    private final UserRepository userRepository;
+    private final NotificationUserRepository notificationUserRepository;
 
     public void createNotificationSettings(UserResponse userResponse){
-        User user = userRepository.getReferenceById(userResponse.id());
+        NotificationUser user = notificationUserRepository.getReferenceById(userResponse.id());
 
         NotificationSettings notificationSettings = NotificationSettings.builder()
                 .user(user)
