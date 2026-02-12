@@ -1,12 +1,12 @@
 package com.fourtune.auction.boundedContext.payment.adapter.out.external;
 
 import com.fourtune.auction.boundedContext.payment.port.out.AuctionPort;
-import com.fourtune.auction.global.common.ApiResponse;
-import com.fourtune.auction.global.config.WebClientConfig;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.shared.auction.dto.OrderDetailResponse;
-import com.fourtune.auction.shared.payment.dto.OrderDto;
+import com.fourtune.common.global.common.ApiResponse;
+import com.fourtune.common.global.config.WebClientConfig;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.shared.auction.dto.OrderDetailResponse;
+import com.fourtune.common.shared.payment.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

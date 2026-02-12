@@ -1,12 +1,12 @@
 package com.fourtune.auction.boundedContext.payment.adapter.in.event;
 
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
-import com.fourtune.auction.global.config.EventPublishingConfig;
-import com.fourtune.auction.shared.payment.event.PaymentUserCreatedEvent;
-import com.fourtune.auction.shared.settlement.event.SettlementCompletedEvent;
-import com.fourtune.auction.shared.user.event.UserDeletedEvent;
-import com.fourtune.auction.shared.user.event.UserJoinedEvent;
-import com.fourtune.auction.shared.user.event.UserModifiedEvent;
+import com.fourtune.common.global.config.EventPublishingConfig;
+import com.fourtune.common.shared.payment.event.PaymentUserCreatedEvent;
+import com.fourtune.common.shared.settlement.event.SettlementCompletedEvent;
+import com.fourtune.common.shared.user.event.UserDeletedEvent;
+import com.fourtune.common.shared.user.event.UserJoinedEvent;
+import com.fourtune.common.shared.user.event.UserModifiedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

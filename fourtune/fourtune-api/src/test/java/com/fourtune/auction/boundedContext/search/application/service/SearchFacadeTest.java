@@ -3,7 +3,7 @@ package com.fourtune.auction.boundedContext.search.application.service;
 import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
 import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
-import com.fourtune.auction.shared.search.event.SearchAuctionItemEvent;
+import com.fourtune.common.shared.search.event.SearchAuctionItemEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -4,11 +4,11 @@ import com.fourtune.auction.boundedContext.auction.application.service.AuctionEx
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionSupport;
 import com.fourtune.auction.boundedContext.auction.application.service.CartSupport;
 import com.fourtune.auction.boundedContext.auction.application.service.OrderCompleteUseCase;
-import com.fourtune.auction.shared.auction.event.AuctionClosedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionCreatedEvent;
-import com.fourtune.auction.shared.auction.event.BidPlacedEvent;
-import com.fourtune.auction.shared.payment.event.PaymentFailedEvent;
-import com.fourtune.auction.shared.payment.event.PaymentSucceededEvent;
+import com.fourtune.common.shared.auction.event.AuctionClosedEvent;
+import com.fourtune.common.shared.auction.event.AuctionCreatedEvent;
+import com.fourtune.common.shared.auction.event.BidPlacedEvent;
+import com.fourtune.common.shared.payment.event.PaymentFailedEvent;
+import com.fourtune.common.shared.payment.event.PaymentSucceededEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

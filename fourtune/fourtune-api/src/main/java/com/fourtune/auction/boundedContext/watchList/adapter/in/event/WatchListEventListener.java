@@ -1,14 +1,14 @@
 package com.fourtune.auction.boundedContext.watchList.adapter.in.event;
 
 import com.fourtune.auction.boundedContext.watchList.application.service.WatchListService;
-import com.fourtune.auction.global.config.EventPublishingConfig;
-import com.fourtune.auction.shared.auction.event.AuctionClosedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionItemCreatedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionStartedEvent;
-import com.fourtune.auction.shared.user.event.UserDeletedEvent;
-import com.fourtune.auction.shared.user.event.UserJoinedEvent;
-import com.fourtune.auction.shared.user.event.UserModifiedEvent;
+import com.fourtune.common.global.config.EventPublishingConfig;
+import com.fourtune.common.shared.auction.event.AuctionClosedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemCreatedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.common.shared.auction.event.AuctionStartedEvent;
+import com.fourtune.common.shared.user.event.UserDeletedEvent;
+import com.fourtune.common.shared.user.event.UserJoinedEvent;
+import com.fourtune.common.shared.user.event.UserModifiedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

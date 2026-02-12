@@ -2,11 +2,12 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Order;
+import com.fourtune.auction.boundedContext.auction.mapper.OrderMapper;
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.shared.auction.dto.OrderDetailResponse;
-import com.fourtune.auction.shared.auction.dto.OrderResponse;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.shared.auction.dto.OrderDetailResponse;
+import com.fourtune.common.shared.auction.dto.OrderResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +31,6 @@ public class OrderQueryUseCase {
     private final OrderSupport orderSupport;
     private final AuctionSupport auctionSupport;
     private final UserFacade userFacade;
-
     /**
      * 주문번호로 주문 조회
      */
@@ -39,7 +39,7 @@ public class OrderQueryUseCase {
         AuctionItem auctionItem = auctionSupport.findById(order.getAuctionId()).orElse(null);
         var userIds = Stream.of(order.getWinnerId(), order.getSellerId()).collect(Collectors.toSet());
         var nicknames = userFacade.getNicknamesByIds(userIds);
-        return OrderDetailResponse.from(order, auctionItem,
+        return OrderMapper.fromDetail(order, auctionItem,
                 nicknames.get(order.getWinnerId()), nicknames.get(order.getSellerId()));
     }
 
@@ -51,7 +51,7 @@ public class OrderQueryUseCase {
         AuctionItem auctionItem = auctionSupport.findById(order.getAuctionId()).orElse(null);
         var userIds = Stream.of(order.getWinnerId(), order.getSellerId()).collect(Collectors.toSet());
         var nicknames = userFacade.getNicknamesByIds(userIds);
-        return OrderDetailResponse.from(order, auctionItem,
+        return OrderMapper.fromDetail(order, auctionItem,
                 nicknames.get(order.getWinnerId()), nicknames.get(order.getSellerId()));
     }
 
@@ -65,7 +65,7 @@ public class OrderQueryUseCase {
         return orders.stream()
                 .map(order -> {
                     AuctionItem auctionItem = auctionSupport.findById(order.getAuctionId()).orElse(null);
-                    return OrderResponse.from(order, auctionItem, winnerNickname);
+                    return OrderMapper.from(order, auctionItem, winnerNickname);
                 })
                 .toList();
     }
@@ -82,7 +82,7 @@ public class OrderQueryUseCase {
         Order order = orderOpt.get();
         var userIds = Stream.of(order.getWinnerId(), order.getSellerId()).collect(Collectors.toSet());
         var nicknames = userFacade.getNicknamesByIds(userIds);
-        return OrderDetailResponse.from(order, auctionItem,
+        return OrderMapper.fromDetail(order, auctionItem,
                 nicknames.get(order.getWinnerId()), nicknames.get(order.getSellerId()));
     }
 

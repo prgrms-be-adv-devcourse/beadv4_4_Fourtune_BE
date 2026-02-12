@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.settlement.domain.entity;
 
-import com.fourtune.auction.shared.settlement.dto.SettlementUserDto;
-import com.fourtune.auction.shared.user.domain.ReplicaUser;
+import com.fourtune.common.shared.settlement.dto.SettlementUserDto;
+import com.fourtune.common.shared.user.domain.ReplicaUser;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;

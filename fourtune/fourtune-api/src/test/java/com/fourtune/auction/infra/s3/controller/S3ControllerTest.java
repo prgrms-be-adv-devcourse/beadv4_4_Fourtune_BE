@@ -1,7 +1,7 @@
 package com.fourtune.auction.infra.s3.controller;
 
-import com.fourtune.auction.infra.s3.dto.S3PresignedUrlResponse;
-import com.fourtune.auction.infra.s3.service.S3Service;
+import com.fourtune.common.infra.s3.dto.S3PresignedUrlResponse;
+import com.fourtune.common.infra.s3.service.S3Service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ class S3ControllerTest {
     private S3Service s3Service;
 
     @InjectMocks
-    private S3Controller s3Controller;
+    private com.fourtune.common.infra.s3.controller.S3Controller s3Controller;
 
     @BeforeEach
     void setUp() {

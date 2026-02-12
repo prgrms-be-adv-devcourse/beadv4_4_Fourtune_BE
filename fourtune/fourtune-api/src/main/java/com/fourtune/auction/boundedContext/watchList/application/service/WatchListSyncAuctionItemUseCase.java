@@ -2,7 +2,6 @@ package com.fourtune.auction.boundedContext.watchList.application.service;
 
 import com.fourtune.auction.boundedContext.watchList.domain.WatchListAuctionItem;
 import com.fourtune.auction.boundedContext.watchList.port.out.WatchListItemsRepository;
-import com.fourtune.auction.shared.auction.dto.AuctionItemResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

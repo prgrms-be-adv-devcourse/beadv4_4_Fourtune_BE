@@ -4,7 +4,6 @@ import com.fourtune.auction.boundedContext.settlement.domain.entity.Settlement;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementRepository;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementUserRepository;
-import com.fourtune.auction.shared.settlement.dto.SettlementUserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -2,7 +2,7 @@ package com.fourtune.auction.boundedContext.search.adapter.in.event;
 
 import com.fourtune.auction.boundedContext.search.domain.SearchLog;
 import com.fourtune.auction.boundedContext.search.port.out.SearchLogRepository;
-import com.fourtune.auction.shared.search.event.SearchAuctionItemEvent;
+import com.fourtune.common.shared.search.event.SearchAuctionItemEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

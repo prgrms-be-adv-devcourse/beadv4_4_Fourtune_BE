@@ -1,8 +1,9 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
+import com.fourtune.auction.boundedContext.auction.mapper.AuctionMapper;
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.auction.shared.auction.dto.AuctionItemDetailResponse;
-import com.fourtune.auction.shared.auction.dto.AuctionItemResponse;
+import com.fourtune.common.shared.auction.dto.AuctionItemDetailResponse;
+import com.fourtune.common.shared.auction.dto.AuctionItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +37,7 @@ public class AuctionQueryUseCase {
                 auctionSupport.findByIdOrThrow(auctionId);
         String sellerNickname = userFacade.getNicknamesByIds(Set.of(auctionItem.getSellerId()))
                 .get(auctionItem.getSellerId());
-        return AuctionItemResponse.from(auctionItem, sellerNickname);
+        return AuctionMapper.from(auctionItem, sellerNickname);
     }
 
     /**
@@ -50,7 +51,7 @@ public class AuctionQueryUseCase {
         String sellerNickname = userFacade.getNicknamesByIds(Set.of(auctionItem.getSellerId()))
                 .get(auctionItem.getSellerId());
         // 3. DTO 변환 후 반환
-        return AuctionItemDetailResponse.from(auctionItem, sellerNickname);
+        return AuctionMapper.fromDetail(auctionItem, sellerNickname);
     }
 
     /**
@@ -78,7 +79,7 @@ public class AuctionQueryUseCase {
                 .map(com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem::getSellerId)
                 .collect(Collectors.toSet());
         var nicknames = userFacade.getNicknamesByIds(sellerIds);
-        return auctionPage.map(item -> AuctionItemResponse.from(item, nicknames.get(item.getSellerId())));
+        return auctionPage.map(item -> AuctionMapper.from(item, nicknames.get(item.getSellerId())));
     }
 
     /**
@@ -91,7 +92,7 @@ public class AuctionQueryUseCase {
         // 2. 판매자 닉네임 조회 (동일 판매자)
         String sellerNickname = userFacade.getNicknamesByIds(Set.of(sellerId)).get(sellerId);
         // 3. DTO 변환 후 반환
-        return auctionPage.map(item -> AuctionItemResponse.from(item, sellerNickname));
+        return auctionPage.map(item -> AuctionMapper.from(item, sellerNickname));
     }
 
     /**

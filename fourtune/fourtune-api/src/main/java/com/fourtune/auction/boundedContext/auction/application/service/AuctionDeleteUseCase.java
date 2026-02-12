@@ -4,10 +4,10 @@ import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.boundedContext.auction.port.out.AuctionItemRepository;
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.auction.event.AuctionDeletedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionItemDeletedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.shared.auction.event.AuctionDeletedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemDeletedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,7 +58,7 @@ public class AuctionDeleteUseCase {
                 deletedAuctionId,
                 sellerId,
                 title,
-                category
+                category.toString()
         ));
         
         // 7. Search 인덱싱 전용 이벤트 발행 (auctionId만 필요)
@@ -78,8 +78,8 @@ public class AuctionDeleteUseCase {
         
         // 3. 취소 가능 여부 확인 (입찰이 있으면 취소 불가)
         if (auctionItem.getBidCount() > 0) {
-            throw new com.fourtune.auction.global.error.exception.BusinessException(
-                    com.fourtune.auction.global.error.ErrorCode.AUCTION_HAS_BIDS
+            throw new com.fourtune.common.global.error.exception.BusinessException(
+                    com.fourtune.common.global.error.ErrorCode.AUCTION_HAS_BIDS
             );
         }
         
@@ -96,8 +96,8 @@ public class AuctionDeleteUseCase {
                 sellerName,
                 auctionItem.getTitle(),
                 auctionItem.getDescription(),
-                auctionItem.getCategory(),
-                auctionItem.getStatus(),
+                auctionItem.getCategory().toString(),
+                auctionItem.getStatus().toString(),
                 auctionItem.getStartPrice(),
                 auctionItem.getCurrentPrice(),
                 auctionItem.getBuyNowPrice(),

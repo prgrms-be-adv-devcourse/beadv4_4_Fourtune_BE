@@ -1,15 +1,12 @@
 package com.fourtune.auction.boundedContext.payment.domain.entity;
 
-import com.fourtune.auction.global.common.BaseIdAndTime;
+import com.fourtune.common.global.common.BaseIdAndTime;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter

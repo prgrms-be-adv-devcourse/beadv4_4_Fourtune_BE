@@ -2,12 +2,12 @@ package com.fourtune.auction.boundedContext.auction.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.auction.application.service.OrderCompleteUseCase;
 import com.fourtune.auction.boundedContext.auction.application.service.OrderQueryUseCase;
-import com.fourtune.auction.global.common.ApiResponse;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.shared.auction.dto.OrderDetailResponse;
-import com.fourtune.auction.shared.auction.dto.OrderResponse;
-import com.fourtune.auction.shared.auth.dto.UserContext;
+import com.fourtune.common.global.common.ApiResponse;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.shared.auction.dto.OrderDetailResponse;
+import com.fourtune.common.shared.auction.dto.OrderResponse;
+import com.fourtune.common.shared.auth.dto.UserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

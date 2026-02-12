@@ -1,18 +1,20 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
 import com.fourtune.auction.boundedContext.auth.application.service.AuthService;
+import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.NotificationUserKafkaListener;
+import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.shared.auth.dto.TokenResponse;
-import com.fourtune.auction.shared.user.dto.UserLoginRequest;
-import com.fourtune.auction.shared.user.dto.UserSignUpRequest;
+import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.shared.auth.dto.TokenResponse;
+import com.fourtune.common.shared.user.dto.UserLoginRequest;
+import com.fourtune.common.shared.user.dto.UserSignUpRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,10 @@ class UserFacadeTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @MockitoBean private WatchListUserKafkaListener watchListUserKafkaListener;
+    @MockitoBean private SettlementUserKafkaListener settlementUserKafkaListener;
+    @MockitoBean private NotificationUserKafkaListener notificationUserKafkaListener;
 
     @Test
     @DisplayName("회원가입 시 유저 정보가 DB에 저장되고 비밀번호는 암호화되어야 한다")

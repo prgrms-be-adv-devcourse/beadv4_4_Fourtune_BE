@@ -1,9 +1,9 @@
 package com.fourtune.auction.boundedContext.watchList.application.service;
 
 import com.fourtune.auction.boundedContext.watchList.domain.WatchList;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.watchList.event.WatchListAuctionEndedEvent;
-import com.fourtune.auction.shared.watchList.event.WatchListAuctionStartedEvent;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.shared.watchList.event.WatchListAuctionEndedEvent;
+import com.fourtune.common.shared.watchList.event.WatchListAuctionStartedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,15 +1,13 @@
 package com.fourtune.auction.boundedContext.settlement.application.service;
 
-import com.fourtune.auction.boundedContext.settlement.domain.constant.SettlementPolicy;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.Settlement;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementCandidatedItem;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementItem;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementCandidatedItemRepository;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementRepository;
-import com.fourtune.auction.boundedContext.settlement.port.out.SettlementUserRepository;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;

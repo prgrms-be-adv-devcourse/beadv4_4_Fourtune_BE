@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.watchList.application.service;
 
 import com.fourtune.auction.boundedContext.watchList.domain.WatchListUser;
-import com.fourtune.auction.shared.user.dto.UserResponse;
+import com.fourtune.common.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -6,7 +6,7 @@ import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
 import com.fourtune.auction.boundedContext.search.domain.SearchPriceRange;
 import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
 import com.fourtune.auction.boundedContext.search.domain.constant.SearchSort;
-import com.fourtune.auction.shared.auth.dto.UserContext;
+import com.fourtune.common.shared.auth.dto.UserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

@@ -3,12 +3,12 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.auction.dto.AuctionItemUpdateRequest;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.shared.auction.dto.AuctionItemUpdateRequest;
 
 import java.util.Set;
-import com.fourtune.auction.shared.auction.event.AuctionUpdatedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.common.shared.auction.event.AuctionUpdatedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +61,7 @@ public class AuctionUpdateUseCase {
                 auctionItem.getDescription(),
                 auctionItem.getBuyNowPrice(),
                 auctionItem.getBuyNowEnabled(),
-                auctionItem.getCategory()
+                auctionItem.getCategory().toString()
         ));
         
         // 7. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
@@ -72,8 +72,8 @@ public class AuctionUpdateUseCase {
                 sellerName,
                 auctionItem.getTitle(),
                 auctionItem.getDescription(),
-                auctionItem.getCategory(),
-                auctionItem.getStatus(),
+                auctionItem.getCategory().toString(),
+                auctionItem.getStatus().toString(),
                 auctionItem.getStartPrice(),
                 auctionItem.getCurrentPrice(),
                 auctionItem.getBuyNowPrice(),
@@ -115,8 +115,8 @@ public class AuctionUpdateUseCase {
             status == com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.SOLD ||
             status == com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.SOLD_BY_BUY_NOW ||
             status == com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.CANCELLED) {
-            throw new com.fourtune.auction.global.error.exception.BusinessException(
-                    com.fourtune.auction.global.error.ErrorCode.AUCTION_NOT_MODIFIABLE
+            throw new com.fourtune.common.global.error.exception.BusinessException(
+                    com.fourtune.common.global.error.ErrorCode.AUCTION_NOT_MODIFIABLE
             );
         }
         

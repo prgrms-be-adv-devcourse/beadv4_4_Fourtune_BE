@@ -1,9 +1,8 @@
 package com.fourtune.auction.boundedContext.notification.application;
 
 import com.fourtune.auction.boundedContext.notification.domain.Notification;
-import com.fourtune.auction.boundedContext.notification.port.out.NotificationRepository;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

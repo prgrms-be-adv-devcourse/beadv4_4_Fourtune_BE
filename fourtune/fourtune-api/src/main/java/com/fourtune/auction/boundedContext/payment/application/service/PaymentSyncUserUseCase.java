@@ -1,11 +1,10 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
-import com.fourtune.auction.shared.payment.event.PaymentUserCreatedEvent;
+import com.fourtune.common.shared.payment.event.PaymentUserCreatedEvent;
 import com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentUserRepository;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.payment.dto.PaymentUserDto;
-import com.fourtune.auction.shared.user.dto.UserResponse;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

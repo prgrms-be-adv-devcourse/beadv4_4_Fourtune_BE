@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.settlement.domain.entity;
 
 import com.fourtune.auction.boundedContext.settlement.domain.constant.SettlementEventType;
-import com.fourtune.auction.global.common.BaseIdAndTime;
+import com.fourtune.common.global.common.BaseIdAndTime;
 import jakarta.persistence.*;
 import lombok.*;
 

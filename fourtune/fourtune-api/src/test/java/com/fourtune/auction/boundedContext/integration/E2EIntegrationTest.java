@@ -10,16 +10,20 @@ import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.port.out.AuctionItemRepository;
+import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.NotificationUserKafkaListener;
 import com.fourtune.auction.boundedContext.payment.adapter.in.web.dto.ConfirmPaymentRequest;
+import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
+import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
-import com.fourtune.auction.shared.auction.dto.BidPlaceRequest;
-import com.fourtune.auction.shared.auction.dto.CartAddItemRequest;
-import com.fourtune.auction.shared.user.dto.UserLoginRequest;
-import com.fourtune.auction.shared.user.dto.UserResponse;
-import com.fourtune.auction.shared.user.dto.UserSignUpRequest;
+import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
+import com.fourtune.common.shared.auction.dto.BidPlaceRequest;
+import com.fourtune.common.shared.auction.dto.CartAddItemRequest;
+import com.fourtune.common.shared.user.dto.UserLoginRequest;
+import com.fourtune.common.shared.user.dto.UserResponse;
+import com.fourtune.common.shared.user.dto.UserSignUpRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -103,6 +107,10 @@ class E2EIntegrationTest {
     @MockitoBean
     private com.fourtune.auction.boundedContext.payment.port.out.AuctionPort auctionPort;
 
+    @MockitoBean private WatchListUserKafkaListener watchListUserKafkaListener;
+    @MockitoBean private SettlementUserKafkaListener settlementUserKafkaListener;
+    @MockitoBean private NotificationUserKafkaListener notificationUserKafkaListener;
+
     @BeforeEach
     void setUp() {
         this.objectMapper = new ObjectMapper();
@@ -133,14 +141,14 @@ class E2EIntegrationTest {
                         // 테스트에서는 실제 주문이 생성된 후 호출되므로 정상적인 OrderDto 반환
                         // 여기서는 기본값으로 설정하고, 실제 테스트에서는 정상 플로우가 진행되므로
                         // 실패 이벤트가 발생하지 않음
-                        return com.fourtune.auction.shared.payment.dto.OrderDto.builder()
+                        return com.fourtune.common.shared.payment.dto.OrderDto.builder()
                                 .auctionOrderId(1L)  // 기본값 (실제 테스트에서는 덮어씀)
                                 .orderId(orderId)
                                 .price(100000L)
                                 .userId(1L)
-                                .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING)
+                                .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING.toString())
                                 .items(java.util.List.of(
-                                        com.fourtune.auction.shared.payment.dto.OrderDto.OrderItem.builder()
+                                        com.fourtune.common.shared.payment.dto.OrderDto.OrderItem.builder()
                                                 .itemId(1L)
                                                 .sellerId(1L)
                                                 .price(100000L)
@@ -323,14 +331,14 @@ class E2EIntegrationTest {
 
         // AuctionPort 모킹 업데이트: 실제 주문 정보 반환
         when(auctionPort.getOrder(orderId))
-                .thenReturn(com.fourtune.auction.shared.payment.dto.OrderDto.builder()
+                .thenReturn(com.fourtune.common.shared.payment.dto.OrderDto.builder()
                         .auctionOrderId(auctionOrderId)
                         .orderId(orderId)
                         .price(amount)
                         .userId(userRepository.findByEmail(email).orElseThrow().getId())
-                        .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING)
+                        .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING.toString())
                         .items(java.util.List.of(
-                                com.fourtune.auction.shared.payment.dto.OrderDto.OrderItem.builder()
+                                com.fourtune.common.shared.payment.dto.OrderDto.OrderItem.builder()
                                         .itemId(auctionId)
                                         .sellerId(seller.getId())
                                         .price(amount)
@@ -439,14 +447,14 @@ class E2EIntegrationTest {
 
         // AuctionPort 모킹 업데이트: 실제 주문 정보 반환
         when(auctionPort.getOrder(orderId))
-                .thenReturn(com.fourtune.auction.shared.payment.dto.OrderDto.builder()
+                .thenReturn(com.fourtune.common.shared.payment.dto.OrderDto.builder()
                         .auctionOrderId(auctionOrderId)
                         .orderId(orderId)
                         .price(amount)
                         .userId(userRepository.findByEmail(email).orElseThrow().getId())
-                        .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING)
+                        .orderStatus(com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus.PENDING.toString())
                         .items(java.util.List.of(
-                                com.fourtune.auction.shared.payment.dto.OrderDto.OrderItem.builder()
+                                com.fourtune.common.shared.payment.dto.OrderDto.OrderItem.builder()
                                         .itemId(auctionId)
                                         .sellerId(seller.getId())
                                         .price(amount)
@@ -557,7 +565,7 @@ class E2EIntegrationTest {
 
         // Payment 도메인에 PaymentUser와 Wallet 생성 (이벤트가 비동기로 처리되지 않을 수 있으므로 명시적으로 생성)
         User user = userRepository.findByEmail(email).orElseThrow();
-        UserResponse userResponse = UserResponse.from(user);
+        UserResponse userResponse = UserMapper.toDto(user);
         com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser paymentUser = paymentFacade.syncUser(userResponse);
         paymentFacade.createWallet(paymentUser.toDto());
 
@@ -588,7 +596,7 @@ class E2EIntegrationTest {
         user = userRepository.save(user);
         
         // Payment 도메인에 PaymentUser와 Wallet 생성
-        UserResponse userResponse = UserResponse.from(user);
+        UserResponse userResponse = UserMapper.toDto(user);
         com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser paymentUser = paymentFacade.syncUser(userResponse);
         paymentFacade.createWallet(paymentUser.toDto());
         

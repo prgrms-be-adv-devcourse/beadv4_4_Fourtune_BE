@@ -3,15 +3,16 @@ package com.fourtune.auction.boundedContext.auth.application.service;
 import com.fourtune.auction.boundedContext.auth.port.out.RefreshTokenRepository;
 import com.fourtune.auction.boundedContext.user.application.service.UserSupport;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.global.security.jwt.JwtTokenProvider;
-import com.fourtune.auction.shared.auth.dto.TokenResponse;
-import com.fourtune.auction.shared.user.dto.UserLoginRequest;
+import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.global.security.jwt.JwtTokenProvider;
+import com.fourtune.common.shared.auth.dto.TokenResponse;
+import com.fourtune.common.shared.user.dto.UserLoginRequest;
 
-import com.fourtune.auction.shared.user.dto.UserResponse;
-import com.fourtune.auction.shared.user.event.UserSignedUpEvent;
+import com.fourtune.common.shared.user.dto.UserResponse;
+import com.fourtune.common.shared.user.event.UserSignedUpEvent;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,15 +36,15 @@ public class AuthService {
     public TokenResponse login(UserLoginRequest request) {
         User user = userSupport.findActiveUserByEmailOrThrow(request.email());
         user.isAvailableUser();
-        UserResponse userResponse = UserResponse.from(user);
+        UserResponse userResponse = UserMapper.toDto(user);
 
         validatePassword(request.password(), user.getPassword());
 
-        String accessToken = jwtTokenProvider.createAccessToken(user);
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+        String accessToken = jwtTokenProvider.createAccessToken(userResponse);
+        String refreshToken = jwtTokenProvider.createRefreshToken(userResponse.id());
 
         // Redis에 Refresh Token 저장 (TTL: 2주)
-        refreshTokenRepository.save(user.getId(), refreshToken);
+        refreshTokenRepository.save(userResponse.id(), refreshToken);
 
         eventPublisher.publish(new UserSignedUpEvent(userResponse));
 
@@ -61,12 +62,13 @@ public class AuthService {
         String id = jwtTokenProvider.getUserIdFromToken(refreshToken);
         Long userId = Long.parseLong(id);
         User user = userSupport.findByIdOrThrow(userId);
+        UserResponse userResponse = UserMapper.toDto(user);
 
         // Redis에서 저장된 토큰 검증
         isCorrectRequestRefreshToken(userId, refreshToken);
 
-        String newAccessToken = jwtTokenProvider.createAccessToken(user);
-        String newRefreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+        String newAccessToken = jwtTokenProvider.createAccessToken(userResponse);
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(userResponse.id());
 
         // Redis에 새 Refresh Token 저장
         refreshTokenRepository.save(userId, newRefreshToken);

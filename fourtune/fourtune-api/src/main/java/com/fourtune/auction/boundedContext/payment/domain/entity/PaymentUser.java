@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.payment.domain.entity;
 
-import com.fourtune.auction.shared.payment.dto.PaymentUserDto;
-import com.fourtune.auction.shared.user.domain.ReplicaUser;
+import com.fourtune.common.shared.payment.dto.PaymentUserDto;
+import com.fourtune.common.shared.user.domain.ReplicaUser;
 import jakarta.persistence.*;
 import lombok.*;
 

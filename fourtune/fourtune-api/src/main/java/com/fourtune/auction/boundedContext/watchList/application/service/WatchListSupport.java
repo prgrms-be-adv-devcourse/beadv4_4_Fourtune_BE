@@ -6,8 +6,8 @@ import com.fourtune.auction.boundedContext.watchList.domain.WatchListUser;
 import com.fourtune.auction.boundedContext.watchList.port.out.WatchListItemsRepository;
 import com.fourtune.auction.boundedContext.watchList.port.out.WatchListRepository;
 import com.fourtune.auction.boundedContext.watchList.port.out.WatchListUserRepository;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

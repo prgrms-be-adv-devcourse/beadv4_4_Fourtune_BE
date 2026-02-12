@@ -8,13 +8,18 @@ import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
 import com.fourtune.auction.boundedContext.auction.port.out.AuctionItemRepository;
 import com.fourtune.auction.boundedContext.auction.port.out.BidRepository;
+import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.NotificationUserKafkaListener;
+import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
+import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
-import com.fourtune.auction.global.security.jwt.JwtTokenProvider;
+import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
+import com.fourtune.common.global.security.jwt.JwtTokenProvider;
+import com.fourtune.common.shared.user.dto.UserResponse;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
-import com.fourtune.auction.shared.auction.dto.BidPlaceRequest;
+import com.fourtune.common.shared.auction.dto.BidPlaceRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -81,6 +86,10 @@ class ApiV1BidControllerIntegrationTest {
     @MockitoBean
     private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository searchAuctionItemCrudRepository;
 
+    @MockitoBean private WatchListUserKafkaListener watchListUserKafkaListener;
+    @MockitoBean private SettlementUserKafkaListener settlementUserKafkaListener;
+    @MockitoBean private NotificationUserKafkaListener notificationUserKafkaListener;
+
     private AuctionItem activeAuction;
     private User seller;
     private User bidder;
@@ -113,8 +122,9 @@ class ApiV1BidControllerIntegrationTest {
                 .build();
         bidder = userRepository.save(bidder);
 
+        UserResponse bidderDto = UserMapper.toDto(bidder);
         // JWT 토큰 생성
-        bidderToken = jwtTokenProvider.createAccessToken(bidder);
+        bidderToken = jwtTokenProvider.createAccessToken(bidderDto);
 
         // 테스트용 ACTIVE 상태 경매 생성
         activeAuction = AuctionItem.builder()
@@ -304,7 +314,9 @@ class ApiV1BidControllerIntegrationTest {
     @DisplayName("TC-8-2: 판매자 본인 입찰 시도")
     void testPlaceBid_SelfAuction() throws Exception {
         // Given
-        String sellerToken = jwtTokenProvider.createAccessToken(seller);
+        UserResponse sellerDto = UserMapper.toDto(seller);
+
+        String sellerToken = jwtTokenProvider.createAccessToken(sellerDto);
         BidPlaceRequest request = new BidPlaceRequest(
                 activeAuction.getId(),
                 BigDecimal.valueOf(60000)

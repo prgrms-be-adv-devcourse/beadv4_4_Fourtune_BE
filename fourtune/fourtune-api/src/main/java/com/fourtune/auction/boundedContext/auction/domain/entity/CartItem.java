@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.auction.domain.entity;
 
 import com.fourtune.auction.boundedContext.auction.domain.constant.CartItemStatus;
-import com.fourtune.auction.global.common.BaseTimeEntity;
+import com.fourtune.common.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

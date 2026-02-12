@@ -4,11 +4,11 @@ import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
 import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionResult;
 import com.fourtune.auction.boundedContext.payment.port.out.AuctionPort;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentGatewayPort;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.shared.payment.dto.OrderDto;
-import com.fourtune.auction.shared.payment.event.PaymentFailedEvent;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.shared.payment.dto.OrderDto;
+import com.fourtune.common.shared.payment.event.PaymentFailedEvent;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -96,7 +96,7 @@ public class PaymentConfirmUseCase {
                         throw new BusinessException(ErrorCode.PAYMENT_PURCHASE_NOT_ALLOWED);
                 }
 
-                if(!orderDto.getOrderStatus().equals(OrderStatus.PENDING)){
+                if(!OrderStatus.PENDING.name().equals(orderDto.getOrderStatus())){
                         throw new BusinessException(ErrorCode.PAYMENT_ORDER_NOT_PENDING);
                 }
 

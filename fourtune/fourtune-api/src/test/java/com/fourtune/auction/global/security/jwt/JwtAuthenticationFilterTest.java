@@ -1,10 +1,10 @@
 package com.fourtune.auction.global.security.jwt;
 
-import com.fourtune.auction.global.error.ErrorCode;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.security.jwt.JwtTokenProvider;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +40,7 @@ class JwtFilterTest {
     private FilterChain filterChain;
 
     @InjectMocks
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    private com.fourtune.common.global.security.jwt.JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @BeforeEach
     void setUp() {

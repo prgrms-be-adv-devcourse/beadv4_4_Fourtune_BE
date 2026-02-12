@@ -6,11 +6,11 @@ import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.auction.event.BidPlacedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.shared.auction.event.BidPlacedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -102,8 +102,8 @@ public class BidPlaceUseCase {
                 sellerName,
                 auctionItem.getTitle(),
                 auctionItem.getDescription(),
-                auctionItem.getCategory(),
-                auctionItem.getStatus(),
+                auctionItem.getCategory().toString(),
+                auctionItem.getStatus().toString(),
                 auctionItem.getStartPrice(),
                 auctionItem.getCurrentPrice(),
                 auctionItem.getBuyNowPrice(),

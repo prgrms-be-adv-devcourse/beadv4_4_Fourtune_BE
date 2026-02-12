@@ -4,12 +4,13 @@ import com.fourtune.auction.boundedContext.auth.port.out.RefreshTokenRepository;
 import com.fourtune.auction.boundedContext.user.application.service.UserSupport;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.global.security.jwt.JwtTokenProvider;
-import com.fourtune.auction.shared.auth.dto.TokenResponse;
-import com.fourtune.auction.shared.user.dto.UserLoginRequest;
+import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.global.security.jwt.JwtTokenProvider;
+import com.fourtune.common.shared.auth.dto.TokenResponse;
+import com.fourtune.common.shared.user.dto.UserLoginRequest;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -29,7 +31,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
-
     @Mock
     private UserSupport userSupport;
 
@@ -65,7 +66,7 @@ class AuthServiceTest {
 
         given(userSupport.findActiveUserByEmailOrThrow(request.email())).willReturn(user);
         given(passwordEncoder.matches(request.password(), user.getPassword())).willReturn(true);
-        given(jwtTokenProvider.createAccessToken(user)).willReturn("access.token");
+        given(jwtTokenProvider.createAccessToken(UserMapper.toDto(user))).willReturn("access.token");
         given(jwtTokenProvider.createRefreshToken(user.getId())).willReturn("refresh.token");
 
         TokenResponse result = authService.login(request);
@@ -115,12 +116,17 @@ class AuthServiceTest {
         String userIdStr = "1";
         Long userId = 1L;
 
+        given(user.getId()).willReturn(userId);
+        given(user.getRole()).willReturn(Role.USER);
+        given(user.getStatus()).willReturn(com.fourtune.auction.boundedContext.user.domain.constant.Status.ACTIVE);
+        given(user.getEmail()).willReturn("test@test.com");
+        given(user.getNickname()).willReturn("테스트");
+
         given(jwtTokenProvider.getUserIdFromToken(refreshToken)).willReturn(userIdStr);
         given(userSupport.findByIdOrThrow(userId)).willReturn(user);
-        given(user.getId()).willReturn(userId);
         given(refreshTokenRepository.findByUserId(userId)).willReturn(Optional.of(refreshToken));
 
-        given(jwtTokenProvider.createAccessToken(user)).willReturn("new_access");
+        given(jwtTokenProvider.createAccessToken(UserMapper.toDto(user))).willReturn("new_access");
         given(jwtTokenProvider.createRefreshToken(userId)).willReturn("new_refresh");
 
         TokenResponse response = authService.reissue(refreshToken);
@@ -151,6 +157,12 @@ class AuthServiceTest {
         String storedToken = "original_token";
         String userIdStr = "1";
         Long userId = 1L;
+
+        given(user.getId()).willReturn(userId);
+        given(user.getRole()).willReturn(Role.USER);
+        given(user.getStatus()).willReturn(com.fourtune.auction.boundedContext.user.domain.constant.Status.ACTIVE);
+        given(user.getEmail()).willReturn("test@test.com");
+        given(user.getNickname()).willReturn("테스트");
 
         given(jwtTokenProvider.getUserIdFromToken(requestToken)).willReturn(userIdStr);
         given(userSupport.findByIdOrThrow(userId)).willReturn(user);

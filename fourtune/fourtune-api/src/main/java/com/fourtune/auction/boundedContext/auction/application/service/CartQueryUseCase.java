@@ -3,8 +3,9 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Cart;
 import com.fourtune.auction.boundedContext.auction.domain.entity.CartItem;
-import com.fourtune.auction.shared.auction.dto.CartItemResponse;
-import com.fourtune.auction.shared.auction.dto.CartResponse;
+import com.fourtune.auction.boundedContext.auction.mapper.CartMapper;
+import com.fourtune.common.shared.auction.dto.CartItemResponse;
+import com.fourtune.common.shared.auction.dto.CartResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,11 +46,11 @@ public class CartQueryUseCase {
         List<CartItemResponse> itemResponses = new ArrayList<>();
         for (CartItem item : items) {
             AuctionItem auctionItem = auctionSupport.findById(item.getAuctionId()).orElse(null);
-            itemResponses.add(CartItemResponse.from(item, auctionItem));
+            itemResponses.add(CartMapper.from(item, auctionItem));
         }
         
         // 4. CartResponse 생성 후 반환
-        return CartResponse.from(cart, itemResponses);
+        return CartMapper.from(cart, itemResponses);
     }
 
     /**

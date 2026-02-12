@@ -2,13 +2,10 @@ package com.fourtune.auction.boundedContext.user.domain.entity;
 
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
-import com.fourtune.auction.global.common.BaseIdAndTime;
-import com.fourtune.auction.global.common.BaseTimeEntity;
-import com.fourtune.auction.shared.user.dto.UserResponse;
-import com.fourtune.auction.shared.user.event.UserModifiedEvent;
+import com.fourtune.common.global.common.BaseTimeEntity;
+import com.fourtune.common.shared.user.dto.UserResponse;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.domain.AbstractAggregateRoot;
 
 import java.time.LocalDateTime;
 
@@ -117,7 +114,8 @@ public class User extends BaseTimeEntity{
                 this.getUpdatedAt(),
                 this.email,
                 this.nickname,
-                this.status.parseToString()
+                this.status.parseToString(),
+                this.role.name()
         );
     }
 

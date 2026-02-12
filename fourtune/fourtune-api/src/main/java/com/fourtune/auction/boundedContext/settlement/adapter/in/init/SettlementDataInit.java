@@ -5,15 +5,14 @@ import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementCa
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementCandidatedItemRepository;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementUserRepository;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.user.dto.UserResponse;
-import com.fourtune.auction.shared.user.event.UserJoinedEvent;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.shared.user.dto.UserResponse;
+import com.fourtune.common.shared.user.event.UserJoinedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -146,7 +145,8 @@ public class SettlementDataInit {
                     LocalDateTime.now(),
                     email,
                     nickname,
-                    "ACTIVE"
+                    "ACTIVE",
+                    "ROLE_USER"
             );
 
             eventPublisher.publish(new UserJoinedEvent(userResponse));

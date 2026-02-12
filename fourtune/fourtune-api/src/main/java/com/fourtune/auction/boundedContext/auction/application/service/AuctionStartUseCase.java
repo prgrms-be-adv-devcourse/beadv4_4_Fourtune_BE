@@ -3,9 +3,9 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionStartedEvent;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.common.shared.auction.event.AuctionStartedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -45,8 +45,8 @@ public class AuctionStartUseCase {
                 sellerName,
                 auction.getTitle(),
                 auction.getDescription(),
-                auction.getCategory(),
-                auction.getStatus(),
+                auction.getCategory().toString(),
+                auction.getStatus().toString(),
                 auction.getStartPrice(),
                 auction.getCurrentPrice(),
                 auction.getBuyNowPrice(),

@@ -1,8 +1,9 @@
 package com.fourtune.auction.boundedContext.watchList.adapter.in.kafka;
 
+import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
 import com.fourtune.auction.boundedContext.watchList.application.service.WatchListService;
-import com.fourtune.auction.global.config.kafka.KafkaTopicConfig;
-import com.fourtune.auction.shared.user.kafka.UserEventMessage;
+import com.fourtune.common.global.config.kafka.KafkaTopicConfig;
+import com.fourtune.common.shared.user.kafka.UserEventMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,7 +35,9 @@ public class WatchListUserKafkaListener {
             log.info("[WatchList] User 이벤트 수신: type={}, userId={}, messageId={}",
                     message.getEventType(), message.getUserId(), message.getMessageId());
 
-            switch (message.getEventType()) {
+            UserEventType eventType = UserEventType.valueOf(message.getEventType());
+
+            switch (eventType) {
                 case USER_JOINED -> handleUserJoined(message);
                 case USER_MODIFIED -> handleUserModified(message);
                 case USER_DELETED -> handleUserDeleted(message);

@@ -1,11 +1,11 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
-import com.fourtune.auction.shared.payment.constant.CashPolicy;
+import com.fourtune.common.shared.payment.constant.CashPolicy;
 import com.fourtune.auction.boundedContext.payment.domain.entity.Wallet;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.shared.settlement.dto.SettlementDto;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.shared.settlement.dto.SettlementDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

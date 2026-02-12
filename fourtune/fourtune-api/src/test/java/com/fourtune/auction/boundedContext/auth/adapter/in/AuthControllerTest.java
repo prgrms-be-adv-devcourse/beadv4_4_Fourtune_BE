@@ -1,9 +1,9 @@
 package com.fourtune.auction.boundedContext.auth.adapter.in;
 
 import com.fourtune.auction.boundedContext.auth.application.service.AuthService;
-import com.fourtune.auction.shared.auth.dto.ReissueRequest;
-import com.fourtune.auction.shared.auth.dto.TokenResponse;
-import com.fourtune.auction.shared.user.dto.UserLoginRequest;
+import com.fourtune.common.shared.auth.dto.ReissueRequest;
+import com.fourtune.common.shared.auth.dto.TokenResponse;
+import com.fourtune.common.shared.user.dto.UserLoginRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

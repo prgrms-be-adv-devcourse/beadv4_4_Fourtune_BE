@@ -2,10 +2,11 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
+import com.fourtune.auction.boundedContext.auction.mapper.BidMapper;
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.auction.shared.auction.dto.BidDetailResponse;
-import com.fourtune.auction.shared.auction.dto.BidHistoryResponse;
-import com.fourtune.auction.shared.auction.dto.BidResponse;
+import com.fourtune.common.shared.auction.dto.BidDetailResponse;
+import com.fourtune.common.shared.auction.dto.BidHistoryResponse;
+import com.fourtune.common.shared.auction.dto.BidResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +42,7 @@ public class BidQueryUseCase {
         Set<Long> bidderIds = bids.stream().map(Bid::getBidderId).collect(Collectors.toSet());
         var bidderNicknames = userFacade.getNicknamesByIds(bidderIds);
         // 4. DTO 변환 후 반환
-        return BidHistoryResponse.from(auctionItem, bids, bidderNicknames);
+        return BidMapper.from(auctionItem, bids, bidderNicknames);
     }
 
     /**
@@ -52,7 +53,7 @@ public class BidQueryUseCase {
         var nicknames = userFacade.getNicknamesByIds(Set.of(bidderId));
         String bidderNickname = nicknames.get(bidderId);
         return bids.stream()
-                .map(bid -> BidResponse.from(bid, bidderNickname))
+                .map(bid -> BidMapper.from(bid, bidderNickname))
                 .toList();
     }
 
@@ -67,7 +68,7 @@ public class BidQueryUseCase {
         }
         Bid bid = highestBid.get();
         var nicknames = userFacade.getNicknamesByIds(Set.of(bid.getBidderId()));
-        return BidResponse.from(bid, nicknames.get(bid.getBidderId()));
+        return BidMapper.from(bid, nicknames.get(bid.getBidderId()));
     }
 
     /**
@@ -77,7 +78,7 @@ public class BidQueryUseCase {
         Bid bid = bidSupport.findByIdOrThrow(bidId);
         AuctionItem auctionItem = auctionSupport.findByIdOrThrow(bid.getAuctionId());
         var nicknames = userFacade.getNicknamesByIds(Set.of(bid.getBidderId()));
-        return BidDetailResponse.from(bid, auctionItem, nicknames.get(bid.getBidderId()));
+        return BidMapper.from(bid, auctionItem, nicknames.get(bid.getBidderId()));
     }
 
 }

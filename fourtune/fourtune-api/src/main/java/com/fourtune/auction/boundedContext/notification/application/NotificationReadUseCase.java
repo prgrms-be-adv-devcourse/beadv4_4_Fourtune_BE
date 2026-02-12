@@ -1,9 +1,10 @@
 package com.fourtune.auction.boundedContext.notification.application;
 
 import com.fourtune.auction.boundedContext.notification.domain.Notification;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.shared.notification.dto.NotificationResponseDto;
+import com.fourtune.auction.boundedContext.notification.mapper.NotificationMapper;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.shared.notification.dto.NotificationResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class NotificationReadUseCase {
 
     public List<NotificationResponseDto> readNotifications(Long userId){
         return notificationSupport.findAllByUserIdOrderBySendAtDesc(userId).stream()
-                .map(NotificationResponseDto::from)
+                .map(NotificationMapper::from)
                 .collect(Collectors.toList());
     }
 

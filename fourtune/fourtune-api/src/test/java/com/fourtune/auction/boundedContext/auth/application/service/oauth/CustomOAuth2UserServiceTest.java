@@ -3,9 +3,9 @@ package com.fourtune.auction.boundedContext.auth.application.service.oauth;
 import com.fourtune.auction.boundedContext.user.application.service.UserSupport;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.auction.global.eventPublisher.EventPublisher; // 추가됨
-import com.fourtune.auction.shared.auth.dto.UserContext;
-import com.fourtune.auction.shared.user.event.UserJoinedEvent; // 추가됨
+import com.fourtune.common.global.eventPublisher.EventPublisher; // 추가됨
+import com.fourtune.common.shared.auth.dto.UserContext;
+import com.fourtune.common.shared.user.event.UserJoinedEvent; // 추가됨
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

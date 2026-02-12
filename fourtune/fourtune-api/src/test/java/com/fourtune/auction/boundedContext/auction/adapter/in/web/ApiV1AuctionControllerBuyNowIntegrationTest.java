@@ -8,11 +8,16 @@ import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Order;
 import com.fourtune.auction.boundedContext.auction.port.out.AuctionItemRepository;
 import com.fourtune.auction.boundedContext.auction.port.out.OrderRepository;
+import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.NotificationUserKafkaListener;
+import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
+import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
-import com.fourtune.auction.global.security.jwt.JwtTokenProvider;
+import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
+import com.fourtune.common.global.security.jwt.JwtTokenProvider;
+import com.fourtune.common.shared.user.dto.UserResponse;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,6 +74,10 @@ class ApiV1AuctionControllerBuyNowIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @MockitoBean private WatchListUserKafkaListener watchListUserKafkaListener;
+    @MockitoBean private SettlementUserKafkaListener settlementUserKafkaListener;
+    @MockitoBean private NotificationUserKafkaListener notificationUserKafkaListener;
+
     @MockitoBean
     private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
 
@@ -112,8 +121,10 @@ class ApiV1AuctionControllerBuyNowIntegrationTest {
                 .build();
         buyer = userRepository.save(buyer);
 
+        UserResponse buyerDto = UserMapper.toDto(buyer);
+
         // JWT 토큰 생성
-        buyerToken = jwtTokenProvider.createAccessToken(buyer);
+        buyerToken = jwtTokenProvider.createAccessToken(buyerDto);
 
         // 테스트용 ACTIVE 상태 경매 생성 (즉시구매 활성화)
         activeAuction = AuctionItem.builder()

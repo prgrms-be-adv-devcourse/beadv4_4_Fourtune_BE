@@ -2,10 +2,10 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.constant.BidStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.auction.event.BidCanceledEvent;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.shared.auction.event.BidCanceledEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

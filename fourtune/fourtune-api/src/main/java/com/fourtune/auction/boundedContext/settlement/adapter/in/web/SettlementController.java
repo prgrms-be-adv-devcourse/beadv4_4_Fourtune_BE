@@ -3,13 +3,12 @@ package com.fourtune.auction.boundedContext.settlement.adapter.in.web;
 import com.fourtune.auction.boundedContext.settlement.adapter.in.web.dto.SettlementCandidatedItemDto;
 import com.fourtune.auction.boundedContext.settlement.adapter.in.web.dto.SettlementResponse;
 import com.fourtune.auction.boundedContext.settlement.application.service.SettlementFacade;
-import com.fourtune.auction.global.common.ApiResponse;
-import com.fourtune.auction.shared.auth.dto.UserContext;
+import com.fourtune.common.global.common.ApiResponse;
+import com.fourtune.common.shared.auth.dto.UserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

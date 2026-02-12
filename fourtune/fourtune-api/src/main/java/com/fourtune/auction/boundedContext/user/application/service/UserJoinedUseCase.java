@@ -3,13 +3,14 @@ package com.fourtune.auction.boundedContext.user.application.service;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.auction.global.config.EventPublishingConfig;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.global.outbox.service.OutboxService;
-import com.fourtune.auction.shared.user.dto.UserSignUpRequest;
-import com.fourtune.auction.shared.user.event.UserJoinedEvent;
+import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
+import com.fourtune.common.global.config.EventPublishingConfig;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.global.outbox.service.OutboxService;
+import com.fourtune.common.shared.user.dto.UserSignUpRequest;
+import com.fourtune.common.shared.user.event.UserJoinedEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,7 +41,7 @@ public class UserJoinedUseCase {
         }
         else{
             validateSignUp(request);
-            User newUser = request.toEntity(passwordEncoder.encode(request.password()));
+            User newUser = UserMapper.toEntity(request, passwordEncoder.encode(request.password()));
             userSupport.save(newUser);
             publishUserJoinedEvent(newUser);
         }

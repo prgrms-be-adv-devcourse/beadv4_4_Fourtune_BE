@@ -1,8 +1,7 @@
 package com.fourtune.auction.boundedContext.user.adapter.in.eventListener;
 
 import com.fourtune.auction.boundedContext.user.application.service.UserModifiedUseCase;
-import com.fourtune.auction.shared.auction.event.AuctionPenaltyEvent;
-import com.fourtune.auction.shared.auction.event.OrderCancelledEvent;
+import com.fourtune.common.shared.auction.event.OrderCancelledEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

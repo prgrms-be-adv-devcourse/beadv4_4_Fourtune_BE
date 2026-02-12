@@ -1,8 +1,9 @@
 package com.fourtune.auction.boundedContext.watchList.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.watchList.domain.WatchList;
+import com.fourtune.auction.boundedContext.watchList.mapper.WatchListMapper;
 import com.fourtune.auction.boundedContext.watchList.port.out.WatchListRepository;
-import com.fourtune.auction.shared.watchList.dto.WatchListResponseDto;
+import com.fourtune.common.shared.watchList.dto.WatchListResponseDto;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -109,7 +110,7 @@ public class WatchListPerformanceController {
 
             // 여기서 N+1 문제 발생: 각 WatchList마다 user, auctionItem 조회
             List<WatchListResponseDto> result = watchLists.stream()
-                    .map(WatchListResponseDto::from)
+                    .map(WatchListMapper::from)
                     .toList();
 
             lazyResultSummary.record(result.size());
@@ -142,7 +143,7 @@ public class WatchListPerformanceController {
 
             // 이미 모든 데이터가 로드되어 있어 추가 쿼리 없음
             List<WatchListResponseDto> result = watchLists.stream()
-                    .map(WatchListResponseDto::from)
+                    .map(WatchListMapper::from)
                     .toList();
 
             fetchJoinResultSummary.record(result.size());
@@ -175,7 +176,7 @@ public class WatchListPerformanceController {
 
             // 이미 모든 데이터가 로드되어 있어 추가 쿼리 없음
             List<WatchListResponseDto> result = watchLists.stream()
-                    .map(WatchListResponseDto::from)
+                    .map(WatchListMapper::from)
                     .toList();
 
             entityGraphResultSummary.record(result.size());

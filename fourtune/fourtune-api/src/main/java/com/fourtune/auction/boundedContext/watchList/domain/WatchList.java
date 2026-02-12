@@ -1,6 +1,6 @@
 package com.fourtune.auction.boundedContext.watchList.domain;
 
-import com.fourtune.auction.global.common.BaseTimeEntity;
+import com.fourtune.common.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

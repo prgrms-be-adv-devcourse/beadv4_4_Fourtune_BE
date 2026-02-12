@@ -1,8 +1,12 @@
 package com.fourtune.auction.boundedContext.user.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.auction.shared.auth.dto.UserContext;
-import com.fourtune.auction.shared.user.dto.*;
+import com.fourtune.common.shared.auth.dto.UserContext;
+import com.fourtune.common.shared.user.dto.*;
+import com.fourtune.common.shared.user.dto.UserPasswordChangeRequest;
+import com.fourtune.common.shared.user.dto.UserSignUpRequest;
+import com.fourtune.common.shared.user.dto.UserUpdateRequest;
+import com.fourtune.common.shared.user.dto.UserWithdrawRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -63,8 +67,8 @@ public class UserController {
      * ID로 유저 정보 조회 (id, email, nickname, status 등)
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
-        UserResponse response = userFacade.getUserById(id);
+    public ResponseEntity<com.fourtune.common.shared.user.dto.UserResponse> getUser(@PathVariable Long id) {
+        com.fourtune.common.shared.user.dto.UserResponse response = userFacade.getUserById(id);
         return ResponseEntity.ok(response);
     }
 

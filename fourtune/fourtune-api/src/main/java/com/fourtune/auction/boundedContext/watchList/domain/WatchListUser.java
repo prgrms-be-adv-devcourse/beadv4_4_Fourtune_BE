@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.watchList.domain;
 
-import com.fourtune.auction.shared.user.domain.ReplicaUser;
-import com.fourtune.auction.shared.watchList.dto.WatchListUserDto;
+import com.fourtune.common.shared.user.domain.ReplicaUser;
+import com.fourtune.common.shared.watchList.dto.WatchListUserDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Builder;

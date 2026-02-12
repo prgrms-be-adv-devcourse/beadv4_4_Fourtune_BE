@@ -3,9 +3,9 @@ package com.fourtune.auction.boundedContext.auction.domain.entity;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionPolicy;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
 import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
-import com.fourtune.auction.global.common.BaseTimeEntity;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
+import com.fourtune.common.global.common.BaseTimeEntity;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -105,7 +105,7 @@ public class AuctionItem extends BaseTimeEntity {
             Long sellerId,
             String title,
             String description,
-            Category category,
+            String category,
             BigDecimal startPrice,
             Integer bidUnit,
             BigDecimal buyNowPrice,
@@ -114,7 +114,7 @@ public class AuctionItem extends BaseTimeEntity {
             LocalDateTime auctionEndTime
     ) {
         // 1. 필수 필드 검증
-        validateRequired(sellerId, title, category, startPrice, auctionStartTime, auctionEndTime);
+        validateRequired(sellerId, title, Category.valueOf(category), startPrice, auctionStartTime, auctionEndTime);
         
         // 2. 시작가 검증
         validateStartPrice(startPrice);
@@ -130,7 +130,7 @@ public class AuctionItem extends BaseTimeEntity {
                 .sellerId(sellerId)
                 .title(title)
                 .description(description)
-                .category(category)
+                .category(Category.valueOf(category))
                 .startPrice(startPrice)
                 .bidUnit(bidUnit != null ? bidUnit : 1000)
                 .buyNowPrice(buyNowPrice)

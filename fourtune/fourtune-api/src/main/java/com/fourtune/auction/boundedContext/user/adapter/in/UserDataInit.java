@@ -1,8 +1,8 @@
 package com.fourtune.auction.boundedContext.user.adapter.in;
 
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.auction.shared.payment.constant.CashPolicy;
-import com.fourtune.auction.shared.user.dto.UserSignUpRequest;
+import com.fourtune.common.shared.payment.constant.CashPolicy;
+import com.fourtune.common.shared.user.dto.UserSignUpRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;

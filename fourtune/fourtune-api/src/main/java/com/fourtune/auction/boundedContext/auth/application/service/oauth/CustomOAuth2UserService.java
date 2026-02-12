@@ -4,10 +4,11 @@ import com.fourtune.auction.boundedContext.user.application.service.UserSupport;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.auth.dto.UserContext;
-import com.fourtune.auction.shared.user.event.UserJoinedEvent;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.shared.auth.dto.UserContext;
+import com.fourtune.common.shared.user.event.UserJoinedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Primary
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserSupport userSupport;

@@ -4,9 +4,9 @@ import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus
 import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.search.application.service.AuctionItemIndexingHandler;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
-import com.fourtune.auction.shared.auction.event.AuctionItemCreatedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionItemDeletedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemCreatedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemDeletedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -115,8 +115,8 @@ class AuctionItemIndexEventListenerTest {
                 "TestSeller",
                 "Complete Test Auction",
                 "Detailed description",
-                Category.ELECTRONICS,
-                AuctionStatus.ACTIVE,
+                Category.ELECTRONICS.toString(),
+                AuctionStatus.ACTIVE.toString(),
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(15000),
                 BigDecimal.valueOf(50000),  // buyNowPrice
@@ -163,8 +163,8 @@ class AuctionItemIndexEventListenerTest {
                 "TestSeller",
                 "Test Auction",
                 "Test Description",
-                Category.ELECTRONICS,
-                AuctionStatus.SCHEDULED,
+                Category.ELECTRONICS.toString(),
+                AuctionStatus.SCHEDULED.toString(),
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(50000),  // buyNowPrice
@@ -186,8 +186,8 @@ class AuctionItemIndexEventListenerTest {
                 "UpdatedSeller",
                 "Updated Auction",
                 "Updated Description",
-                Category.ELECTRONICS,
-                AuctionStatus.ACTIVE,
+                Category.ELECTRONICS.toString(),
+                AuctionStatus.ACTIVE.toString(),
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(15000),
                 BigDecimal.valueOf(60000),  // buyNowPrice

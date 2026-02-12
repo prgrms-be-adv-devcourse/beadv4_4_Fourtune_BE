@@ -2,9 +2,9 @@ package com.fourtune.auction.boundedContext.search.adapter.in.event;
 
 import com.fourtune.auction.boundedContext.search.application.service.AuctionItemIndexingHandler;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
-import com.fourtune.auction.shared.auction.event.AuctionItemCreatedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionItemDeletedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemCreatedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemDeletedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -102,8 +102,8 @@ public class AuctionItemIndexEventListener {
                 event.auctionItemId(),
                 event.title(),
                 event.description(),
-                event.category().name(),
-                event.status().name(),
+                event.category(),
+                event.status(),
                 event.startPrice(),
                 event.currentPrice(),
                 event.buyNowPrice(),
@@ -126,8 +126,8 @@ public class AuctionItemIndexEventListener {
                 event.auctionItemId(),
                 event.title(),
                 event.description(),
-                event.category().name(),
-                event.status().name(),
+                event.category(),
+                event.status(),
                 event.startPrice(),
                 event.currentPrice(),
                 event.buyNowPrice(),

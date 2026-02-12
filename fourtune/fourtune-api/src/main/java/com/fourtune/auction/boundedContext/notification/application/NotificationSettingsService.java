@@ -2,13 +2,14 @@ package com.fourtune.auction.boundedContext.notification.application;
 
 import com.fourtune.auction.boundedContext.notification.domain.NotificationSettings;
 import com.fourtune.auction.boundedContext.notification.domain.NotificationUser;
+import com.fourtune.auction.boundedContext.notification.mapper.NotificationMapper;
 import com.fourtune.auction.boundedContext.notification.port.out.NotificationSettingsRepository;
 import com.fourtune.auction.boundedContext.notification.port.out.NotificationUserRepository;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
-import com.fourtune.auction.shared.notification.dto.NotificationSettingsResponse;
-import com.fourtune.auction.shared.notification.dto.NotificationSettingsUpdateRequest;
-import com.fourtune.auction.shared.user.dto.UserResponse;
+import com.fourtune.common.global.error.ErrorCode;
+import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.common.shared.notification.dto.NotificationSettingsResponse;
+import com.fourtune.common.shared.notification.dto.NotificationSettingsUpdateRequest;
+import com.fourtune.common.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +47,7 @@ public class NotificationSettingsService {
         NotificationSettings settings = notificationSettingsRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SETTING_NOT_FOUND));
 
-        return NotificationSettingsResponse.from(settings);
+        return NotificationMapper.from(settings);
     }
 
 }

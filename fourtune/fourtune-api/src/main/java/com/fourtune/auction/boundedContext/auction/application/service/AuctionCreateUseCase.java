@@ -3,10 +3,10 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.auction.global.eventPublisher.EventPublisher;
-import com.fourtune.auction.shared.auction.dto.AuctionItemCreateRequest;
-import com.fourtune.auction.shared.auction.event.AuctionCreatedEvent;
-import com.fourtune.auction.shared.auction.event.AuctionItemCreatedEvent;
+import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.shared.auction.dto.AuctionItemCreateRequest;
+import com.fourtune.common.shared.auction.event.AuctionCreatedEvent;
+import com.fourtune.common.shared.auction.event.AuctionItemCreatedEvent;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
@@ -54,7 +54,7 @@ public class AuctionCreateUseCase {
         eventPublisher.publish(new AuctionCreatedEvent(
                 savedAuction.getId(),
                 sellerId,
-                savedAuction.getCategory()
+                savedAuction.getCategory().toString()
         ));
         
         // 4. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
@@ -66,8 +66,8 @@ public class AuctionCreateUseCase {
                 sellerName,
                 savedAuction.getTitle(),
                 savedAuction.getDescription(),
-                savedAuction.getCategory(),
-                savedAuction.getStatus(),
+                savedAuction.getCategory().toString(),
+                savedAuction.getStatus().toString(),
                 savedAuction.getStartPrice(),
                 savedAuction.getCurrentPrice(),
                 savedAuction.getBuyNowPrice(),

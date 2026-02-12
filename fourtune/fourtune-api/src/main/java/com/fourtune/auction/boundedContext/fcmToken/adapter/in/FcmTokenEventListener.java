@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.fcmToken.adapter.in;
 
 import com.fourtune.auction.boundedContext.fcmToken.application.FcmService;
-import com.fourtune.auction.shared.notification.event.NotificationEvent;
+import com.fourtune.common.shared.notification.event.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

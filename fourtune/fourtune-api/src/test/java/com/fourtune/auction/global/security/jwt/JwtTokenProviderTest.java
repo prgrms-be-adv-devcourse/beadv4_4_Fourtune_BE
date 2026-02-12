@@ -2,22 +2,25 @@ package com.fourtune.auction.global.security.jwt;
 
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.auction.global.error.ErrorCode;
-import com.fourtune.auction.global.error.exception.BusinessException;
+import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
+import com.fourtune.common.global.security.jwt.JwtTokenProvider;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 public class JwtTokenProviderTest {
+
+    @Autowired
+    private UserMapper userMapper;
 
     private JwtTokenProvider jwtTokenProvider;
     private final String secretKey = "sdsdsdsaWQUIQB1541KJSABDAJKSD1K24JBJ1T14GSF=";
@@ -42,7 +45,7 @@ public class JwtTokenProviderTest {
                 .email(email)
                 .build();
 
-        String accessToken = jwtTokenProvider.createAccessToken(user);
+        String accessToken = jwtTokenProvider.createAccessToken(userMapper.toDto(user));
         String refreshToken = jwtTokenProvider.createRefreshToken(userId);
 
         assertThat(accessToken).isNotNull();
@@ -61,7 +64,7 @@ public class JwtTokenProviderTest {
                 .build();
 
         JwtTokenProvider jwtTokenProviderHasZero = new JwtTokenProvider(secretKey, 0, 0);
-        String expiredToken = jwtTokenProviderHasZero.createAccessToken(user);
+        String expiredToken = jwtTokenProviderHasZero.createAccessToken(userMapper.toDto(user));
 
         assertThatThrownBy(() -> jwtTokenProviderHasZero.validateToken(expiredToken))
                 .isInstanceOf(ExpiredJwtException.class);
@@ -76,7 +79,7 @@ public class JwtTokenProviderTest {
                 .role(Role.USER)
                 .build();
 
-        String token = jwtTokenProvider.createAccessToken(user);
+        String token = jwtTokenProvider.createAccessToken(userMapper.toDto(user));
         Authentication auth = jwtTokenProvider.getAuthentication(token);
 
         assertThat(auth.getName()).isEqualTo("1");
