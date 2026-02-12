@@ -4,14 +4,18 @@ import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.boundedContext.auction.port.out.AuctionItemRepository;
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
+import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.global.outbox.service.OutboxService;
 import com.fourtune.auction.shared.auction.event.AuctionDeletedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionItemDeletedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.auction.shared.auction.kafka.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -23,11 +27,15 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AuctionDeleteUseCase {
 
+    private static final String AGGREGATE_TYPE_AUCTION = "Auction";
+
     private final AuctionSupport auctionSupport;
     private final BidSupport bidSupport;
     private final AuctionItemRepository auctionItemRepository;
     private final EventPublisher eventPublisher;
     private final UserFacade userFacade;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final OutboxService outboxService;
 
     /**
      * 경매 삭제
@@ -54,15 +62,20 @@ public class AuctionDeleteUseCase {
         auctionItemRepository.delete(auctionItem);
         
         // 6. 이벤트 발행
-        eventPublisher.publish(new AuctionDeletedEvent(
-                deletedAuctionId,
-                sellerId,
-                title,
-                category
-        ));
-        
+        AuctionDeletedEvent deletedEvent = new AuctionDeletedEvent(deletedAuctionId, sellerId, title, category);
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, deletedAuctionId, AuctionEventType.AUCTION_DELETED.name(), Map.of("eventType", AuctionEventType.AUCTION_DELETED.name(), "aggregateId", deletedAuctionId, "data", deletedEvent));
+        } else {
+            eventPublisher.publish(deletedEvent);
+        }
+
         // 7. Search 인덱싱 전용 이벤트 발행 (auctionId만 필요)
-        eventPublisher.publish(new AuctionItemDeletedEvent(deletedAuctionId));
+        AuctionItemDeletedEvent itemDeletedEvent = new AuctionItemDeletedEvent(deletedAuctionId);
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, deletedAuctionId, AuctionEventType.AUCTION_ITEM_DELETED.name(), Map.of("eventType", AuctionEventType.AUCTION_ITEM_DELETED.name(), "aggregateId", deletedAuctionId, "data", itemDeletedEvent));
+        } else {
+            eventPublisher.publish(itemDeletedEvent);
+        }
     }
 
     /**
@@ -87,10 +100,10 @@ public class AuctionDeleteUseCase {
         auctionItem.cancel();
         
         // 5. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
+        Long aggregateId = auctionItem.getId();
         String thumbnailUrl = extractThumbnailUrl(auctionItem);
         String sellerName = userFacade.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
-
-        eventPublisher.publish(new AuctionItemUpdatedEvent(
+        AuctionItemUpdatedEvent itemUpdatedEvent = new AuctionItemUpdatedEvent(
                 auctionItem.getId(),
                 auctionItem.getSellerId(),
                 sellerName,
@@ -110,9 +123,14 @@ public class AuctionDeleteUseCase {
                 auctionItem.getViewCount(),
                 auctionItem.getBidCount(),
                 auctionItem.getWatchlistCount()
-        ));
+        );
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, aggregateId, AuctionEventType.AUCTION_ITEM_UPDATED.name(), Map.of("eventType", AuctionEventType.AUCTION_ITEM_UPDATED.name(), "aggregateId", aggregateId, "data", itemUpdatedEvent));
+        } else {
+            eventPublisher.publish(itemUpdatedEvent);
+        }
     }
-    
+
     /**
      * 썸네일 URL 추출
      */

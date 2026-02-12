@@ -18,11 +18,21 @@ public class EventPublishingConfig {
     @Value("${feature.kafka.user-events.enabled:false}")
     private boolean userEventsKafkaEnabled;
 
+    @Value("${feature.kafka.auction-events.enabled:false}")
+    private boolean auctionEventsKafkaEnabled;
+
     /**
      * User 이벤트에 대해 Kafka를 사용할지 여부
      */
     public boolean isUserEventsKafkaEnabled() {
         return kafkaEnabled && userEventsKafkaEnabled;
+    }
+
+    /**
+     * 경매 이벤트에 대해 Kafka를 사용할지 여부
+     */
+    public boolean isAuctionEventsKafkaEnabled() {
+        return kafkaEnabled && auctionEventsKafkaEnabled;
     }
 
     /**

@@ -3,12 +3,16 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
+import com.fourtune.auction.global.config.EventPublishingConfig;
 import com.fourtune.auction.global.eventPublisher.EventPublisher;
+import com.fourtune.auction.global.outbox.service.OutboxService;
 import com.fourtune.auction.shared.auction.dto.AuctionItemCreateRequest;
 import com.fourtune.auction.shared.auction.event.AuctionCreatedEvent;
 import com.fourtune.auction.shared.auction.event.AuctionItemCreatedEvent;
+import com.fourtune.auction.shared.auction.kafka.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Map;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +27,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuctionCreateUseCase {
 
+    private static final String AGGREGATE_TYPE_AUCTION = "Auction";
+
     private final AuctionSupport auctionSupport;
     private final EventPublisher eventPublisher;
     private final UserFacade userFacade;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final OutboxService outboxService;
     // private final S3Service s3Service; // TODO: 나중에 추가
 
     /**
@@ -49,18 +57,24 @@ public class AuctionCreateUseCase {
         
         // 2. DB 저장
         AuctionItem savedAuction = auctionSupport.save(auctionItem);
-        
-        // 3. 이벤트 발행
-        eventPublisher.publish(new AuctionCreatedEvent(
+        Long aggregateId = savedAuction.getId();
+
+        // 3. 이벤트 발행 (Kafka 사용 시 Outbox, 아니면 Spring Event)
+        AuctionCreatedEvent createdEvent = new AuctionCreatedEvent(
                 savedAuction.getId(),
                 sellerId,
                 savedAuction.getCategory()
-        ));
-        
+        );
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, aggregateId, AuctionEventType.AUCTION_CREATED.name(), Map.of("eventType", AuctionEventType.AUCTION_CREATED.name(), "aggregateId", aggregateId, "data", createdEvent));
+        } else {
+            eventPublisher.publish(createdEvent);
+        }
+
         // 4. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(savedAuction);
         String sellerName = userFacade.getNicknamesByIds(Set.of(sellerId)).getOrDefault(sellerId, null);
-        eventPublisher.publish(new AuctionItemCreatedEvent(
+        AuctionItemCreatedEvent itemCreatedEvent = new AuctionItemCreatedEvent(
                 savedAuction.getId(),
                 sellerId,
                 sellerName,
@@ -80,8 +94,13 @@ public class AuctionCreateUseCase {
                 savedAuction.getViewCount(),
                 savedAuction.getBidCount(),
                 savedAuction.getWatchlistCount()
-        ));
-        
+        );
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, aggregateId, AuctionEventType.AUCTION_ITEM_CREATED.name(), Map.of("eventType", AuctionEventType.AUCTION_ITEM_CREATED.name(), "aggregateId", aggregateId, "data", itemCreatedEvent));
+        } else {
+            eventPublisher.publish(itemCreatedEvent);
+        }
+
         // 5. 경매 ID 반환
         return savedAuction.getId();
     }
