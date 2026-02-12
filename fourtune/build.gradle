@@ -64,6 +64,9 @@ dependencies {
 	
 	// Lettuce (Redis Client)
 	implementation 'io.lettuce:lettuce-core'
+
+	// Caffeine Cache (Local Cache)
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
 	
 	// Database
 	runtimeOnly 'org.postgresql:postgresql'

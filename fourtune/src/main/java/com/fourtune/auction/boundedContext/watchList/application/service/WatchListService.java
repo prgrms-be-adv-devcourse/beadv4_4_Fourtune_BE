@@ -1,9 +1,6 @@
 package com.fourtune.auction.boundedContext.watchList.application.service;
 
-import com.fourtune.auction.boundedContext.watchList.domain.WatchList;
-import com.fourtune.auction.boundedContext.watchList.domain.WatchListAuctionItem;
-import com.fourtune.auction.boundedContext.watchList.domain.WatchListUser;
-import com.fourtune.auction.shared.auction.dto.AuctionItemResponse;
+import com.fourtune.auction.boundedContext.watchList.application.service.performance.WatchListRedisSetUseCase;
 import com.fourtune.auction.shared.user.dto.UserResponse;
 import com.fourtune.auction.shared.watchList.dto.WatchListResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -22,24 +19,16 @@ public class WatchListService {
     private final WatchListSupport watchListSupport;
     private final WatchListSyncUserUseCase watchListSyncUserUseCase;
     private final WatchListSyncAuctionItemUseCase watchListSyncAuctionItemUseCase;
-    private final WatchListAuctionUseCase watchListAuctionUseCase;
+    private final WatchListRedisSetUseCase watchListRedisSetService;
 
     @Transactional
     public boolean toggleWatchList(Long userId, Long auctionItemId) {
         if (isExistWatchList(userId, auctionItemId)) {
-            watchListSupport.deleteByUserIdAndAuctionItemId(userId, auctionItemId);
+            watchListRedisSetService.removeInterest(userId, auctionItemId);
             return false;
         }
         else {
-            WatchListUser user = watchListSupport.findByUserId(userId);
-            WatchListAuctionItem item = watchListSupport.findByAuctionItemId(auctionItemId);
-
-            WatchList watchList = WatchList.builder()
-                    .user(user)
-                    .auctionItem(item)
-                    .build();
-
-            watchListSupport.save(watchList);
+            watchListRedisSetService.addInterest(userId, auctionItemId);
             return true;
         }
     }
@@ -60,12 +49,12 @@ public class WatchListService {
         watchListSyncAuctionItemUseCase.syncAuctionItem(auctionItemId, title, currentPrice, thumbnailUrl);
     }
 
-    public void findAllByAuctionStartItemId(Long auctionItemId){
-        watchListAuctionUseCase.findAllByAuctionStartItemId(auctionItemId);
+    public void processAuctionStart(Long auctionItemId){
+        watchListRedisSetService.processAuctionStart(auctionItemId);
     }
 
-    public void findAllByAuctionEndItemId(Long auctionItemId){
-        watchListAuctionUseCase.findAllByAuctionEndItemId(auctionItemId);
+    public void processAuctionEnd(Long auctionItemId){
+        watchListRedisSetService.processAuctionEnd(auctionItemId);
     }
 
     private boolean isExistWatchList(Long userId, Long itemId) {
