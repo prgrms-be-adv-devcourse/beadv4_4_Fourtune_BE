@@ -82,6 +82,8 @@ feature:
     enabled: false
     user-events:
       enabled: false
+    auction-events:
+      enabled: false
 
 # Outbox 설정
 outbox:
