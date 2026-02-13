@@ -35,7 +35,6 @@ public class SearchLog {
     private String keyword;
 
     @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(columnDefinition = "text[]")
     private List<String> categories;
 
     @Column(nullable = false)
@@ -44,7 +43,6 @@ public class SearchLog {
     private BigDecimal maxPrice; // null 가능 (상한 없음)
 
     @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(columnDefinition = "text[]")
     private List<String> status;
 
     @Column(nullable = false)
