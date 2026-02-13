@@ -26,7 +26,7 @@ services:
 
   # Redis Cache
   redis:
-    image: red
+    image: redis:7-alpine
     container_name: fourtune-redis
     ports:
       - "6379:6379"
