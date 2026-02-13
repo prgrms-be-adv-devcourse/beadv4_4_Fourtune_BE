@@ -82,3 +82,10 @@ fourtune/docs/
 
 ### JMeter 생성물 ###
 fourtune/jmeter/out/
+
+*.md
+prometheus.yml
+*.json
+WatchListPerformanceTest.java
+nul
+*.py

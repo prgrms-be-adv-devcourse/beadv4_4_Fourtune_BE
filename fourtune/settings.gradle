@@ -1,1 +1,5 @@
-rootProject.name = 'auction'
+rootProject.name = 'fourtune'
+
+include 'fourtune-api'
+include 'payment-service'
+include 'common'
