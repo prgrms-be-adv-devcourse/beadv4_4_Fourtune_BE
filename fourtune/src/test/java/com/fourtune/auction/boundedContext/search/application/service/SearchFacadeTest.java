@@ -4,6 +4,7 @@ import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
 import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
 import com.fourtune.auction.shared.search.event.SearchAuctionItemEvent;
+import com.fourtune.auction.boundedContext.search.application.service.RecentSearchService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,9 @@ class SearchFacadeTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private RecentSearchService recentSearchService;
+
     @Test
     @DisplayName("검색어가 존재할 경우 검색 이벤트가 발행된다.")
     void search_WithKeyword_ShouldPublishEvent() {
@@ -53,6 +57,9 @@ class SearchFacadeTest {
 
         // 2. 이벤트 발행 검증 (로그 저장은 리스너 책임이므로 Facade 테스트에서는 제외)
         verify(eventPublisher, times(1)).publishEvent(any(SearchAuctionItemEvent.class));
+
+        // 3. 최근 검색어 저장 검증
+        verify(recentSearchService, times(1)).addKeyword(eq(userId), eq(keyword));
     }
 
     @Test
