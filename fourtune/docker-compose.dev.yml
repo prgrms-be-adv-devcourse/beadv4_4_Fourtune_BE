@@ -159,6 +159,41 @@ services:
       retries: 3
       start_period: 60s
 
+  payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - MODULE_NAME=payment-service
+    container_name: payment-service-dev
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - DB_URL=jdbc:postgresql://postgres:5432/${DB_NAME:-fourtune_db}
+      - DB_USERNAME=${DB_USERNAME:-fourtune_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      # 결제 전용 키
+      - TOSS_SECRET_KEY=${TOSS_SECRET_KEY:-test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    ports:
+      - "8081:8080" # 외부 포트는 8081로 차별화
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      redpanda: { condition: service_healthy }
+    networks:
+      - fourtune-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   # Nginx (개발 서버용)
   nginx:
     image: nginx:alpine

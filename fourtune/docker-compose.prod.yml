@@ -161,6 +161,38 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  payment-service:
+    image: ghcr.io/prgrms-be-adv-devcourse/payment-service:latest # GHCR에 올린 결제 서비스 이미지
+    container_name: payment-app-prod
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_URL=jdbc:postgresql://postgres:5432/${DB_NAME:-fourtune_db}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # 결제 서비스에 필요한 키만 선별해서 추가
+      - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - fourtune-network
+    restart: always
+    # 운영 환경이므로 리소스 제한도 걸어주는 것이 좋습니다
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+
   # Nginx
   nginx:
     image: nginx:alpine

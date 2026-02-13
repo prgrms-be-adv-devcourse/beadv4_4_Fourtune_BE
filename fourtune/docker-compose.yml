@@ -127,8 +127,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        MODULE_NAME: fourtune-api
-    image: fourtune/api:latest
+        - MODULE_NAME=fourtune-api  # 1번 주문: api 모듈로 빌드해!
+    image: fourtune-api:latest
 
     environment:
       # 기본 설정 (바로 실행 가능)
@@ -180,15 +180,34 @@ services:
     restart: "no"
 
   payment-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        MODULE_NAME: payment-service
-    image: fourtune/payment:latest
-
+    # ... (기존 build, image 설정)
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      # 결제 서비스 전용 DB (같은 DB를 쓴다면 동일하게, 분리했다면 해당 주소로)
+      - DB_URL=jdbc:postgresql://postgres:5432/fourtune_db
+      - DB_USERNAME=fourtune_user
+      - DB_PASSWORD=fourtune
+      # Redis (결제 임시 데이터나 멱등성 체크용)
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # Kafka (결제 완료 이벤트를 api에 보낼 때 필요)
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      # PG사 정보 (api에서 payment로 옮겨왔다면 여기서 관리해야 함)
+      - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY}
+      - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
+      # 만약 결제 서비스에서 암호화가 필요하다면
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     ports:
       - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    networks:
+      - fourtune-network
 
   # Prometheus (메트릭 수집)
   prometheus:
