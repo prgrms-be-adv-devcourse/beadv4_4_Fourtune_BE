@@ -10,7 +10,7 @@ import com.fourtune.common.global.eventPublisher.EventPublisher;
 import com.fourtune.common.shared.auction.constant.CancelReason;
 import com.fourtune.common.shared.auction.event.OrderCancelledEvent;
 import com.fourtune.common.shared.auction.event.OrderCompletedEvent;
-import com.fourtune.common.global.config.EventPublishingConfig;;
+import com.fourtune.common.global.config.EventPublishingConfig;
 import com.fourtune.common.global.outbox.service.OutboxService;
 import com.fourtune.common.shared.auction.kafka.AuctionEventType;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.fourtune.common.shared.payment.dto;
 
-import com.fourtune.auction.boundedContext.payment.domain.entity.Refund;
+
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,12 +14,4 @@ public class RefundResponse {
     private String refundReason;
     private LocalDateTime refundedAt;
 
-    public static RefundResponse from(Refund refund) {
-        return RefundResponse.builder()
-                .refundId(refund.getId())
-                .refundAmount(refund.getCancelAmount())
-                .refundReason(refund.getCancelReason())
-                .refundedAt(refund.getCreatedAt())
-                .build();
-    }
 }
