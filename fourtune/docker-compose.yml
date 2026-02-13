@@ -180,6 +180,13 @@ services:
     restart: "no"
 
   payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - MODULE_NAME=payment-service  # 1번 주문: api 모듈로 빌드해!
+    image: payment-service:latest
+
     # ... (기존 build, image 설정)
     environment:
       - SPRING_PROFILES_ACTIVE=local
