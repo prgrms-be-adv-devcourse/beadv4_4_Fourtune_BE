@@ -3,6 +3,8 @@ ARG MODULE_NAME
 
 FROM eclipse-temurin:25-jdk-alpine AS builder
 
+ARG MODULE_NAME
+
 WORKDIR /app
 
 # Copy Gradle wrapper and build files
@@ -25,6 +27,8 @@ RUN ./gradlew :${MODULE_NAME}:bootjar -x test --no-daemon
 
 # Runtime stage
 FROM eclipse-temurin:25-jre-alpine
+
+ARG MODULE_NAME
 
 WORKDIR /app
 
