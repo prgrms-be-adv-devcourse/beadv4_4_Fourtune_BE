@@ -188,7 +188,8 @@ jobs:
         with:
           context: ./fourtune
           push: true
-          build-args: MODULE_NAME=fourtune-api
+          build-args: |
+            MODULE_NAME=fourtune-api
           tags: ghcr.io/${{ github.repository_owner }}/fourtune-api:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -198,7 +199,8 @@ jobs:
         with:
           context: ./fourtune
           push: true
-          build-args: MODULE_NAME=payment-service
+          build-args: |
+            MODULE_NAME=payment-service
           tags: ghcr.io/${{ github.repository_owner }}/payment-service:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
