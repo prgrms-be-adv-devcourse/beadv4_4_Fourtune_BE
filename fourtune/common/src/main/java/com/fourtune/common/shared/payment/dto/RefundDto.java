@@ -1,6 +1,6 @@
 package com.fourtune.common.shared.payment.dto;
 
-import com.fourtune.auction.shared.payment.event.AuctionRefundCompletedEvent;
+import com.fourtune.common.shared.payment.event.AuctionRefundCompletedEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

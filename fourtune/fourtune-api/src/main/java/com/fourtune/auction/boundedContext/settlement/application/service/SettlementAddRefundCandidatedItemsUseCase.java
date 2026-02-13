@@ -5,7 +5,7 @@ import com.fourtune.auction.boundedContext.settlement.domain.constant.Settlement
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementCandidatedItem;
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementCandidatedItemRepository;
-import com.fourtune.auction.shared.payment.dto.RefundDto;
+import com.fourtune.common.shared.payment.dto.RefundDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

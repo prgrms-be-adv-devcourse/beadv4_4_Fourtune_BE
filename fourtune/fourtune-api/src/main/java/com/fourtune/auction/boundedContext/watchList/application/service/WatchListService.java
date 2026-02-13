@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.watchList.application.service;
 
+import com.fourtune.auction.boundedContext.watchList.mapper.WatchListMapper;
 import com.fourtune.common.shared.user.dto.UserResponse;
 import com.fourtune.common.shared.watchList.dto.WatchListResponseDto;
 import com.fourtune.auction.boundedContext.watchList.application.service.performance.WatchListRedisSetUseCase;
@@ -35,7 +36,7 @@ public class WatchListService {
 
     public List<WatchListResponseDto> getMyWatchLists(Long userId) {
         return watchListSupport.findAllByUserIdWithFetchJoin(userId).stream()
-                .map(WatchListResponseDto::from)
+                .map(WatchListMapper::from)
                 .collect(Collectors.toList());
     }
 

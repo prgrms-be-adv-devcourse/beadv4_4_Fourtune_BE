@@ -16,6 +16,9 @@ dependencies {
 	
 	// Event (Kafka는 추후 확장)
 	implementation 'org.springframework.boot:spring-boot-starter-kafka'
+
+	//local cache
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
 	
 	// JWT
 	implementation "io.jsonwebtoken:jjwt-api:${jwtVersion}"
