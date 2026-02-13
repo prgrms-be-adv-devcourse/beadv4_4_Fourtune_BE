@@ -16,6 +16,7 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 public class SearchFacade {
     private final SearchQueryUseCase queryUseCase;
+    private final RecentSearchService recentSearchService;
     private final ApplicationEventPublisher eventPublisher;
 
     public SearchResultPage<SearchAuctionItemView> search(Long userId, SearchCondition condition) {
@@ -25,6 +26,10 @@ public class SearchFacade {
         // 2. 검색 로그 저장 및 이벤트 발행 (비동기 고려 가능하지만, Phase 0에서는 동기 처리하고 추후 리팩토링 하기로)
         // 2. 검색 로그 저장 (비동기 이벤트 발행)
         if (StringUtils.hasText(condition.keyword())) {
+            // 최근 검색어 저장 (Async)
+            if (userId != null) {
+                recentSearchService.addKeyword(userId, condition.keyword());
+            }
             publishSearchEvent(userId, condition, result);
         }
 
