@@ -13,6 +13,9 @@ public class KafkaTopicConfig {
     public static final String USER_EVENTS_TOPIC = "user-account-events";
     public static final String USER_EVENTS_DLQ_TOPIC = "user-events-dlq";
 
+    public static final String AUCTION_EVENTS_TOPIC = "auction-events";
+    public static final String AUCTION_EVENTS_DLQ_TOPIC = "auction-events-dlq";
+
     @Bean
     public NewTopic userEventsTopic() {
         return TopicBuilder.name(USER_EVENTS_TOPIC)
@@ -24,6 +27,22 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic userEventsDlqTopic() {
         return TopicBuilder.name(USER_EVENTS_DLQ_TOPIC)
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic auctionEventsTopic() {
+        return TopicBuilder.name(AUCTION_EVENTS_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic auctionEventsDlqTopic() {
+        return TopicBuilder.name(AUCTION_EVENTS_DLQ_TOPIC)
                 .partitions(1)
                 .replicas(1)
                 .build();

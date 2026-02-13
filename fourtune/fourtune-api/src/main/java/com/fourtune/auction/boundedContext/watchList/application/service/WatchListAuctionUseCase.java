@@ -23,7 +23,7 @@ public class WatchListAuctionUseCase {
 
         List<Long> targetUsers = watchListUsers.stream()
                 .filter(userId -> {
-                    WatchList watchList = watchListSupport.findWatchListByUserIdAndAuctionItemId(userId, auctionItemId);
+                    WatchList watchList = watchListSupport.findWatchListByUserIdAndAuctionItemId(auctionItemId, userId);
                     return !watchList.isStartAlertSent();
                 })
                 .toList();

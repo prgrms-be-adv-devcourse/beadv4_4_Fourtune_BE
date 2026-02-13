@@ -10,12 +10,14 @@ import com.fourtune.common.global.error.ErrorCode;
 import com.fourtune.common.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class WatchListSupport {
 
     private final WatchListItemsRepository watchListItemsRepository;
@@ -29,29 +31,13 @@ public class WatchListSupport {
         return watchListRepository.existsByUserIdAndAuctionItemId(userId, auctionId);
     }
 
-    public void deleteByUserIdAndAuctionItemId(Long userId, Long auctionId){
-        if(userId == null || auctionId == null)
-            throw new BusinessException(ErrorCode.MISSING_INPUT_VALUE);
-
-        watchListRepository.deleteByUserIdAndAuctionItemId(userId, auctionId);
-    }
-
     public WatchListUser findByUserId(Long userId){
         return watchListUserRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.WATCH_LIST_USER_NOT_FOUND));
     }
 
-    public WatchListAuctionItem findByAuctionItemId(Long auctionId){
-        return watchListItemsRepository.findById(auctionId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.WATCH_LIST_AUCTION_ITEM_NOT_FOUND));
-    }
-
     public WatchList save(WatchList watchList){
         return watchListRepository.save(watchList);
-    }
-
-    public List<WatchList> findAllByUserId(Long userId){
-        return watchListRepository.findAllByUserId(userId);
     }
 
     public Optional<WatchListUser> findOptionalByUserId(Long userId){

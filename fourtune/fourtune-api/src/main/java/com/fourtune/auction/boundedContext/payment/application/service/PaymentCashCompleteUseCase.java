@@ -76,7 +76,6 @@ public class PaymentCashCompleteUseCase {
             eventPublisher.publish(
                     new PaymentSucceededEvent(
                             orderDto,
-                            orderDto.toOrderDetailResponse(),
                             pgAmount
                     )
             );
@@ -86,7 +85,6 @@ public class PaymentCashCompleteUseCase {
                             "400-1",
                             "충전은 완료했지만 %번 주문을 결제완료처리를 하기에는 예치금이 부족합니다.".formatted(orderDto.getAuctionOrderId()),
                             orderDto,
-                            orderDto.toOrderDetailResponse(),
                             pgAmount,
                             orderDto.getPrice() - customerWallet.getBalance()
                     )

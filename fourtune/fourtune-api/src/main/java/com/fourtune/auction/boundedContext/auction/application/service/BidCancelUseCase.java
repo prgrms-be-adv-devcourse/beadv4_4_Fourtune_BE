@@ -6,11 +6,15 @@ import com.fourtune.common.global.error.ErrorCode;
 import com.fourtune.common.global.error.exception.BusinessException;
 import com.fourtune.common.global.eventPublisher.EventPublisher;
 import com.fourtune.common.shared.auction.event.BidCanceledEvent;
+import com.fourtune.common.global.config.EventPublishingConfig;
+import com.fourtune.common.global.outbox.service.OutboxService;
+import com.fourtune.common.shared.auction.kafka.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * 입찰 취소 UseCase
@@ -21,9 +25,13 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class BidCancelUseCase {
 
+    private static final String AGGREGATE_TYPE_AUCTION = "Auction";
+
     private final BidSupport bidSupport;
     private final AuctionSupport auctionSupport;
     private final EventPublisher eventPublisher;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final OutboxService outboxService;
 
     /**
      * 입찰 취소
@@ -46,15 +54,21 @@ public class BidCancelUseCase {
         var auctionItem = auctionSupport.findByIdOrThrow(bid.getAuctionId());
         
         // 6. 이벤트 발송
-        eventPublisher.publish(new BidCanceledEvent(
+        Long auctionId = bid.getAuctionId();
+        BidCanceledEvent canceledEvent = new BidCanceledEvent(
                 bid.getId(),
-                bid.getAuctionId(),
+                auctionId,
                 auctionItem.getTitle(),
                 auctionItem.getSellerId(),
                 bid.getBidderId(),
                 bid.getBidAmount(),
                 LocalDateTime.now()
-        ));
+        );
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.BID_CANCELED.name(), Map.of("eventType", AuctionEventType.BID_CANCELED.name(), "aggregateId", auctionId, "data", canceledEvent));
+        } else {
+            eventPublisher.publish(canceledEvent);
+        }
     }
 
     /**

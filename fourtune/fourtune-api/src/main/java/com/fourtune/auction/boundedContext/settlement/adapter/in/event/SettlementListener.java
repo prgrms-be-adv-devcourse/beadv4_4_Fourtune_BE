@@ -9,6 +9,8 @@ import com.fourtune.common.shared.settlement.event.SettlementUserCreatedEvent;
 import com.fourtune.common.shared.user.event.UserDeletedEvent;
 import com.fourtune.common.shared.user.event.UserJoinedEvent;
 import com.fourtune.common.shared.user.event.UserModifiedEvent;
+import com.fourtune.common.shared.payment.dto.RefundDto;
+import com.fourtune.common.shared.payment.event.AuctionRefundCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -92,5 +94,18 @@ public class SettlementListener {
         OrderDto orderDto = OrderDto.from(event);
 
         settlementFacade.addSettlementCandidatedItem(orderDto);
+    }
+
+    /**
+     * 환불 완료시 정산 후보 등록 (역방향)
+     */
+    @TransactionalEventListener(phase = AFTER_COMMIT, fallbackExecution = true)
+    @Transactional(propagation = REQUIRES_NEW)
+    public void handle(AuctionRefundCompletedEvent event) {
+        log.info("[SettlementListener] 환불 완료 확인: refundId={}, orderId={}",
+                event.refundId(), event.orderId());
+
+        RefundDto refundDto = RefundDto.from(event);
+        settlementFacade.addRefundSettlementCandidatedItem(refundDto);
     }
 }

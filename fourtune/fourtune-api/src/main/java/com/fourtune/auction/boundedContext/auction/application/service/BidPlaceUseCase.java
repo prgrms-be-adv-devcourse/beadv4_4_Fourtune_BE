@@ -10,7 +10,10 @@ import com.fourtune.common.global.error.ErrorCode;
 import com.fourtune.common.global.error.exception.BusinessException;
 import com.fourtune.common.global.eventPublisher.EventPublisher;
 import com.fourtune.common.shared.auction.event.BidPlacedEvent;
+import com.fourtune.common.global.outbox.service.OutboxService;
 import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.common.global.config.EventPublishingConfig;
+import com.fourtune.common.shared.auction.kafka.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,11 +36,15 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class BidPlaceUseCase {
 
+    private static final String AGGREGATE_TYPE_AUCTION = "Auction";
+
     private final AuctionSupport auctionSupport;
     private final BidSupport bidSupport;
     private final AuctionExtendUseCase auctionExtendUseCase;
     private final EventPublisher eventPublisher;
     private final UserFacade userFacade;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final OutboxService outboxService;
 
     /**
      * 입찰 등록
@@ -81,7 +89,7 @@ public class BidPlaceUseCase {
         
         // 7. 이벤트 발행 (실시간 알림 등에 사용)
         Long previousBidderId = previousHighestBid.map(Bid::getBidderId).orElse(null);
-        eventPublisher.publish(new BidPlacedEvent(
+        BidPlacedEvent bidPlacedEvent = new BidPlacedEvent(
                 savedBid.getId(),
                 auctionId,
                 auctionItem.getTitle(),
@@ -90,13 +98,17 @@ public class BidPlaceUseCase {
                 previousBidderId,
                 bidAmount,
                 LocalDateTime.now()
-        ));
-        
+        );
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.BID_PLACED.name(), Map.of("eventType", AuctionEventType.BID_PLACED.name(), "aggregateId", auctionId, "data", bidPlacedEvent));
+        } else {
+            eventPublisher.publish(bidPlacedEvent);
+        }
+
         // 8. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(auctionItem);
         String sellerName = userFacade.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
-
-        eventPublisher.publish(new AuctionItemUpdatedEvent(
+        AuctionItemUpdatedEvent itemUpdatedEvent = new AuctionItemUpdatedEvent(
                 auctionItem.getId(),
                 auctionItem.getSellerId(),
                 sellerName,
@@ -116,8 +128,13 @@ public class BidPlaceUseCase {
                 auctionItem.getViewCount(),
                 auctionItem.getBidCount(),
                 auctionItem.getWatchlistCount()
-        ));
-        
+        );
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_ITEM_UPDATED.name(), Map.of("eventType", AuctionEventType.AUCTION_ITEM_UPDATED.name(), "aggregateId", auctionId, "data", itemUpdatedEvent));
+        } else {
+            eventPublisher.publish(itemUpdatedEvent);
+        }
+
         // 9. 입찰 ID 반환
         return savedBid.getId();
     }

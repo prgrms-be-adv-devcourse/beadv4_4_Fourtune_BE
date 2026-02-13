@@ -65,6 +65,24 @@ public class KafkaConfig {
         return new KafkaTemplate<>(producerFactory(objectMapper));
     }
 
+    /**
+     * 경매 이벤트용 Producer (value = JSON 문자열 그대로 전송, Header에 X-Event-Type 설정)
+     */
+    @Bean
+    public ProducerFactory<String, String> auctionProducerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ProducerConfig.ACKS_CONFIG, "all");
+        configProps.put(ProducerConfig.RETRIES_CONFIG, 3);
+        configProps.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        return new DefaultKafkaProducerFactory<>(configProps, new StringSerializer(), new StringSerializer());
+    }
+
+    @Bean
+    public KafkaTemplate<String, String> auctionKafkaTemplate() {
+        return new KafkaTemplate<>(auctionProducerFactory());
+    }
+
     // --- Consumer 설정 ---
 
     @Bean
@@ -92,6 +110,28 @@ public class KafkaConfig {
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
 
+        return factory;
+    }
+
+    /**
+     * 경매 이벤트용 Consumer (value = JSON 문자열, Header X-Event-Type으로 역직렬화 타입 결정)
+     */
+    @Bean
+    public ConsumerFactory<String, String> auctionEventConsumerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new StringDeserializer());
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> auctionEventKafkaListenerContainerFactory(
+            ConsumerFactory<String, String> auctionEventConsumerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(auctionEventConsumerFactory);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
         return factory;
     }
 

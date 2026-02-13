@@ -10,12 +10,16 @@ import com.fourtune.common.global.error.exception.BusinessException;
 import com.fourtune.common.global.eventPublisher.EventPublisher;
 import com.fourtune.common.shared.auction.event.AuctionBuyNowEvent;
 import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.common.global.config.EventPublishingConfig;
+import com.fourtune.common.global.outbox.service.OutboxService;
+import com.fourtune.common.shared.auction.kafka.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -30,12 +34,16 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AuctionBuyNowUseCase {
 
+    private static final String AGGREGATE_TYPE_AUCTION = "Auction";
+
     private final AuctionSupport auctionSupport;
     private final OrderSupport orderSupport;
     private final OrderCreateUseCase orderCreateUseCase;
     private final CartSupport cartSupport;
     private final EventPublisher eventPublisher;
     private final UserFacade userFacade;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final OutboxService outboxService;
 
     /**
      * 즉시구매 처리
@@ -73,20 +81,24 @@ public class AuctionBuyNowUseCase {
         }
         
         // 6. 이벤트 발행 (AuctionBuyNowEvent)
-        eventPublisher.publish(new AuctionBuyNowEvent(
+        AuctionBuyNowEvent buyNowEvent = new AuctionBuyNowEvent(
                 auctionId,
                 auctionItem.getSellerId(),
                 buyerId,
                 auctionItem.getBuyNowPrice(),
                 orderId,
                 LocalDateTime.now()
-        ));
-        
+        );
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_BUY_NOW.name(), Map.of("eventType", AuctionEventType.AUCTION_BUY_NOW.name(), "aggregateId", auctionId, "data", buyNowEvent));
+        } else {
+            eventPublisher.publish(buyNowEvent);
+        }
+
         // 7. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(auctionItem);
         String sellerName = userFacade.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
-
-        eventPublisher.publish(new AuctionItemUpdatedEvent(
+        AuctionItemUpdatedEvent itemUpdatedEvent = new AuctionItemUpdatedEvent(
                 auctionItem.getId(),
                 auctionItem.getSellerId(),
                 sellerName,
@@ -106,8 +118,13 @@ public class AuctionBuyNowUseCase {
                 auctionItem.getViewCount(),
                 auctionItem.getBidCount(),
                 auctionItem.getWatchlistCount()
-        ));
-        
+        );
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_ITEM_UPDATED.name(), Map.of("eventType", AuctionEventType.AUCTION_ITEM_UPDATED.name(), "aggregateId", auctionId, "data", itemUpdatedEvent));
+        } else {
+            eventPublisher.publish(itemUpdatedEvent);
+        }
+
         log.info("즉시구매 처리 완료: auctionId={}, buyerId={}, orderId={}", auctionId, buyerId, orderId);
         
         // 8. orderId 반환 (결제 프로세스로 전달)

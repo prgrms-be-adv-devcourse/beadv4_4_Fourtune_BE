@@ -67,13 +67,13 @@ public class WatchListEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleWatchListItemStartedEvent(AuctionStartedEvent event){
-        watchListService.findAllByAuctionStartItemId(event.auctionId());
+        watchListService.processAuctionStart(event.auctionId());
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleWatchListItemEndedEvent(AuctionClosedEvent event){
-        watchListService.findAllByAuctionEndItemId(event.auctionId());
+        watchListService.processAuctionEnd(event.auctionId());
     }
 }
 

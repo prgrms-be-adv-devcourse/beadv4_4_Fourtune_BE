@@ -54,7 +54,7 @@ public class OutboxPublisher {
     @Scheduled(fixedDelayString = "${outbox.publisher.poll-interval-ms:1000}")
     @Transactional
     public void publishPendingEvents() {
-        if (!eventPublishingConfig.isUserEventsKafkaEnabled()) {
+        if (!eventPublishingConfig.isUserEventsKafkaEnabled() && !eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
             return;
         }
 
@@ -88,7 +88,7 @@ public class OutboxPublisher {
     @Scheduled(fixedRate = 30000)
     @Transactional
     public void retryFailedEvents() {
-        if (!eventPublishingConfig.isUserEventsKafkaEnabled()) {
+        if (!eventPublishingConfig.isUserEventsKafkaEnabled() && !eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
             return;
         }
 

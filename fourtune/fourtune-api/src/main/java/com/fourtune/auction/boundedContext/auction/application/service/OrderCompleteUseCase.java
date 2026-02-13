@@ -10,10 +10,15 @@ import com.fourtune.common.global.eventPublisher.EventPublisher;
 import com.fourtune.common.shared.auction.constant.CancelReason;
 import com.fourtune.common.shared.auction.event.OrderCancelledEvent;
 import com.fourtune.common.shared.auction.event.OrderCompletedEvent;
+import com.fourtune.common.global.config.EventPublishingConfig;;
+import com.fourtune.common.global.outbox.service.OutboxService;
+import com.fourtune.common.shared.auction.kafka.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 /**
  * 주문 완료 UseCase
@@ -26,9 +31,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class OrderCompleteUseCase {
 
+    private static final String AGGREGATE_TYPE_AUCTION = "Auction";
+
     private final OrderSupport orderSupport;
     private final AuctionSupport auctionSupport;
     private final EventPublisher eventPublisher;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final OutboxService outboxService;
 
     /**
      * 결제 완료 처리
@@ -50,16 +59,22 @@ public class OrderCompleteUseCase {
         orderSupport.save(order);
         
         // 5. 이벤트 발행 (정산, 알림 등에 사용)
-        eventPublisher.publish(new OrderCompletedEvent(
+        Long auctionId = order.getAuctionId();
+        OrderCompletedEvent completedEvent = new OrderCompletedEvent(
                 order.getOrderId(),
-                order.getAuctionId(),
+                auctionId,
                 order.getWinnerId(),
                 order.getSellerId(),
                 order.getAmount(),
                 order.getOrderName(),
                 order.getPaidAt()
-        ));
-        
+        );
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.ORDER_COMPLETED.name(), Map.of("eventType", AuctionEventType.ORDER_COMPLETED.name(), "aggregateId", auctionId, "data", completedEvent));
+        } else {
+            eventPublisher.publish(completedEvent);
+        }
+
         log.info("결제 완료 처리: orderId={}, paymentKey={}", orderId, paymentKey);
     }
 
@@ -140,12 +155,18 @@ public class OrderCompleteUseCase {
         // 2. 기존대로 취소 + 경매 복구/유찰
         cancelOrderInternal(order);
         // 3. 제보: 취소 사유를 담아 OrderCancelledEvent 발행
-        eventPublisher.publish(new OrderCancelledEvent(
+        Long auctionId = order.getAuctionId();
+        OrderCancelledEvent cancelledEvent = new OrderCancelledEvent(
                 order.getWinnerId(),
                 order.getId(),
-                order.getAuctionId(),
+                auctionId,
                 reason
-        ));
+        );
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.ORDER_CANCELLED.name(), Map.of("eventType", AuctionEventType.ORDER_CANCELLED.name(), "aggregateId", auctionId, "data", cancelledEvent));
+        } else {
+            eventPublisher.publish(cancelledEvent);
+        }
         log.info("만료된 주문 자동 취소: orderId={}, reason={}", orderId, reason);
     }
 
