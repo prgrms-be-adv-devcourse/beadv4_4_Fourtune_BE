@@ -1,9 +1,11 @@
 # Build stage
+ARG MODULE_NAME
+
 FROM eclipse-temurin:25-jdk-alpine AS builder
 
-WORKDIR /app
-
 ARG MODULE_NAME
+
+WORKDIR /app
 
 # Copy Gradle wrapper and build files
 COPY gradlew .
@@ -26,9 +28,10 @@ RUN ./gradlew :${MODULE_NAME}:bootjar -x test --no-daemon
 # Runtime stage
 FROM eclipse-temurin:25-jre-alpine
 
+ARG MODULE_NAME
+
 WORKDIR /app
 
-ARG MODULE_NAME
 # Add non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
