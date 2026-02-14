@@ -1,0 +1,55 @@
+# 경매 서비스 메인 설정 (로직/운영용). 테스트는 application-test.yml 및 테스트 코드에서.
+spring:
+  application:
+    name: auction-service
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/auction}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+server:
+  port: ${SERVER_PORT:8083}
+
+api:
+  user:
+    base-url: ${API_USER_BASE_URL:http://localhost:8080}
+
+feature:
+  kafka:
+    enabled: true
+  kafka.auction-events:
+    enabled: true
+
+# Outbox (common OutboxPublisher 사용, feature.kafka.enabled=true 시 활성)
+outbox:
+  publisher:
+    batch-size: 100
+    max-retry-count: 3
+    poll-interval-ms: 1000
+
+# Actuator (health, Prometheus 메트릭)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.fourtune: DEBUG
