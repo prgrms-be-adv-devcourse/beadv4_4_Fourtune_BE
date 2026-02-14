@@ -15,6 +15,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
 
     networks:
       - fourtune-network
@@ -154,17 +155,17 @@ services:
       - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY:-test_ck_YZ1aOwX7K8m5POogaBGV3yQxzvNP}
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY:-test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R}
       - KAKAO_ADMIN_KEY=${KAKAO_ADMIN_KEY:-}
-      # OAUTH 설정
-      - OAUTH_BACKEND_URI
-      - OAUTH_FRONTEND_URI
-      - OAUTH_CLIENT_ID
-      - OAUTH_CLIENT_SECRET
+      # OAuth (기본값; 실제 Google 로그인 시 .env에 OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET 등 설정)
+      - OAUTH_BACKEND_URI=${OAUTH_BACKEND_URI:-http://localhost:9080}
+      - OAUTH_FRONTEND_URI=${OAUTH_FRONTEND_URI:-http://localhost:3000}
+      - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID:-docker-client-id}
+      - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET:-docker-client-secret}
       # PAYMENT 분리
-      - PAYOUT_URL=http://payment-service:8000
-      - CASH_URL=http://payment-service:8000
+      - PAYOUT_URL=http://payment-service:8081
+      - CASH_URL=http://payment-service:8081
+      - FIREBASE_ENABLED=false
     ports:
-      - "8080:8080"
-      - "5005:5005" # 디버깅 포트
+      - "9080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -205,7 +206,7 @@ services:
       # 만약 결제 서비스에서 암호화가 필요하다면
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     ports:
-      - "8081:8080"
+      - "8082:8081"
     depends_on:
       postgres:
         condition: service_healthy
@@ -215,6 +216,51 @@ services:
         condition: service_healthy
     networks:
       - fourtune-network
+
+  # auction-service (경매 MSA — 8083, 호스트 9081)
+  auction-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - MODULE_NAME=auction-service
+    image: auction-service:latest
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auction
+      - SPRING_DATASOURCE_USERNAME=fourtune_user
+      - SPRING_DATASOURCE_PASSWORD=fourtune
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - SERVER_PORT=8083
+      - API_USER_BASE_URL=http://fourtune-api:8080
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - SPRING_AUTOCONFIGURE_EXCLUDE=io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration
+      - FIREBASE_ENABLED=false
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+    ports:
+      - "9081:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_started
+      fourtune-api:
+        condition: service_started
+    networks:
+      - fourtune-network
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   # Prometheus (메트릭 수집)
   prometheus:

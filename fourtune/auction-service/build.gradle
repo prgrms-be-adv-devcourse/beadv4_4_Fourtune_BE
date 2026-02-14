@@ -1,0 +1,61 @@
+dependencies {
+	implementation project(':common')
+
+	// Spring Boot Starters (common·fourtune-api와 동일한 스타터/버전)
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-kafka'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// Feign (auction-service만 사용, 버전은 루트 ext에서 참조)
+	implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
+
+	// JWT (루트 ext)
+	implementation "io.jsonwebtoken:jjwt-api:${jwtVersion}"
+	runtimeOnly "io.jsonwebtoken:jjwt-impl:${jwtVersion}"
+	runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jwtVersion}"
+
+	// QueryDSL (루트 ext)
+	implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
+	annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+	// JSON
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// Redis
+	implementation 'io.lettuce:lettuce-core'
+
+	// Database
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// OAuth (UserContext 등 common shared auth 사용)
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// Test
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'com.h2database:h2'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+// QueryDSL (fourtune-api와 동일)
+def generatedDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
+tasks.withType(JavaCompile).configureEach {
+	options.generatedSourceOutputDirectory = generatedDir
+}
+clean {
+	delete layout.buildDirectory.dir("generated")
+}
