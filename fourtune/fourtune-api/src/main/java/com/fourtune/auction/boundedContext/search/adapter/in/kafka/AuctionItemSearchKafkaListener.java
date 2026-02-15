@@ -10,6 +10,7 @@ import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
 import com.fourtune.common.shared.auction.kafka.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(name = "feature.kafka.auction-events.enabled", havingValue = "true")
 public class AuctionItemSearchKafkaListener {
 
     private final AuctionItemIndexingHandler indexingHandler;
