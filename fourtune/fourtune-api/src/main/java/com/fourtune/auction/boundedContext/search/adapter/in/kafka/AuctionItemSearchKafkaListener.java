@@ -48,8 +48,8 @@ public class AuctionItemSearchKafkaListener {
                 default -> log.debug("Ignored event type for search: {}", eventType);
             }
         } catch (Exception e) {
-            log.error("Failed to process auction event: type={}, payload={}", eventType, payload, e);
-            // Configured ErrorHandler in ContainerFactory will handle retries
+            log.error("auction event 처리 failed: type={}, payload={}", eventType, payload, e);
+            // ContainerFactory에 설정된 ErrorHandler가 재시도를 처리함
         }
     }
 
