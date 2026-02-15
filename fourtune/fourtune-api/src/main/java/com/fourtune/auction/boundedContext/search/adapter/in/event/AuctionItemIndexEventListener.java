@@ -7,6 +7,7 @@ import com.fourtune.common.shared.auction.event.AuctionItemDeletedEvent;
 import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -27,6 +28,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "feature.kafka.auction-events.enabled", havingValue = "false", matchIfMissing = true)
 public class AuctionItemIndexEventListener {
 
     private final AuctionItemIndexingHandler indexingHandler;
@@ -59,7 +61,8 @@ public class AuctionItemIndexEventListener {
      * 경매 수정 이벤트 처리
      * 
      * TODO: Kafka 확장 시
-     * - Topic: auction-item-updated
+     * - Topic: auction-item-events
+     * - EventType: AUCTION_ITEM_UPDATED
      * - 나머지는 handleCreated와 동일
      */
     @Async("taskExecutor")
