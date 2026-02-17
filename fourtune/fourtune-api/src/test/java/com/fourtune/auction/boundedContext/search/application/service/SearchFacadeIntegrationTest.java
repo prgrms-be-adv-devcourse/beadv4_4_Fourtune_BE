@@ -4,6 +4,7 @@ import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.Notific
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.document.SearchAuctionItemDocument;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
+import com.fourtune.auction.boundedContext.search.domain.SearchLog;
 import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
 import com.fourtune.auction.boundedContext.search.domain.constant.SearchSort;
 import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
@@ -82,6 +83,9 @@ class SearchFacadeIntegrationTest {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Autowired // DB 검증을 위해 주입
+    private com.fourtune.auction.boundedContext.search.adapter.out.persistence.SearchLogJpaRepository searchLogRepository;
+
     @BeforeEach
     void setUp() {
         // ES Index Init
@@ -124,6 +128,14 @@ class SearchFacadeIntegrationTest {
         await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
             Set<String> savedKeywords = redisTemplate.opsForZSet().reverseRange(redisKey, 0, -1);
             assertThat(savedKeywords).contains(keyword);
+        });
+
+        // 3. Search Log 검증 (DB 조회) - 비동기 실행 대기
+        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
+            long count = searchLogRepository.count();
+            assertThat(count).isEqualTo(1);
+            SearchLog log = searchLogRepository.findAll().get(0);
+            assertThat(log.getKeyword()).isEqualTo(keyword);
         });
     }
 
