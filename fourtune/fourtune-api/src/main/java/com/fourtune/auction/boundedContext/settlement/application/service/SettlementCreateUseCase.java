@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-public class CreateSettlementUseCase {
+public class SettlementCreateUseCase {
 
     private final SettlementUserRepository settlementUserRepository;
     private final SettlementRepository settlementRepository;

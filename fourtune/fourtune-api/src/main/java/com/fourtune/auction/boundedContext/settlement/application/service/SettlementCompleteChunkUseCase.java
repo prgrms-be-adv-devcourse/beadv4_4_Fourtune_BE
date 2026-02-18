@@ -10,7 +10,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class CompleteSettlementChunkUseCase {
+public class SettlementCompleteChunkUseCase {
 
     private final SettlementRepository settlementRepository;
 

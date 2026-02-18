@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-public class SyncUserUseCase {
+public class SettlementSyncUserUseCase {
     private final SettlementUserRepository settlementUserRepository;
     private final EventPublisher eventPublisher;
 
