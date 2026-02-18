@@ -19,9 +19,9 @@ public class PaymentFacade {
 
     private final PaymentSupport paymentSupport;
     private final PaymentConfirmUseCase paymentConfirmUseCase;
-    private final CompleteSettlementUseCase completeSettlementUseCase;
+    private final PaymentCompleteSettlementUseCase paymentCompleteSettlementUseCase;
     private final PaymentSyncUserUseCase paymentSyncUserUseCase;
-    private final CreateWalletUseCase createWalletUseCase;
+    private final PaymentCreateWalletUseCase paymentCreateWalletUseCase;
     private final PaymentCancelUseCase paymentCancelUseCase;
     private final CashLogRepository cashLogRepository;
 
@@ -87,12 +87,12 @@ public class PaymentFacade {
 
     @Transactional
     public Wallet completeSettlement(SettlementDto dto){
-        return completeSettlementUseCase.settlementCashComplete(dto);
+        return paymentCompleteSettlementUseCase.settlementCashComplete(dto);
     }
 
     @Transactional
     public Wallet createWallet(PaymentUserDto dto){
-        return createWalletUseCase.createWallet(dto);
+        return paymentCreateWalletUseCase.createWallet(dto);
     }
 
     @Transactional
