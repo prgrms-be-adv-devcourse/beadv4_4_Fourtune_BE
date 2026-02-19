@@ -95,7 +95,12 @@ public class AuctionCreateUseCase {
                 savedAuction.getBidCount(),
                 savedAuction.getWatchlistCount()
         );
-        
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_AUCTION, aggregateId, AuctionEventType.AUCTION_ITEM_CREATED.name(), Map.of("eventType", AuctionEventType.AUCTION_ITEM_CREATED.name(), "aggregateId", aggregateId, "data", itemCreatedEvent));
+        } else {
+            eventPublisher.publish(itemCreatedEvent);
+        }
+
         // 5. 경매 ID 반환
         return savedAuction.getId();
     }
