@@ -1,16 +1,17 @@
 package com.fourtune.common.shared.payment.event;
 
-import com.fourtune.common.shared.auction.dto.OrderDetailResponse;
 import com.fourtune.common.shared.payment.dto.OrderDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 public class PaymentFailedEvent {
-    private final String resultCode;
-    private final String msg;
-    private final OrderDto order;
-    private final Long pgPaymentAmount;
-    private final Long shortfallAmount;
+    private String resultCode;
+    private String msg;
+    private OrderDto order;
+    private Long pgPaymentAmount;
+    private Long shortfallAmount;
 }
