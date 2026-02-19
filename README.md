@@ -40,8 +40,9 @@ Fourtune은 개인 간 물품을 경매 방식으로 거래할 수 있는 실시
 - **Web Server**: Nginx (예정)
 
 ### Architecture
-- **현재**: 모노리스(fourtune-api) + **payment-service** 분리 완료. 도메인별 **Bounded Context** 구조 (Hexagonal).
-- **진행 중**: 경매 도메인 MSA 분리 (auction-service). 통합 테스트·부하 테스트 환경 구축.
+- **현재**: **fourtune-api**(auth·유저·결제·검색·알림·정산 등) + **auction-service**(경매·입찰·장바구니·주문) + **payment-service**(스켈레톤) + **common**. 도메인별 **Bounded Context** 구조 (Hexagonal).
+- **auction-service**: 경매 도메인 MSA 분리 완료. Feign(UserPort)으로 유저 조회, Kafka/Outbox로 이벤트 발행. Docker Compose에서 별도 서비스로 기동 가능.
+- **진행 중**: 통합 테스트·부하 테스트 환경 구축. (AuctionItemCreatedEvent 발행 누락 수정 필요.)
 
 ## 🚀 시작하기
 
@@ -103,23 +104,24 @@ docker run -p 8080:8080 \
 
 ```
 fourtune/
-├── fourtune-api/         # 메인 API (모노리스) — auth, user, auction, payment, settlement, search, watchList, notification
+├── fourtune-api/         # 메인 API — auth, user, payment, settlement, search, watchList, notification (+ auction 모노리스 옵션)
 │   └── src/main/java/com/fourtune/auction/
 │       └── boundedContext/
 │           ├── auth/        # 인증·OAuth2
 │           ├── user/        # 사용자
-│           ├── auction/    # 경매·입찰·장바구니·주문 (→ auction-service 분리 예정)
+│           ├── auction/     # 경매·입찰·장바구니·주문 (auction-service와 동일 로직, 단일 JAR 시 사용)
 │           ├── payment/     # 결제 (payment-service HTTP 연동)
 │           ├── settlement/  # 정산
-│           ├── search/      # Elasticsearch 검색
+│           ├── search/      # Elasticsearch 검색·최근 검색어
 │           ├── watchList/   # 관심상품
 │           └── notification/# 알림·FCM
-├── payment-service/     # 결제 전용 서비스 (MSA 분리 완료)
+├── auction-service/      # 경매 전용 서비스 (MSA 분리 완료) — 경매·입찰·장바구니·주문
+├── payment-service/      # 결제 전용 서비스 (스켈레톤)
 ├── common/               # 공유: 이벤트, DTO, Kafka 프로듀서/매퍼
 ├── docker-compose.yml
 ├── docker-compose.dev.yml
 ├── docker-compose.prod.yml
-└── build.gradle / settings.gradle  # 멀티 모듈 (fourtune-api, payment-service, common)
+└── build.gradle / settings.gradle  # 멀티 모듈 (fourtune-api, auction-service, payment-service, common)
 ```
 
 ### 📖 상세 문서
