@@ -7,7 +7,6 @@ import com.fourtune.common.shared.auction.event.AuctionClosedEvent;
 import com.fourtune.common.shared.auction.event.AuctionItemCreatedEvent;
 import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
 import com.fourtune.common.shared.auction.event.AuctionStartedEvent;
-import com.fourtune.common.shared.auction.kafka.AuctionEventMapper;
 import com.fourtune.common.shared.auction.kafka.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

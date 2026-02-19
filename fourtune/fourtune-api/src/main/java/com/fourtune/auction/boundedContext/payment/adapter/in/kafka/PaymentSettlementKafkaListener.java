@@ -30,8 +30,8 @@ public class PaymentSettlementKafkaListener {
 
     @KafkaListener(
             topics = KafkaTopicConfig.PAYMENT_EVENTS_TOPIC,
-            groupId = "${payment-settlement-group}",
-            containerFactory = "kafkaListenerContainerFactory"
+            groupId = "payment-settlement-group",
+            containerFactory = "paymentEventKafkaListenerContainerFactory"
     )
     public void handleSettlementEvent(
             @Payload String payload,

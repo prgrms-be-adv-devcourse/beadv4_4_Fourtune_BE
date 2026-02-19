@@ -110,6 +110,27 @@ public class KafkaConfig {
         return factory;
     }
 
+    // --- Payment Event Consumer 설정 (String 기반) ---
+
+    @Bean
+    public ConsumerFactory<String, String> paymentEventConsumerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new StringDeserializer());
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> paymentEventKafkaListenerContainerFactory(
+            ConsumerFactory<String, String> paymentEventConsumerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(paymentEventConsumerFactory);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
+        return factory;
+    }
+
     // --- Notification Event Consumer 설정 (String 기반) ---
 
     @Bean
