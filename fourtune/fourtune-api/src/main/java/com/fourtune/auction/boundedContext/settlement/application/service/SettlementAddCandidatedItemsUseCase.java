@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-public class AddSettlementCandidatedItemsUseCase {
+public class SettlementAddCandidatedItemsUseCase {
     private final SettlementCandidatedItemRepository settlementCandidatedItemRepository;
     private final SettlementSupport settlementSupport;
 

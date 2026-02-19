@@ -18,7 +18,7 @@ import java.util.*;
 
 @RequiredArgsConstructor
 @Service
-public class CollectSettlementItemChunkUseCase {
+public class SettlementCollectItemChunkUseCase {
     // 시연때는 yml에서 0으로 변경
     @Value("${settlement.policy.waiting-days:7}")
     private int waitingDays;
