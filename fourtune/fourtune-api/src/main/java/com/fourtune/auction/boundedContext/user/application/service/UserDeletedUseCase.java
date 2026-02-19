@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class UserDeletedUseCase {
@@ -46,7 +48,8 @@ public class UserDeletedUseCase {
 
     private void publishUserDeletedEvent(User user) {
         if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
-            outboxService.append(AGGREGATE_TYPE, user.getId(), UserEventType.USER_DELETED.name(), user.toDto());
+            outboxService.append(AGGREGATE_TYPE, user.getId(), UserEventType.USER_DELETED.name(),
+                    Map.of("eventType", UserEventType.USER_DELETED.name(), "aggregateId", user.getId(), "data", user.toDto()));
         } else {
             eventPublisher.publish(new UserDeletedEvent(user.toDto()));
         }

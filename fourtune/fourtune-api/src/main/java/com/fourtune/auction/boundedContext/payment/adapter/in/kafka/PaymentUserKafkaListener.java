@@ -1,15 +1,16 @@
 package com.fourtune.auction.boundedContext.payment.adapter.in.kafka;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
 import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
 import com.fourtune.common.global.config.kafka.KafkaTopicConfig;
-import com.fourtune.common.shared.user.kafka.UserEventMessage;
+import com.fourtune.common.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentUserKafkaListener {
 
     private final PaymentFacade paymentFacade;
+    private final ObjectMapper objectMapper;
 
     @KafkaListener(
             topics = KafkaTopicConfig.USER_EVENTS_TOPIC,
@@ -30,40 +32,26 @@ public class PaymentUserKafkaListener {
             containerFactory = "userEventKafkaListenerContainerFactory"
     )
     @Transactional
-    public void handleUserEvent(@Payload UserEventMessage message, Acknowledgment ack) {
+    public void handleUserEvent(String payload,
+                                @Header("X-Event-Type") String eventType,
+                                Acknowledgment ack) {
         try {
-            log.info("[Payment] User 이벤트 수신: type={}, userId={}, messageId={}",
-                    message.getEventType(), message.getUserId(), message.getMessageId());
+            log.info("[Payment] User 이벤트 수신: type={}", eventType);
 
-            UserEventType eventType = UserEventType.valueOf(message.getEventType());
+            UserResponse user = objectMapper.readValue(payload, UserResponse.class);
+            UserEventType type = UserEventType.valueOf(eventType);
 
-            switch (eventType) {
-                case USER_JOINED -> handleUserJoined(message);
-                case USER_MODIFIED -> handleUserModified(message);
-                case USER_DELETED -> handleUserDeleted(message);
-
-                default -> log.error("알 수 없는 이벤트");
+            switch (type) {
+                case USER_JOINED, USER_MODIFIED -> paymentFacade.syncUser(user);
+                case USER_DELETED -> paymentFacade.deleteUser(user);
             }
 
             ack.acknowledge();
-            log.debug("[Payment] User 이벤트 처리 완료: messageId={}", message.getMessageId());
+            log.debug("[Payment] User 이벤트 처리 완료: type={}, userId={}", eventType, user.id());
 
         } catch (Exception e) {
-            log.error("[Payment] User 이벤트 처리 실패: messageId={}, error={}",
-                    message.getMessageId(), e.getMessage(), e);
-            throw e;
+            log.error("[Payment] User 이벤트 처리 실패: type={}, error={}", eventType, e.getMessage(), e);
+            throw new RuntimeException(e);
         }
-    }
-
-    private void handleUserJoined(UserEventMessage message) {
-        paymentFacade.syncUser(message.toUserResponse());
-    }
-
-    private void handleUserModified(UserEventMessage message) {
-        paymentFacade.syncUser(message.toUserResponse());
-    }
-
-    private void handleUserDeleted(UserEventMessage message) {
-        paymentFacade.deleteUser(message.toUserResponse());
     }
 }

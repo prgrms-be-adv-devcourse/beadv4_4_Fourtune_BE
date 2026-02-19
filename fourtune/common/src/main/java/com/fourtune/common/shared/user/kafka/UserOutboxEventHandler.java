@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * User 도메인 Outbox 이벤트 핸들러
+ * payload = {"eventType":"...","aggregateId":123,"data":{...}} 형태로 저장된 JSON을 파싱 후 Kafka 발행
  */
 @Slf4j
 @Component
@@ -28,7 +29,10 @@ public class UserOutboxEventHandler implements OutboxEventHandler {
 
     @Override
     public void handle(String payload) throws Exception {
-        UserEventMessage message = objectMapper.readValue(payload, UserEventMessage.class);
-        userKafkaProducer.publishSync(message);
+        UserEventPayload wrapper = objectMapper.readValue(payload, UserEventPayload.class);
+        String key = String.valueOf(wrapper.getAggregateId());
+        String eventType = wrapper.getEventType();
+        String value = objectMapper.writeValueAsString(wrapper.getData());
+        userKafkaProducer.sendSync(key, value, eventType);
     }
 }

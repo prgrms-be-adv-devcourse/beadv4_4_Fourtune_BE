@@ -74,16 +74,19 @@ public class NotificationEventListener {
         notificationFacade.createSettlementNotification(payeeId, settlementId, NotificationType.SETTLEMENT_SUCCESS);
     }
 
-    // 경매 이벤트
+    // 경매 이벤트 (Kafka 활성화 시 비활성화)
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleBidPlacedEvent(BidPlacedEvent event) {
-        log.info("📢 입찰 이벤트 수신 - ReceiverId: {}", event.sellerId());
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            return;
+        }
+        log.info("입찰 이벤트 수신 - ReceiverId: {}", event.sellerId());
 
         notificationFacade.bidPlaceToSeller(event.sellerId(), event.bidderId(), event.auctionId(), NotificationType.BID_RECEIVED);
 
         if (event.previousBidderId() != null) {
-            log.info("📢 상위 입찰 알림 발송 - Target: {}", event.previousBidderId());
+            log.info("상위 입찰 알림 발송 - Target: {}", event.previousBidderId());
             notificationFacade.createNotification(event.previousBidderId(), event.auctionId(), NotificationType.OUTBID);
         }
     }
@@ -91,6 +94,9 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleAuctionClosedEvent(AuctionClosedEvent event) {
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            return;
+        }
         log.info("낙찰 이벤트 수신 - ReceiverId: {}", event.winnerId());
         log.info("경매종료 이벤트 수신 - ReceiverId: {}", event.sellerId());
 
@@ -105,34 +111,38 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleAuctionBuyNowEvent(AuctionBuyNowEvent event) {
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            return;
+        }
         log.info("즉시구매 이벤트 수신 - auctionId={}, buyerId={}, sellerId={}",
                 event.auctionId(), event.buyerId(), event.sellerId());
 
-        // 구매자에게 즉시구매 완료 알림
         notificationFacade.createNotification(event.buyerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
-
-        // 판매자에게 즉시구매 완료 알림
         notificationFacade.createNotification(event.sellerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleAuctionExtendedEvent(AuctionExtendedEvent event) {
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            return;
+        }
         log.info("경매 연장 이벤트 수신 - auctionId={}, newEndTime={}",
                 event.auctionId(), event.newEndTime());
 
         // TODO: 경매 연장 시 관심상품 사용자들에게 알림 발송
-        // 현재는 경매 연장 알림 타입이 없으므로, 향후 WatchList 조회 후 그룹 알림 발송 필요
         // notificationFacade.createGroupNotification(users, event.auctionId(), NotificationType.AUCTION_EXTENDED);
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleBidCanceledEvent(BidCanceledEvent event) {
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            return;
+        }
         log.info("입찰 취소 이벤트 수신 - auctionId={}, bidderId={}, sellerId={}",
                 event.auctionId(), event.bidderId(), event.sellerId());
 
-        // 판매자에게 입찰 취소 알림
         notificationFacade.createNotification(event.sellerId(), event.auctionId(), NotificationType.BID_RECEIVED);
     }
 
@@ -174,12 +184,18 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleWatchListAuctionStartEvent(WatchListAuctionStartedEvent event) {
+        if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
+            return;
+        }
         notificationFacade.createGroupNotification(event.getUsers(), event.getAuctionItemId(), NotificationType.WATCHLIST_START);
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleWatchListAuctionEndEvent(WatchListAuctionEndedEvent event) {
+        if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
+            return;
+        }
         notificationFacade.createGroupNotification(event.getUsers(), event.getAuctionItemId(), NotificationType.WATCHLIST_END);
     }
 }
