@@ -19,6 +19,14 @@ public class KafkaTopicConfig {
     public static final String WATCHLIST_EVENTS_TOPIC = "watchlist-events";
     public static final String NOTIFICATION_EVENTS_TOPIC = "notification-events";
 
+    public static final String PAYMENT_EVENTS_TOPIC = "payment-events";
+    public static final String PAYMENT_EVENTS_DLQ_TOPIC = "payment-events-dlq";
+
+    public static final String SETTLEMENT_EVENTS_TOPIC = "settlement-events";
+    public static final String SETTLEMENT_EVENTS_DLQ_TOPIC = "settlement-events-dlq";
+
+    public static final String SEARCH_LOG_EVENTS_TOPIC = "search-log-events";
+
     @Bean
     public NewTopic userEventsTopic() {
         return TopicBuilder.name(USER_EVENTS_TOPIC)
@@ -62,6 +70,47 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic notificationEventsTopic() {
         return TopicBuilder.name(NOTIFICATION_EVENTS_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic paymentEventsTopic() {
+        return TopicBuilder.name(PAYMENT_EVENTS_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic paymentEventsDlqTopic() {
+        return TopicBuilder.name(PAYMENT_EVENTS_DLQ_TOPIC)
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic settlementEventsTopic() {
+        return TopicBuilder.name(SETTLEMENT_EVENTS_TOPIC)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic settlementEventsDlqTopic() {
+        return TopicBuilder.name(SETTLEMENT_EVENTS_DLQ_TOPIC)
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    // TODO: 추후 검색 로그 유실 방지가 중요해지면 DLQ 토픽 추가 고려
+    @Bean
+    public NewTopic searchLogEventsTopic() {
+        return TopicBuilder.name(SEARCH_LOG_EVENTS_TOPIC)
                 .partitions(3)
                 .replicas(1)
                 .build();

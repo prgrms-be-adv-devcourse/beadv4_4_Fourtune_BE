@@ -31,7 +31,7 @@ Fourtune은 개인 간 물품을 경매 방식으로 거래할 수 있는 실시
 - **Database**: PostgreSQL 16
 - **Cache**: Redis 7
 - **Search**: Elasticsearch 9.2
-- **Messaging**: Spring Event (Kafka 추후 확장 예정)
+- **Messaging**: Spring Event + **Apache Kafka** (이벤트 드리븐 연동)
 - **File Storage**: AWS S3
 
 ### Infrastructure
@@ -40,8 +40,9 @@ Fourtune은 개인 간 물품을 경매 방식으로 거래할 수 있는 실시
 - **Web Server**: Nginx (예정)
 
 ### Architecture
-- **현재**: Monolithic (도메인별 모듈화)
-- **향후**: MSA 전환 고려
+- **현재**: **fourtune-api**(auth·유저·결제·검색·알림·정산 등) + **auction-service**(경매·입찰·장바구니·주문) + **payment-service**(스켈레톤) + **common**. 도메인별 **Bounded Context** 구조 (Hexagonal).
+- **auction-service**: 경매 도메인 MSA 분리 완료. Feign(UserPort)으로 유저 조회, Kafka/Outbox로 이벤트 발행. Docker Compose에서 별도 서비스로 기동 가능.
+- **진행 중**: 통합 테스트·부하 테스트 환경 구축. (AuctionItemCreatedEvent 발행 누락 수정 필요.)
 
 ## 🚀 시작하기
 
@@ -61,6 +62,7 @@ cd fourtune
 
 2. **Docker로 전체 실행** (한 번에!)
 ```bash
+cd fourtune
 docker-compose up -d --build
 ```
 
@@ -78,6 +80,8 @@ docker-compose logs -f app
 curl http://localhost:8080/actuator/health
 # 또는 브라우저: http://localhost:8080
 ```
+
+**멀티 모듈 로컬 실행** (Docker 없이): `cd fourtune && ./gradlew :fourtune-api:bootRun`
 
 ### 팀 개발 장점
 - ✅ 모든 팀원 동일한 환경 (Java 25, PostgreSQL 16 등)
@@ -100,32 +104,28 @@ docker run -p 8080:8080 \
 
 ```
 fourtune/
-├── src/main/java/com/fourtune/auction/
-│   ├── domain/           # 도메인 계층 (비즈니스 로직)
-│   │   ├── user/         # 사용자
-│   │   ├── auction/      # 경매
-│   │   ├── bid/          # 입찰
-│   │   ├── payment/      # 결제
-│   │   ├── refund/       # 환불
-│   │   ├── settlement/   # 정산
-│   │   ├── notification/ # 알림
-│   │   └── watchlist/    # 관심상품
-│   ├── api/              # API 계층 (컨트롤러)
-│   ├── global/           # 전역 설정
-│   ├── infrastructure/   # 외부 인프라 연동
-│   └── scheduler/        # 스케줄러
-├── docker-compose.yml    # Docker 구성 (로컬)
-├── docker-compose.dev.yml   # Docker 구성 (개발 서버)
-├── docker-compose.prod.yml  # Docker 구성 (프로덕션)
-├── Dockerfile           # Docker 이미지
-└── build.gradle         # Gradle 빌드 스크립트
+├── fourtune-api/         # 메인 API — auth, user, payment, settlement, search, watchList, notification (+ auction 모노리스 옵션)
+│   └── src/main/java/com/fourtune/auction/
+│       └── boundedContext/
+│           ├── auth/        # 인증·OAuth2
+│           ├── user/        # 사용자
+│           ├── auction/     # 경매·입찰·장바구니·주문 (auction-service와 동일 로직, 단일 JAR 시 사용)
+│           ├── payment/     # 결제 (payment-service HTTP 연동)
+│           ├── settlement/  # 정산
+│           ├── search/      # Elasticsearch 검색·최근 검색어
+│           ├── watchList/   # 관심상품
+│           └── notification/# 알림·FCM
+├── auction-service/      # 경매 전용 서비스 (MSA 분리 완료) — 경매·입찰·장바구니·주문
+├── payment-service/      # 결제 전용 서비스 (스켈레톤)
+├── common/               # 공유: 이벤트, DTO, Kafka 프로듀서/매퍼
+├── docker-compose.yml
+├── docker-compose.dev.yml
+├── docker-compose.prod.yml
+└── build.gradle / settings.gradle  # 멀티 모듈 (fourtune-api, auction-service, payment-service, common)
 ```
 
 ### 📖 상세 문서
-- ⭐ **인프라 구축 가이드**: [INFRASTRUCTURE_GUIDE.md](fourtune/docs/INFRASTRUCTURE_GUIDE.md) - **필독!**
-- 🚀 **빠른 시작**: [QUICK_START.md](fourtune/docs/QUICK_START.md) - 5분 안에 시작
-- 📂 **프로젝트 구조**: [PROJECT_STRUCTURE.md](fourtune/docs/PROJECT_STRUCTURE.md) - 코드 구조
-- 🎯 **다음 단계**: [NEXT_STEPS.md](fourtune/docs/NEXT_STEPS.md) - 개발 로드맵
+- ⭐ **경매 도메인 MSA 분리 가이드**: [fourtune/docs/MSA_AUCTION_DOMAIN_GUIDE.md](fourtune/docs/MSA_AUCTION_DOMAIN_GUIDE.md) — 경매 서비스 분리 작업 순서, 의존성, 이벤트 연동
 
 ## 🔐 보안
 
@@ -149,30 +149,32 @@ REDIS_PASSWORD=your-redis-password
 ## 🧪 테스트
 
 ```bash
-# 전체 테스트
+cd fourtune
+# 전체 테스트 (멀티 모듈)
 ./gradlew test
 
-# 커버리지 리포트 생성
-./gradlew jacocoTestReport
+# fourtune-api만 테스트
+./gradlew :fourtune-api:test
 
-# 결과 확인
-open build/reports/tests/test/index.html
+# 커버리지 리포트 (해당 모듈)
+./gradlew :fourtune-api:jacocoTestReport
 ```
+
+- **통합 테스트**: 경매 → 입찰 → 결제 → 정산 플로우는 각 서비스 테스트 + 이벤트(Kafka) 연동으로 검증. 통합 테스트 환경 구축 진행 중.
+- **부하 테스트**: 동시 입찰/결제, Kafka lag, RPS·지연시간·에러율 수집 목표.
 
 ## 📊 주요 API 엔드포인트
 
-| 기능 | Method | Endpoint |
-|------|--------|----------|
-| 회원가입 | POST | `/api/auth/signup` |
-| 로그인 | POST | `/api/auth/login` |
-| 경매 목록 | GET | `/api/auctions` |
-| 경매 상세 | GET | `/api/auctions/{id}` |
-| 경매 등록 | POST | `/api/auctions` |
-| 입찰 | POST | `/api/bids` |
-| 결제 | POST | `/api/payments` |
-| 검색 | GET | `/api/search?q={keyword}` |
+| 기능 | Method | Endpoint (fourtune-api) |
+|------|--------|--------------------------|
+| 회원가입/로그인 | POST | `/api/auth/*` |
+| 경매 목록/상세/등록 | GET/POST | `/api/v1/auctions/*` |
+| 입찰 | POST | `/api/v1/bids/*` |
+| 장바구니·즉시구매 | GET/POST | `/api/v1/carts/*`, `/api/v1/orders/*` |
+| 결제 | POST | `/api/payments/*` (또는 payment-service) |
+| 검색 | GET | `/api/v1/search/*` |
 
-자세한 API 명세는 추후 Swagger 또는 별도 문서로 제공 예정
+자세한 API 명세: Swagger UI (`/swagger-ui.html`) 또는 OpenAPI (`/v3/api-docs`)
 
 ## 🔄 CI/CD
 
@@ -184,23 +186,22 @@ GitHub Actions를 통한 자동화된 배포 파이프라인:
 
 ## 📈 로드맵
 
-### Phase 1 (현재)
-- [x] 기본 환경 설정
-- [ ] 사용자 인증/인가
-- [ ] 경매 상품 관리
-- [ ] 입찰 시스템
+### Phase 1 (완료/진행)
+- [x] 기본 환경 설정, 멀티 모듈 (fourtune-api, payment-service, common)
+- [x] 사용자 인증/인가 (JWT, OAuth2)
+- [x] 경매·입찰·장바구니·주문
+- [x] 결제 연동 (payment-service 분리)
+- [x] 검색(Elasticsearch), 관심상품, 알림, 정산
+- [x] Kafka 이벤트 연동 (User, Auction, Payment 등)
 
-### Phase 2
-- [ ] 결제 시스템
-- [ ] 알림 시스템
-- [ ] 검색 기능
-- [ ] 관심상품
+### Phase 2 (진행 중)
+- [ ] **통합 테스트**: 경매 → 입찰 → 결제 → 정산 E2E, 이벤트 흐름·Kafka 소비/재처리 검증
+- [ ] **경매 도메인 MSA 분리**: auction-service 모듈 분리 (문서: [MSA_AUCTION_DOMAIN_GUIDE.md](fourtune/docs/MSA_AUCTION_DOMAIN_GUIDE.md))
+- [ ] **부하/성능 테스트**: RPS, p95/p99, 에러율, Kafka lag, DB/커넥션 풀 튜닝
 
-### Phase 3
-- [ ] 정산 시스템
-- [ ] 환불 처리
-- [ ] 성능 최적화
-- [ ] 모니터링 구축
+### Phase 3 (예정)
+- [ ] 환불 처리 고도화, 오토스케일(HPA) 검증
+- [ ] 모니터링·운영 체계 정립
 
 ## 🤝 기여 가이드
 

@@ -21,11 +21,11 @@ import java.util.stream.Collectors;
 public class SettlementFacade {
 
     private final SettlementSupport settlementSupport;
-    private final CreateSettlementUseCase createSettlementUseCase;
-    private final SyncUserUseCase syncUserUseCase;
-    private final AddSettlementCandidatedItemsUseCase addSettlementCandidatedItemsUseCase;
-    private final CollectSettlementItemChunkUseCase collectSettlementItemChunkUseCase;
-    private final CompleteSettlementChunkUseCase completeSettlementChunkUseCase;
+    private final SettlementCreateUseCase settlementCreateUseCase;
+    private final SettlementSyncUserUseCase settlementSyncUserUseCase;
+    private final SettlementAddCandidatedItemsUseCase settlementAddCandidatedItemsUseCase;
+    private final SettlementCollectItemChunkUseCase settlementCollectItemChunkUseCase;
+    private final SettlementCompleteChunkUseCase settlementCompleteChunkUseCase;
     private final SettlementAddRefundCandidatedItemsUseCase settlementAddRefundCandidatedItemsUseCase;
 
     @Transactional(readOnly = true)
@@ -45,12 +45,12 @@ public class SettlementFacade {
 
     @Transactional
     public Settlement createSettlement(Long userId){
-        return createSettlementUseCase.createSettlement(userId);
+        return settlementCreateUseCase.createSettlement(userId);
     }
 
     @Transactional
     public SettlementUser syncUser(UserResponse userResponse){
-        return syncUserUseCase.syncUser(userResponse);
+        return settlementSyncUserUseCase.syncUser(userResponse);
     }
 
     @Transactional(readOnly = true)
@@ -69,17 +69,17 @@ public class SettlementFacade {
 
     @Transactional
     public void addSettlementCandidatedItem(OrderDto orderDto){
-        addSettlementCandidatedItemsUseCase.addSettlementCandidatedItems(orderDto);
+        settlementAddCandidatedItemsUseCase.addSettlementCandidatedItems(orderDto);
     }
 
     @Transactional
     public int collectSettlementItemChunk(int size){
-        return collectSettlementItemChunkUseCase.collectSettlementItemChunk(size);
+        return settlementCollectItemChunkUseCase.collectSettlementItemChunk(size);
     }
 
     @Transactional
     public int completeSettlementsChunk(int size){
-        return completeSettlementChunkUseCase.completeSettlementsChunk(size);
+        return settlementCompleteChunkUseCase.completeSettlementsChunk(size);
     }
 
     @Transactional(readOnly = true)

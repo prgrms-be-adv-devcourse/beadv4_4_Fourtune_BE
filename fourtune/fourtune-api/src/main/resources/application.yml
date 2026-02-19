@@ -462,5 +462,5 @@ api:
 
 custom:
   services:
-    payout_url: http://payment-service:8000
-    cash_url: http://payment-service:8080
+    payout_url: http://payment-service:8081
+    cash_url: http://payment-service:8081
