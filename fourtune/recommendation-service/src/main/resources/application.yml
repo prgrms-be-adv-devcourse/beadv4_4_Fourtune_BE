@@ -37,6 +37,29 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: dummy-client-id
+            client-secret: dummy-client-secret
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            scope: profile, email
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: dummy-access-key
+        secret-key: dummy-secret-key
+      s3:
+        bucket: dummy-bucket
+        path-prefix: dummy-prefix
+      stack:
+        auto: false
+
 feature:
   ai:
     provider: ${AI_PROVIDER:ollama} # ollama 또는 OpenAI
@@ -50,3 +73,12 @@ spring.ai:
     api-key: ${OPENAI_API_KEY:}
     chat:
       model: gpt-3.5-turbo
+
+app:
+  oauth2:
+    redirect-uri: http://localhost:3000/login-success
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: 3600000 # 1 hour
+  refresh-token-expiration: 1209600000 # 14 days
