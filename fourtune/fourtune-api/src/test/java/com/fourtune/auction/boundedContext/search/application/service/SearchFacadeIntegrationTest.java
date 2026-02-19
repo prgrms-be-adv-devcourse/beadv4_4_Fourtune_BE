@@ -4,12 +4,15 @@ import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.Notific
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.document.SearchAuctionItemDocument;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
+import com.fourtune.auction.boundedContext.search.domain.SearchLog;
 import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
 import com.fourtune.auction.boundedContext.search.domain.constant.SearchSort;
 import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
 import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
 import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
 import com.fourtune.common.global.config.FirebaseConfig;
+import com.fourtune.common.shared.search.kafka.SearchKafkaProducer;
+import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,12 +33,14 @@ import org.testcontainers.utility.DockerImageName;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import org.mockito.ArgumentCaptor;
 
 @SpringBootTest
 @Testcontainers
@@ -64,11 +69,18 @@ class SearchFacadeIntegrationTest {
     }
 
     // Mock External Dependencies to prevent context load failure
-    @MockitoBean private WatchListUserKafkaListener watchListUserKafkaListener;
-    @MockitoBean private SettlementUserKafkaListener settlementUserKafkaListener;
-    @MockitoBean private NotificationUserKafkaListener notificationUserKafkaListener;
-    @MockitoBean private FirebaseConfig firebaseConfig;
-    @MockitoBean private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
+    @MockitoBean
+    private WatchListUserKafkaListener watchListUserKafkaListener;
+    @MockitoBean
+    private SettlementUserKafkaListener settlementUserKafkaListener;
+    @MockitoBean
+    private NotificationUserKafkaListener notificationUserKafkaListener;
+    @MockitoBean
+    private FirebaseConfig firebaseConfig;
+    @MockitoBean
+    private FirebaseMessaging firebaseMessaging;
+    @MockitoBean
+    private SearchKafkaProducer searchKafkaProducer;
 
     @Autowired
     private SearchFacade searchFacade;
@@ -81,6 +93,9 @@ class SearchFacadeIntegrationTest {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
+
+    @Autowired // DB 검증을 위해 주입
+    private com.fourtune.auction.boundedContext.search.adapter.out.persistence.SearchLogJpaRepository searchLogRepository;
 
     @BeforeEach
     void setUp() {
@@ -120,10 +135,32 @@ class SearchFacadeIntegrationTest {
 
         // 2. Check Recent Keyword (from Redis) - Async execution check with Awaitility
         String redisKey = "recent_search:" + userId;
-        
+
         await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
             Set<String> savedKeywords = redisTemplate.opsForZSet().reverseRange(redisKey, 0, -1);
             assertThat(savedKeywords).contains(keyword);
+        });
+
+        // 3. Search Log 검증 (DB 조회) - 비동기 실행 대기
+        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
+            long count = searchLogRepository.count();
+            assertThat(count).isEqualTo(1);
+            SearchLog log = searchLogRepository.findAll().get(0);
+            assertThat(log.getKeyword()).isEqualTo(keyword);
+        });
+
+        // 4. Kafka 발행 검증
+        // SearchKafkaProducer가 호출되었는지 및 Payload 검증
+        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
+            ArgumentCaptor<com.fourtune.common.shared.search.event.SearchAuctionItemEvent> captor = ArgumentCaptor
+                    .forClass(com.fourtune.common.shared.search.event.SearchAuctionItemEvent.class);
+
+            verify(searchKafkaProducer, times(1)).send(captor.capture());
+
+            com.fourtune.common.shared.search.event.SearchAuctionItemEvent publishedEvent = captor.getValue();
+            assertThat(publishedEvent.keyword()).isEqualTo(keyword);
+            assertThat(publishedEvent.userId()).isEqualTo(userId);
+            assertThat(publishedEvent.resultCount()).isEqualTo(1);
         });
     }
 
