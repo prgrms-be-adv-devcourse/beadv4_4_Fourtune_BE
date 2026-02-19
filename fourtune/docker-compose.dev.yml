@@ -213,6 +213,14 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - SERVER_PORT=8084
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+      # AWS
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - S3_USER_ID=dev
       # Database
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/recommendation
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-fourtune_user}

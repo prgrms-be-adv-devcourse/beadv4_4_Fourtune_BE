@@ -205,6 +205,14 @@ services:
       - REDIS_PORT=6379
       - AI_PROVIDER=${AI_PROVIDER}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+      # AWS
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - S3_USER_ID=prod
       # Database
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/recommendation
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
