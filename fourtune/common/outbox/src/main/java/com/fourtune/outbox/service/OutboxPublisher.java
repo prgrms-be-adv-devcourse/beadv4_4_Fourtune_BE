@@ -3,7 +3,7 @@ package com.fourtune.outbox.service;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.outbox.domain.OutboxEvent;
 import com.fourtune.outbox.domain.OutboxEventStatus;
-import com.fourtune.core.outbox.handler.OutboxEventHandler;
+import com.fourtune.outbox.handler.OutboxEventHandler;
 import com.fourtune.outbox.repository.OutboxEventRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,8 +39,7 @@ public class OutboxPublisher {
     public OutboxPublisher(
             OutboxEventRepository outboxEventRepository,
             EventPublishingConfig eventPublishingConfig,
-            List<OutboxEventHandler> handlerList
-    ) {
+            List<OutboxEventHandler> handlerList) {
         this.outboxEventRepository = outboxEventRepository;
         this.eventPublishingConfig = eventPublishingConfig;
         this.handlers = handlerList.stream()
