@@ -11,31 +11,35 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 
 @SpringBootApplication(scanBasePackages = {
-        "com.fourtune.recommendation",
-        "com.fourtune.common"
+                "com.fourtune.recommendation",
+                "com.fourtune.core",
+                "com.fourtune.security"
 })
 @EnableJpaAuditing
 @EnableScheduling
 @EnableFeignClients(basePackages = {
-        "com.fourtune.recommendation",
-        "com.fourtune.common"
+                "com.fourtune.recommendation",
+                "com.fourtune.core",
+                "com.fourtune.security"
 })
 @EnableJpaRepositories(basePackages = {
-        "com.fourtune.recommendation",
-        "com.fourtune.common"
+                "com.fourtune.recommendation",
+                "com.fourtune.core",
+                "com.fourtune.security"
 })
 @EntityScan(basePackages = {
-        "com.fourtune.recommendation",
-        "com.fourtune.common"
+                "com.fourtune.recommendation",
+                "com.fourtune.core",
+                "com.fourtune.security"
 })
 public class RecommendationApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(RecommendationApplication.class, args);
-    }
+        public static void main(String[] args) {
+                SpringApplication.run(RecommendationApplication.class, args);
+        }
 
-    // Common 모듈의 SecurityConfig에서 필요한 빈 등록 (런타임 에러 해결용)
-    @Bean
-    public DefaultOAuth2UserService defaultOAuth2UserService() {
-        return new DefaultOAuth2UserService();
-    }
+        // Common 모듈의 SecurityConfig에서 필요한 빈 등록 (런타임 에러 해결용)
+        @Bean
+        public DefaultOAuth2UserService defaultOAuth2UserService() {
+                return new DefaultOAuth2UserService();
+        }
 }

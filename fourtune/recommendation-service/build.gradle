@@ -3,8 +3,10 @@ repositories {
 	maven { url 'https://repo.spring.io/milestone' }
 }
 
-dependencies {
-	implementation project(':common')
+dependencies {    // Common Modules (의존성 선택해)
+    implementation project(':common:core')
+    implementation project(':common:security')
+    // Note: infra (S3) and outbox are intentionally excluded to avoid unnecessary AWS/JPA dependencies
 
 	// Spring Boot Starters
 	implementation 'org.springframework.boot:spring-boot-starter-web'
