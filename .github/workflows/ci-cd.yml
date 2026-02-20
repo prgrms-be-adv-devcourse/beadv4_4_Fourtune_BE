@@ -246,7 +246,8 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
             cd /home/ubuntu/fourtune
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
             cd fourtune
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose -f docker-compose.prod.yml pull
