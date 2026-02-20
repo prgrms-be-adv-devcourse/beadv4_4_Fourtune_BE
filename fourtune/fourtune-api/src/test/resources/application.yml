@@ -1,4 +1,7 @@
 spring:
+  config:
+    import: classpath:application-common.yml
+
   datasource:
     # H2 DB 설정
     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
@@ -26,6 +29,21 @@ spring:
 
   elasticsearch:
     uris: http://localhost:9200
+
+  cloud:
+    aws:
+      credentials:
+        access-key: test
+        secret-key: test
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: test-bucket
+        path-prefix: test
+
+security:
+  oauth:
+    enabled: true
 
 app:
   oauth2:

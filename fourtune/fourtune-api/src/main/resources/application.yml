@@ -1,4 +1,7 @@
 spring:
+  config:
+    import: classpath:application-common.yml
+
   application:
     name: fourtune
   jackson:
@@ -23,6 +26,10 @@ spring:
       max-request-size: 50MB
 
   # security.oauth2 설정들은 application-common.yml에 중앙화 되어있음
+security:
+  oauth:
+    enabled: true
+
 app:
   oauth2:
     redirect-uri: ${OAUTH_FRONTEND_URI}/login-success
