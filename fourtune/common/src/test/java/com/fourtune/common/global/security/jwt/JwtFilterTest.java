@@ -1,7 +1,6 @@
-package com.fourtune.auction.global.security.jwt;
+package com.fourtune.common.global.security.jwt;
 
 import com.fourtune.common.global.error.ErrorCode;
-import com.fourtune.common.global.security.jwt.JwtTokenProvider;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

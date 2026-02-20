@@ -1,4 +1,4 @@
-package com.fourtune.auction.infra.s3.controller;
+package com.fourtune.common.infra.s3.controller;
 
 import com.fourtune.common.infra.s3.dto.S3PresignedUrlResponse;
 import com.fourtune.common.infra.s3.service.S3Service;
