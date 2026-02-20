@@ -6,7 +6,7 @@ import com.fourtune.shared.auth.dto.UserContext;
 import com.fourtune.shared.notification.dto.NotificationResponseDto;
 import com.fourtune.shared.notification.dto.NotificationSettingsResponse;
 import com.fourtune.shared.notification.dto.NotificationSettingsUpdateRequest;
-import com.fourtune.shared.fcmToken.dto.FCMTokenRequest;
+import com.fourtune.fcm.dto.FCMTokenRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

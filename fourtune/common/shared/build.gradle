@@ -18,4 +18,22 @@ dependencies {
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // QueryDSL (ReplicaUser 등을 위해 QClass 생성 필요. jpa 라이브러리는 core에서 api로 상속받음)
+    annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+}
+
+def generatedDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
+tasks.withType(JavaCompile).configureEach {
+    options.generatedSourceOutputDirectory = generatedDir
+}
+clean {
+    delete layout.buildDirectory.dir("generated")
 }

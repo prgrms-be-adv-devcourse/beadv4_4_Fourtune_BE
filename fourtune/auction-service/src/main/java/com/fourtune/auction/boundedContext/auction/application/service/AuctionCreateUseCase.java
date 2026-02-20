@@ -9,7 +9,7 @@ import com.fourtune.outbox.service.OutboxService;
 import com.fourtune.shared.auction.dto.AuctionItemCreateRequest;
 import com.fourtune.shared.auction.event.AuctionCreatedEvent;
 import com.fourtune.shared.auction.event.AuctionItemCreatedEvent;
-import com.fourtune.kafka.auction.AuctionEventType;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;

@@ -11,7 +11,7 @@ import com.fourtune.shared.auction.event.AuctionUpdatedEvent;
 import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.outbox.service.OutboxService;
-import com.fourtune.kafka.auction.AuctionEventType;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -134,8 +134,8 @@ public class AuctionUpdateUseCase {
             status == com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.SOLD ||
             status == com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.SOLD_BY_BUY_NOW ||
             status == com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.CANCELLED) {
-            throw new com.fourtune.common.global.error.exception.BusinessException(
-                    com.fourtune.common.global.error.ErrorCode.AUCTION_NOT_MODIFIABLE
+            throw new com.fourtune.core.error.exception.BusinessException(
+                    com.fourtune.core.error.ErrorCode.AUCTION_NOT_MODIFIABLE
             );
         }
         

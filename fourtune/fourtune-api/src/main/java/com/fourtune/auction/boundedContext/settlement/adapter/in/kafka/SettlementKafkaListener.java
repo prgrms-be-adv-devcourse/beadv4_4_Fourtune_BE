@@ -6,7 +6,7 @@ import com.fourtune.kafka.KafkaConfig;
 import com.fourtune.kafka.KafkaTopicConfig;
 import com.fourtune.shared.settlement.event.SettlementCompletedEvent;
 import com.fourtune.shared.settlement.event.SettlementUserCreatedEvent;
-import com.fourtune.kafka.settlement.SettlementEventMapper;
+import com.fourtune.api.infrastructure.kafka.settlement.SettlementEventMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

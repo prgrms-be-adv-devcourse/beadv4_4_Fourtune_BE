@@ -6,7 +6,7 @@ import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
 import com.fourtune.shared.auction.event.AuctionItemCreatedEvent;
 import com.fourtune.shared.auction.event.AuctionItemDeletedEvent;
 import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
-import com.fourtune.kafka.auction.AuctionEventType;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

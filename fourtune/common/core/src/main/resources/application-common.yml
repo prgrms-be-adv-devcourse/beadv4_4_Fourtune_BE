@@ -1,0 +1,50 @@
+spring:
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: non_null
+  
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:redpanda:9092}
+    consumer:
+      group-id: ${spring.application.name}
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+jwt:
+  secret: ${JWT_SECRET:dGVzdC1zZWNyZXQta2V5LXRoYXQtaXMtdmVyeS1zZWN1cmUtYW5kLWxvbmctZW5vdWdo}
+  access-token-expiration: 3600000        # 1 hour
+  refresh-token-expiration: 1209600000    # 14 days
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${OAUTH_CLIENT_ID:dummy-client-id}
+            client-secret: ${OAUTH_CLIENT_SECRET:dummy-client-secret}
+            redirect-uri: ${OAUTH_BACKEND_URI:http://localhost:8080}/login/oauth2/code/google
+            authorization-grant-type: authorization_code
+            scope: profile, email
+
+cloud:
+  aws:
+    region:
+      static: ${AWS_REGION:ap-northeast-2}
+    credentials:
+      access-key: ${AWS_ACCESS_KEY:dummy-access-key}
+      secret-key: ${AWS_SECRET_KEY:dummy-secret-key}
+    s3:
+      bucket: ${AWS_S3_BUCKET:dummy-bucket}
+      path-prefix: ${AWS_S3_PATH_PREFIX:dummy-prefix}
+    stack:
+      auto: false

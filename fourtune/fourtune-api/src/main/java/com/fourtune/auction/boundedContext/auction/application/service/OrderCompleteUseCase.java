@@ -12,7 +12,7 @@ import com.fourtune.shared.auction.event.OrderCancelledEvent;
 import com.fourtune.shared.auction.event.OrderCompletedEvent;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.outbox.service.OutboxService;
-import com.fourtune.kafka.auction.AuctionEventType;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

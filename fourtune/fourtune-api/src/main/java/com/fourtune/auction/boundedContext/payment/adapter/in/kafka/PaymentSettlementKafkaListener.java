@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
 import com.fourtune.kafka.KafkaTopicConfig;
 import com.fourtune.shared.settlement.event.SettlementCompletedEvent;
-import com.fourtune.kafka.settlement.SettlementEventMapper;
+import com.fourtune.api.infrastructure.kafka.settlement.SettlementEventMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

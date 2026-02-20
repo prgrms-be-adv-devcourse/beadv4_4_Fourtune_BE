@@ -9,7 +9,7 @@ import com.fourtune.shared.auction.event.AuctionClosedEvent;
 import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.outbox.service.OutboxService;
-import com.fourtune.kafka.auction.AuctionEventType;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -191,15 +191,15 @@ public class AuctionCloseUseCase {
     private void validateCloseable(AuctionItem auctionItem) {
         // ACTIVE 상태인지 확인
         if (auctionItem.getStatus() != com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.ACTIVE) {
-            throw new com.fourtune.common.global.error.exception.BusinessException(
-                    com.fourtune.common.global.error.ErrorCode.AUCTION_NOT_ACTIVE
+            throw new com.fourtune.core.error.exception.BusinessException(
+                    com.fourtune.core.error.ErrorCode.AUCTION_NOT_ACTIVE
             );
         }
         
         // 종료 시간이 지났는지 확인
         if (java.time.LocalDateTime.now().isBefore(auctionItem.getAuctionEndTime())) {
-            throw new com.fourtune.common.global.error.exception.BusinessException(
-                    com.fourtune.common.global.error.ErrorCode.AUCTION_NOT_MODIFIABLE
+            throw new com.fourtune.core.error.exception.BusinessException(
+                    com.fourtune.core.error.ErrorCode.AUCTION_NOT_MODIFIABLE
             );
         }
     }

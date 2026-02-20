@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.notification.application.NotificationFacade;
 import com.fourtune.auction.boundedContext.notification.domain.constant.NotificationType;
 import com.fourtune.kafka.KafkaTopicConfig;
-import com.fourtune.kafka.watchList.WatchListEventType;
+import com.fourtune.api.infrastructure.kafka.watchList.WatchListEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

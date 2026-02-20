@@ -8,7 +8,7 @@ import com.fourtune.core.eventPublisher.EventPublisher;
 import com.fourtune.shared.auction.event.BidCanceledEvent;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.outbox.service.OutboxService;
-import com.fourtune.kafka.auction.AuctionEventType;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

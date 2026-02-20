@@ -7,7 +7,7 @@ import com.fourtune.shared.auction.event.AuctionClosedEvent;
 import com.fourtune.shared.auction.event.AuctionItemCreatedEvent;
 import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
 import com.fourtune.shared.auction.event.AuctionStartedEvent;
-import com.fourtune.kafka.auction.AuctionEventType;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

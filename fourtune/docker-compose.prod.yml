@@ -214,9 +214,9 @@ services:
       - AWS_S3_BUCKET=${AWS_S3_BUCKET}
       - S3_USER_ID=prod
       # Database
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/recommendation
-      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - DB_URL=jdbc:postgresql://postgres:5432/recommendation
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
     ports:
       - "8084:8084"
     depends_on:

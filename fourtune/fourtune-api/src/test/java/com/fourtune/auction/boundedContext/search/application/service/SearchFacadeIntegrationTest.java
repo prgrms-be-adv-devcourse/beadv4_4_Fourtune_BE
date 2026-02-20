@@ -11,7 +11,7 @@ import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
 import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
 import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
 import com.fourtune.core.config.FirebaseConfig;
-import com.fourtune.kafka.search.SearchKafkaProducer;
+import com.fourtune.api.infrastructure.kafka.search.SearchKafkaProducer;
 import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

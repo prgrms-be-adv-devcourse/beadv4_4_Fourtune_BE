@@ -10,7 +10,7 @@ import com.fourtune.shared.auction.event.AuctionItemDeletedEvent;
 import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.outbox.service.OutboxService;
-import com.fourtune.kafka.auction.AuctionEventType;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,8 +90,8 @@ public class AuctionDeleteUseCase {
         
         // 3. 취소 가능 여부 확인 (입찰이 있으면 취소 불가)
         if (auctionItem.getBidCount() > 0) {
-            throw new com.fourtune.common.global.error.exception.BusinessException(
-                    com.fourtune.common.global.error.ErrorCode.AUCTION_HAS_BIDS
+            throw new com.fourtune.core.error.exception.BusinessException(
+                    com.fourtune.core.error.ErrorCode.AUCTION_HAS_BIDS
             );
         }
         

@@ -2,7 +2,6 @@ package com.fourtune.auction.boundedContext.payment.adapter.out.external;
 
 import com.fourtune.auction.boundedContext.payment.port.out.AuctionPort;
 import com.fourtune.core.dto.ApiResponse;
-import com.fourtune.core.config.WebClientConfig;
 import com.fourtune.core.error.ErrorCode;
 import com.fourtune.core.error.exception.BusinessException;
 import com.fourtune.shared.auction.dto.OrderDetailResponse;
@@ -12,30 +11,31 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AuctionAdapter implements AuctionPort {
 
-    private final WebClientConfig webclient;
+    private final WebClient webClient;
 
     // 경매 모듈 API 주소 (application.yml 등에서 관리하는 것이 좋음)
     @Value("${api.auction.base-url}")
     private String BASE_URL;
-    private static final String AUCTION_MODULE_URL =
-            "/api/v1/orders/public/";
+    private static final String AUCTION_MODULE_URL = "/api/v1/orders/public/";
 
     @Override
     public OrderDto getOrder(String orderId) {
         try {
             String url = BASE_URL + AUCTION_MODULE_URL + orderId;
 
-            ApiResponse<OrderDetailResponse> response = webclient.webClient()
+            ApiResponse<OrderDetailResponse> response = webClient
                     .get()
                     .uri(url)
                     .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<OrderDetailResponse>>() {})
+                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<OrderDetailResponse>>() {
+                    })
                     .block();
 
             // 2. 전체 응답 또는 내부 데이터(data)가 없는 경우 예외 처리
@@ -45,7 +45,6 @@ public class AuctionAdapter implements AuctionPort {
             }
 
             return OrderDto.from(response.getData());
-
 
         } catch (Exception e) {
             log.error("경매 모듈 연동 실패: {}", e.getMessage());
