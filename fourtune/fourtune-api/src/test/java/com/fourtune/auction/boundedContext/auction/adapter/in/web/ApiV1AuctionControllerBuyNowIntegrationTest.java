@@ -83,6 +83,15 @@ class ApiV1AuctionControllerBuyNowIntegrationTest {
     @MockitoBean
     private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository searchAuctionItemCrudRepository;
 
+    @MockitoBean
+    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
+
     private AuctionItem activeAuction;
     private User seller;
     private User buyer;

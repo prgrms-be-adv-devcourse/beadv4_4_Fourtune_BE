@@ -34,6 +34,15 @@ public class UserControllerTest {
     @MockitoBean
     private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
 
+    @MockitoBean
+    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
+
     @Autowired
     private WebApplicationContext context;
 

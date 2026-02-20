@@ -112,6 +112,15 @@ class E2EIntegrationTest {
     @MockitoBean
     private com.fourtune.auction.boundedContext.payment.port.out.AuctionPort auctionPort;
 
+    @MockitoBean
+    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
+
     @BeforeEach
     void setUp() {
         this.objectMapper = new ObjectMapper();

@@ -31,6 +31,15 @@ class UserFacadeExceptionTest {
     @MockitoBean
     private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
 
+    @MockitoBean
+    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
+
     @Test
     @DisplayName("로그인 시 비밀번호가 틀리면 LOGIN_INPUT_INVALID 예외가 발생한다")
     void login_WrongPassword_Exception() {
