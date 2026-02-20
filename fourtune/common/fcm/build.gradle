@@ -7,6 +7,6 @@ jar { enabled = true }
 
 dependencies {
     api project(':common:core')
-    // add firebase-admin if implementation exists in the future
+    api 'com.google.firebase:firebase-admin:9.2.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

@@ -15,7 +15,11 @@ dependencies {
     // 2. Utils & Json
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     api 'com.fasterxml.jackson.core:jackson-databind'
+    api 'com.fasterxml.jackson.core:jackson-databind'
     api 'io.micrometer:micrometer-registry-prometheus'
+
+    // WebClientConfig compilation을 위함
+    compileOnly 'org.springframework.boot:spring-boot-starter-webflux'
 
     // 3. Documentation (Swagger)
     // api로 노출해야 다른 모듈의 DTO도 문서화 가능
