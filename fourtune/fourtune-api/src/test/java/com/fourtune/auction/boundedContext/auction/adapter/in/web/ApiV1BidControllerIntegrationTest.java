@@ -8,14 +8,11 @@ import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Bid;
 import com.fourtune.auction.boundedContext.auction.port.out.AuctionItemRepository;
 import com.fourtune.auction.boundedContext.auction.port.out.BidRepository;
-import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.NotificationUserKafkaListener;
-import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
-import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
 import com.fourtune.common.global.security.jwt.JwtTokenProvider;
 import com.fourtune.common.shared.user.dto.UserResponse;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
@@ -85,10 +82,6 @@ class ApiV1BidControllerIntegrationTest {
 
     @MockitoBean
     private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository searchAuctionItemCrudRepository;
-
-    @MockitoBean private WatchListUserKafkaListener watchListUserKafkaListener;
-    @MockitoBean private SettlementUserKafkaListener settlementUserKafkaListener;
-    @MockitoBean private NotificationUserKafkaListener notificationUserKafkaListener;
 
     private AuctionItem activeAuction;
     private User seller;

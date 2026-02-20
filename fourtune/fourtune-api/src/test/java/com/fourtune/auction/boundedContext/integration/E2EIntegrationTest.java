@@ -10,15 +10,14 @@ import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.port.out.AuctionItemRepository;
-import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.NotificationUserKafkaListener;
 import com.fourtune.auction.boundedContext.payment.adapter.in.web.dto.ConfirmPaymentRequest;
-import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
+import com.fourtune.auction.boundedContext.payment.port.out.WalletRepository;
+import com.fourtune.common.shared.payment.constant.CashPolicy;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
-import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
 import com.fourtune.common.shared.auction.dto.BidPlaceRequest;
 import com.fourtune.common.shared.auction.dto.CartAddItemRequest;
 import com.fourtune.common.shared.user.dto.UserLoginRequest;
@@ -89,6 +88,12 @@ class E2EIntegrationTest {
     @Autowired
     private com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade paymentFacade;
 
+    @Autowired
+    private com.fourtune.auction.boundedContext.payment.port.out.PaymentUserRepository paymentUserRepository;
+
+    @Autowired
+    private WalletRepository walletRepository;
+
     @MockitoBean
     private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
 
@@ -107,10 +112,6 @@ class E2EIntegrationTest {
     @MockitoBean
     private com.fourtune.auction.boundedContext.payment.port.out.AuctionPort auctionPort;
 
-    @MockitoBean private WatchListUserKafkaListener watchListUserKafkaListener;
-    @MockitoBean private SettlementUserKafkaListener settlementUserKafkaListener;
-    @MockitoBean private NotificationUserKafkaListener notificationUserKafkaListener;
-
     @BeforeEach
     void setUp() {
         this.objectMapper = new ObjectMapper();
@@ -118,6 +119,9 @@ class E2EIntegrationTest {
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .addFilters(new CharacterEncodingFilter("UTF-8", true))
                 .build();
+
+        // PaymentDataInit이 주석 처리되어 있으므로 테스트에서 직접 시스템/플랫폼 지갑 초기화
+        initSystemWallets();
 
         // PaymentGatewayPort 모킹 설정 (Toss API 호출 모킹)
         when(paymentGatewayPort.confirm(anyString(), anyString(), anyLong()))
@@ -548,6 +552,32 @@ class E2EIntegrationTest {
     }
 
     // ========== 헬퍼 메서드 ==========
+
+    private void initSystemWallets() {
+        createSystemWalletIfNotExists(CashPolicy.SYSTEM_HOLDING_USER_EMAIL, "system");
+        createSystemWalletIfNotExists(CashPolicy.PLATFORM_REVENUE_USER_EMAIL, "platform");
+    }
+
+    private void createSystemWalletIfNotExists(String email, String nickname) {
+        com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser systemUser =
+                paymentUserRepository.findByEmail(email)
+                        .orElseGet(() -> paymentUserRepository.save(
+                                com.fourtune.auction.boundedContext.payment.domain.entity.PaymentUser.builder()
+                                        .email(email)
+                                        .nickname(nickname)
+                                        .status("ACTIVE")
+                                        .createdAt(LocalDateTime.now())
+                                        .build()
+                        ));
+
+        walletRepository.findWalletByPaymentUser(systemUser)
+                .orElseGet(() -> walletRepository.save(
+                        com.fourtune.auction.boundedContext.payment.domain.entity.Wallet.builder()
+                                .paymentUser(systemUser)
+                                .balance(0L)
+                                .build()
+                ));
+    }
 
     private String performSignupAndLogin(String email, String password, String nickname, String phoneNumber) throws Exception {
         // 회원가입

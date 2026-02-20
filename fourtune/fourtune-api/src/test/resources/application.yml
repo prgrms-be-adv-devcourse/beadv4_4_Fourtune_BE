@@ -82,12 +82,4 @@ settlement:
 
 feature:
   kafka:
-    enabled: true
-    user-events:
-      enabled: true
-    auction-events:
-      enabled: true
-    watchlist-events:
-      enabled: true
-    notification-events:
-      enabled: true
+    enabled: false
