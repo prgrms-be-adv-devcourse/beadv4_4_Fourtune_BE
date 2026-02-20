@@ -150,7 +150,7 @@ class NotificationAuctionKafkaListenerTest {
 
         listener.consume(payload, AuctionEventType.BID_CANCELED.name());
 
-        verify(notificationFacade).createNotification(10L, 100L, NotificationType.BID_RECEIVED);
+        verify(notificationFacade).createNotification(10L, 100L, NotificationType.BID_CANCELED);
     }
 
     // ── 공통 예외/무시 케이스 ──────────────────────────────────────────────────────
