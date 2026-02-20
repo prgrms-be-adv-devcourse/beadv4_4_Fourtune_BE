@@ -1,8 +1,12 @@
 package com.fourtune.auction.boundedContext.watchList.application.service.performance;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fourtune.common.global.config.EventPublishingConfig;
 import com.fourtune.common.global.eventPublisher.EventPublisher;
 import com.fourtune.common.shared.watchList.event.WatchListAuctionStartedEvent;
 import com.fourtune.common.shared.watchList.event.WatchListAuctionEndedEvent;
+import com.fourtune.common.shared.watchList.kafka.WatchListEventType;
+import com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.annotation.PostConstruct;
@@ -12,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,6 +44,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WatchListLocalCacheUseCase {
 
     private final EventPublisher eventPublisher;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final ObjectMapper objectMapper;
+    private final WatchListKafkaProducer watchListKafkaProducer;
 
     // 관심등록 캐시: auctionItemId -> Set<userId>
     private Cache<Long, Set<Long>> auctionToUsersCache;
@@ -115,7 +123,7 @@ public class WatchListLocalCacheUseCase {
         }
 
         // 이벤트 발행
-        eventPublisher.publish(new WatchListAuctionStartedEvent(userIds.stream().toList(), auctionItemId));
+        publishWatchListEvent(userIds.stream().toList(), auctionItemId, WatchListEventType.WATCHLIST_AUCTION_STARTED);
 
         // 알림 발송 완료 마킹 (메모리)
         startAlertSentCache.asMap()
@@ -140,7 +148,7 @@ public class WatchListLocalCacheUseCase {
             return new WatchListBulkUseCase.ProcessResult(0, 0, 0);
         }
 
-        eventPublisher.publish(new WatchListAuctionEndedEvent(userIds.stream().toList(), auctionItemId));
+        publishWatchListEvent(userIds.stream().toList(), auctionItemId, WatchListEventType.WATCHLIST_AUCTION_ENDED);
 
         endAlertSentCache.asMap()
                 .computeIfAbsent(auctionItemId, k -> ConcurrentHashMap.newKeySet())
@@ -150,6 +158,23 @@ public class WatchListLocalCacheUseCase {
         log.info("[LOCAL] 경매 {} 종료 알림 처리 완료: {}명, {}ms", auctionItemId, userIds.size(), duration);
 
         return new WatchListBulkUseCase.ProcessResult(userIds.size(), 0, duration);
+    }
+
+    private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {
+        if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
+            try {
+                String payload = objectMapper.writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
+                watchListKafkaProducer.send(String.valueOf(auctionItemId), payload, type.name());
+            } catch (Exception e) {
+                log.error("[LOCAL] WatchList Kafka 이벤트 발행 실패: auctionItemId={}", auctionItemId, e);
+            }
+        } else {
+            if (type == WatchListEventType.WATCHLIST_AUCTION_STARTED) {
+                eventPublisher.publish(new WatchListAuctionStartedEvent(users, auctionItemId));
+            } else {
+                eventPublisher.publish(new WatchListAuctionEndedEvent(users, auctionItemId));
+            }
+        }
     }
 
     /**

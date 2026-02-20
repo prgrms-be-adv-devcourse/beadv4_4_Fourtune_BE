@@ -70,17 +70,22 @@ class SearchFacadeIntegrationTest {
 
     // Mock External Dependencies to prevent context load failure
     @MockitoBean
-    private WatchListUserKafkaListener watchListUserKafkaListener;
+    private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
+
     @MockitoBean
-    private SettlementUserKafkaListener settlementUserKafkaListener;
+    private com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener auctionItemIndexEventListener;
+
     @MockitoBean
-    private NotificationUserKafkaListener notificationUserKafkaListener;
+    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchAuctionItemIndexingHandler elasticsearchAuctionItemIndexingHandler;
+
     @MockitoBean
-    private FirebaseConfig firebaseConfig;
+    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+
     @MockitoBean
-    private FirebaseMessaging firebaseMessaging;
+    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+
     @MockitoBean
-    private SearchKafkaProducer searchKafkaProducer;
+    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
 
     @Autowired
     private SearchFacade searchFacade;

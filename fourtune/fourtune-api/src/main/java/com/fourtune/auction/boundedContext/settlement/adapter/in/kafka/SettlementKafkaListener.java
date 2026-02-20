@@ -33,8 +33,8 @@ public class SettlementKafkaListener {
 
     @KafkaListener(
             topics = KafkaTopicConfig.SETTLEMENT_EVENTS_TOPIC,
-            groupId = "${settlement-events-group}",  // 내부 처리용 별도 그룹
-            containerFactory = "kafkaListenerContainerFactory"
+            groupId = "settlement-events-group",
+            containerFactory = "settlementEventKafkaListenerContainerFactory"
     )
     public void handleSettlementEvent(
             @Payload String payload,

@@ -3,6 +3,7 @@ package com.fourtune.auction.boundedContext.payment.adapter.in.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
 import com.fourtune.common.shared.payment.event.PaymentUserCreatedEvent;
+import com.fourtune.common.global.config.kafka.KafkaTopicConfig;
 import com.fourtune.common.shared.payment.kafka.PaymentEventMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +30,9 @@ public class PaymentKafkaListener {
     private final PaymentFacade paymentFacade;
 
     @KafkaListener(
-            topics = "${payment-events}",
-            groupId = "${payment-events-group}",
-            containerFactory = "kafkaListenerContainerFactory"
+            topics = KafkaTopicConfig.PAYMENT_EVENTS_TOPIC,
+            groupId = "payment-events-group",
+            containerFactory = "paymentEventKafkaListenerContainerFactory"
     )
     public void handlePaymentEvent(
             @Payload String payload,

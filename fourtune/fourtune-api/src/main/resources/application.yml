@@ -151,6 +151,14 @@ spring:
 feature:
   kafka:
     enabled: true
+    user-events:
+      enabled: true
+    auction-events:
+      enabled: true
+    watchlist-events:
+      enabled: true
+    notification-events:
+      enabled: true
 
 
 # JWT 설정
@@ -241,6 +249,14 @@ spring:
 feature:
   kafka:
     enabled: true
+    user-events:
+      enabled: true
+    auction-events:
+      enabled: true
+    watchlist-events:
+      enabled: true
+    notification-events:
+      enabled: true
 
 # Test에서는 Swagger 비활성화
 springdoc:
@@ -315,6 +331,14 @@ spring:
 feature:
   kafka:
     enabled: true
+    user-events:
+      enabled: true
+    auction-events:
+      enabled: true
+    watchlist-events:
+      enabled: true
+    notification-events:
+      enabled: true
 
 jwt:
   secret: ${JWT_SECRET}

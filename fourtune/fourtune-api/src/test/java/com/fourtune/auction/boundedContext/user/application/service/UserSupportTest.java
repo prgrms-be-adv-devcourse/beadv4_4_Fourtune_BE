@@ -1,11 +1,8 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
-import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.NotificationUserKafkaListener;
-import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
-import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
 import com.fourtune.common.global.error.ErrorCode;
 import com.fourtune.common.global.error.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -28,11 +24,6 @@ class UserSupportTest {
 
     @Mock
     private UserRepository userRepository;
-
-    @MockitoBean
-    private WatchListUserKafkaListener watchListUserKafkaListener;
-    @MockitoBean private SettlementUserKafkaListener settlementUserKafkaListener;
-    @MockitoBean private NotificationUserKafkaListener notificationUserKafkaListener;
 
     @InjectMocks
     private UserSupport userSupport;

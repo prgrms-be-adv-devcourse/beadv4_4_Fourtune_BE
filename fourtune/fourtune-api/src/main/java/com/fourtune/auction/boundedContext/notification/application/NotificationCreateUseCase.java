@@ -1,18 +1,23 @@
 package com.fourtune.auction.boundedContext.notification.application;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.notification.domain.constant.NotificationType;
 import com.fourtune.auction.boundedContext.notification.domain.Notification;
 import com.fourtune.auction.boundedContext.notification.domain.NotificationUser;
+import com.fourtune.common.global.config.EventPublishingConfig;
 import com.fourtune.common.global.error.ErrorCode;
 import com.fourtune.common.global.error.exception.BusinessException;
 import com.fourtune.common.global.eventPublisher.EventPublisher;
 import com.fourtune.common.shared.notification.event.NotificationEvent;
+import com.fourtune.common.shared.notification.kafka.NotificationEventType;
+import com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,6 +26,9 @@ public class NotificationCreateUseCase {
 
     private final NotificationSupport notificationSupport;
     private final EventPublisher eventPublisher;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final ObjectMapper objectMapper;
+    private final NotificationKafkaProducer notificationKafkaProducer;
 
     @Transactional
     public void bidPlaceToSeller(Long sellerId, Long bidderId, Long auctionId, NotificationType type){
@@ -68,7 +76,21 @@ public class NotificationCreateUseCase {
         notificationSupport.save(notification);
         log.info("알림 생성 완료 - Receiver: {}, Type: {}", receiverId, type);
 
-        eventPublisher.publish(new NotificationEvent(receiverId, notification.getTitle(), notification.getContent(), relatedUrl));
+        if (eventPublishingConfig.isNotificationEventsKafkaEnabled()) {
+            try {
+                String payload = objectMapper.writeValueAsString(Map.of(
+                        "receiverId", receiverId,
+                        "title", notification.getTitle(),
+                        "content", notification.getContent(),
+                        "relatedUrl", relatedUrl));
+                notificationKafkaProducer.send(
+                        String.valueOf(receiverId), payload, NotificationEventType.NOTIFICATION_CREATED.name());
+            } catch (Exception e) {
+                log.error("Notification Kafka 이벤트 발행 실패: receiverId={}", receiverId, e);
+            }
+        } else {
+            eventPublisher.publish(new NotificationEvent(receiverId, notification.getTitle(), notification.getContent(), relatedUrl));
+        }
     }
 
 }
