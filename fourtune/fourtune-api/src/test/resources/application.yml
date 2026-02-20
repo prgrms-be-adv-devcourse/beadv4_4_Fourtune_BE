@@ -79,3 +79,7 @@ settlement:
     complete-cron: "0 */5 * * * *"
   policy:
     waiting-days: 0
+
+feature:
+  kafka:
+    enabled: false

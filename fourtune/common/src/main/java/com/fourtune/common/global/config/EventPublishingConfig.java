@@ -21,6 +21,12 @@ public class EventPublishingConfig {
     @Value("${feature.kafka.auction-events.enabled:false}")
     private boolean auctionEventsKafkaEnabled;
 
+    @Value("${feature.kafka.watchlist-events.enabled:false}")
+    private boolean watchlistEventsKafkaEnabled;
+
+    @Value("${feature.kafka.notification-events.enabled:false}")
+    private boolean notificationEventsKafkaEnabled;
+
     /**
      * User 이벤트에 대해 Kafka를 사용할지 여부
      */
@@ -36,9 +42,16 @@ public class EventPublishingConfig {
     }
 
     /**
-     * Spring Events를 사용할지 여부 (Kafka가 비활성화된 경우)
+     * 관심상품 이벤트에 대해 Kafka를 사용할지 여부
      */
-    public boolean isSpringEventsEnabled() {
-        return !isUserEventsKafkaEnabled();
+    public boolean isWatchlistEventsKafkaEnabled() {
+        return kafkaEnabled && watchlistEventsKafkaEnabled;
+    }
+
+    /**
+     * 알림 이벤트에 대해 Kafka를 사용할지 여부
+     */
+    public boolean isNotificationEventsKafkaEnabled() {
+        return kafkaEnabled && notificationEventsKafkaEnabled;
     }
 }

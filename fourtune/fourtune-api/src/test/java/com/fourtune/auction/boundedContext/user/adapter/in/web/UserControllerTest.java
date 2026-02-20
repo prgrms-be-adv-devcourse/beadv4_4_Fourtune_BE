@@ -2,10 +2,7 @@ package com.fourtune.auction.boundedContext.user.adapter.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.NotificationUserKafkaListener;
-import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
-import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
 import com.fourtune.common.shared.user.dto.UserResponse;
 import com.fourtune.common.shared.user.dto.UserSignUpRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,9 +34,23 @@ public class UserControllerTest {
     @MockitoBean
     private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
 
-    @MockitoBean private WatchListUserKafkaListener watchListUserKafkaListener;
-    @MockitoBean private SettlementUserKafkaListener settlementUserKafkaListener;
-    @MockitoBean private NotificationUserKafkaListener notificationUserKafkaListener;
+    @MockitoBean
+    private com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener auctionItemIndexEventListener;
+
+    @MockitoBean
+    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchAuctionItemIndexingHandler elasticsearchAuctionItemIndexingHandler;
+
+    @MockitoBean
+    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository searchAuctionItemCrudRepository;
+
+    @MockitoBean
+    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
 
     @Autowired
     private WebApplicationContext context;

@@ -1,6 +1,5 @@
 package com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch;
 
-import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.NotificationUserKafkaListener;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.document.SearchAuctionItemDocument;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
@@ -8,8 +7,6 @@ import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
 import com.fourtune.auction.boundedContext.search.domain.SearchPriceRange;
 import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
 import com.fourtune.auction.boundedContext.search.domain.constant.SearchSort;
-import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
-import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
 import com.fourtune.common.global.config.FirebaseConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,15 +52,23 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
         registry.add("spring.elasticsearch.uris", elasticsearch::getHttpHostAddress);
     }
 
-    @MockitoBean private WatchListUserKafkaListener watchListUserKafkaListener;
-    @MockitoBean private SettlementUserKafkaListener settlementUserKafkaListener;
-    @MockitoBean private NotificationUserKafkaListener notificationUserKafkaListener;
-
-    @MockitoBean
-    private FirebaseConfig firebaseConfig;
-
     @MockitoBean
     private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
+
+    @MockitoBean
+    private com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener auctionItemIndexEventListener;
+
+    @MockitoBean
+    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchAuctionItemIndexingHandler elasticsearchAuctionItemIndexingHandler;
+
+    @MockitoBean
+    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
 
     @Autowired
     private ElasticsearchAuctionItemSearchEngine searchEngine;

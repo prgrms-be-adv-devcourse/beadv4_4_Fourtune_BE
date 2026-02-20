@@ -29,9 +29,9 @@ public class PaymentSettlementKafkaListener {
     private final PaymentFacade paymentFacade;
 
     @KafkaListener(
-            topics = KafkaTopicConfig.PAYMENT_EVENTS_TOPIC,
-            groupId = "${payment-settlement-group}",
-            containerFactory = "kafkaListenerContainerFactory"
+            topics = KafkaTopicConfig.SETTLEMENT_EVENTS_TOPIC,
+            groupId = "payment-settlement-group",
+            containerFactory = "paymentEventKafkaListenerContainerFactory"
     )
     public void handleSettlementEvent(
             @Payload String payload,

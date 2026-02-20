@@ -1,8 +1,12 @@
 package com.fourtune.auction.boundedContext.watchList.application.service.performance;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fourtune.common.global.config.EventPublishingConfig;
 import com.fourtune.common.global.eventPublisher.EventPublisher;
 import com.fourtune.common.shared.watchList.event.WatchListAuctionStartedEvent;
 import com.fourtune.common.shared.watchList.event.WatchListAuctionEndedEvent;
+import com.fourtune.common.shared.watchList.kafka.WatchListEventType;
+import com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -10,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,6 +38,9 @@ public class WatchListRedisSetUseCase {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final EventPublisher eventPublisher;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final ObjectMapper objectMapper;
+    private final WatchListKafkaProducer watchListKafkaProducer;
 
     private static final String AUCTION_USERS_KEY = "watchlist:auction:";
     private static final String ALERT_START_SENT_KEY = "watchlist:alert:start:";
@@ -85,7 +93,7 @@ public class WatchListRedisSetUseCase {
         }
 
         // 이벤트 발행
-        eventPublisher.publish(new WatchListAuctionStartedEvent(userIds.stream().toList(), auctionItemId));
+        publishWatchListEvent(userIds.stream().toList(), auctionItemId, WatchListEventType.WATCHLIST_AUCTION_STARTED);
 
         // Redis SADD: 알림 발송 완료 마킹
         markStartAlertSent(auctionItemId, userIds);
@@ -108,7 +116,7 @@ public class WatchListRedisSetUseCase {
             return new WatchListBulkUseCase.ProcessResult(0, 0, 0);
         }
 
-        eventPublisher.publish(new WatchListAuctionEndedEvent(userIds.stream().toList(), auctionItemId));
+        publishWatchListEvent(userIds.stream().toList(), auctionItemId, WatchListEventType.WATCHLIST_AUCTION_ENDED);
         markEndAlertSent(auctionItemId, userIds);
 
         long duration = System.currentTimeMillis() - startTime;
@@ -131,6 +139,23 @@ public class WatchListRedisSetUseCase {
     private void markEndAlertSent(Long auctionItemId, Set<Long> userIds) {
         String key = ALERT_END_SENT_KEY + auctionItemId;
         redisTemplate.opsForSet().add(key, userIds.toArray());
+    }
+
+    private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {
+        if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
+            try {
+                String payload = objectMapper.writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
+                watchListKafkaProducer.send(String.valueOf(auctionItemId), payload, type.name());
+            } catch (Exception e) {
+                log.error("[REDIS] WatchList Kafka 이벤트 발행 실패: auctionItemId={}", auctionItemId, e);
+            }
+        } else {
+            if (type == WatchListEventType.WATCHLIST_AUCTION_STARTED) {
+                eventPublisher.publish(new WatchListAuctionStartedEvent(users, auctionItemId));
+            } else {
+                eventPublisher.publish(new WatchListAuctionEndedEvent(users, auctionItemId));
+            }
+        }
     }
 
     /**

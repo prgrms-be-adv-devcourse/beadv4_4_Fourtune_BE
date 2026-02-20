@@ -1,11 +1,7 @@
 package com.fourtune.common.global.config.kafka;
 
-import com.fourtune.common.shared.user.kafka.UserEventMessage;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.errors.SerializationException;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,10 +13,6 @@ import org.springframework.kafka.core.*;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,41 +27,10 @@ public class KafkaConfig {
     @Value("${spring.kafka.consumer.group-id:fourtune-consumer-group}")
     private String consumerGroupId;
 
-    // ObjectMapper는 JacksonConfig에서 정의한 단일 빈을 주입받음 (중복 빈 충돌 방지, JavaTimeModule로 UserEventMessage 등 날짜 필드 직렬화 보장)
-    // 상세: docs/reference/OBJECTMAPPER_KAFKA_JACKSON_ANALYSIS.md
-    // 혹시 모를 롤백용: 아래 주석 해제 시 이 클래스에서 ObjectMapper 빈 정의 (JacksonConfig와 중복 시 충돌)
-    // @Bean
-    // public ObjectMapper objectMapper() {
-    //     return new ObjectMapper();
-    // }
-
-    // --- Producer 설정 ---
+    // --- Producer 설정 (String, String) ---
 
     @Bean
-    public ProducerFactory<String, Object> producerFactory(ObjectMapper objectMapper) {
-        Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        configProps.put(ProducerConfig.ACKS_CONFIG, "all");
-        configProps.put(ProducerConfig.RETRIES_CONFIG, 3);
-        configProps.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
-
-        return new DefaultKafkaProducerFactory<>(
-                configProps,
-                new StringSerializer(),
-                new JacksonSerializer<>(objectMapper) // 이름 살짝 변경 (Jackson 2용)
-        );
-    }
-
-    @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate(ObjectMapper objectMapper) {
-        return new KafkaTemplate<>(producerFactory(objectMapper));
-    }
-
-    /**
-     * 경매 이벤트용 Producer (value = JSON 문자열 그대로 전송, Header에 X-Event-Type 설정)
-     */
-    @Bean
-    public ProducerFactory<String, String> auctionProducerFactory() {
+    public ProducerFactory<String, String> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ProducerConfig.ACKS_CONFIG, "all");
@@ -80,42 +41,35 @@ public class KafkaConfig {
 
     @Bean
     public KafkaTemplate<String, String> auctionKafkaTemplate() {
-        return new KafkaTemplate<>(auctionProducerFactory());
+        return new KafkaTemplate<>(producerFactory());
     }
 
-    // --- Consumer 설정 ---
+    // --- User Event Consumer 설정 (String 기반) ---
 
     @Bean
-    public ConsumerFactory<String, UserEventMessage> userEventConsumerFactory(ObjectMapper objectMapper) {
+    public ConsumerFactory<String, String> userEventConsumerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);
         configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-
-        return new DefaultKafkaConsumerFactory<>(
-                configProps,
-                new StringDeserializer(),
-                new JacksonDeserializer<>(objectMapper, UserEventMessage.class)
-        );
+        return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new StringDeserializer());
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, UserEventMessage> userEventKafkaListenerContainerFactory(
-            ConsumerFactory<String, UserEventMessage> consumerFactory) {
+    public ConcurrentKafkaListenerContainerFactory<String, String> userEventKafkaListenerContainerFactory(
+            ConsumerFactory<String, String> userEventConsumerFactory) {
 
-        ConcurrentKafkaListenerContainerFactory<String, UserEventMessage> factory =
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory);
+        factory.setConsumerFactory(userEventConsumerFactory);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
-
         return factory;
     }
 
-    /**
-     * 경매 이벤트용 Consumer (value = JSON 문자열, Header X-Event-Type으로 역직렬화 타입 결정)
-     */
+    // --- Auction Event Consumer 설정 (String 기반) ---
+
     @Bean
     public ConsumerFactory<String, String> auctionEventConsumerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -135,45 +89,87 @@ public class KafkaConfig {
         return factory;
     }
 
-    // =========================================================================
-    //  [Inner Classes] Jackson 2 (com.fasterxml) 기반 커스텀 구현
-    // =========================================================================
+    // --- WatchList Event Consumer 설정 (String 기반) ---
 
-    public static class JacksonSerializer<T> implements Serializer<T> {
-        private final ObjectMapper objectMapper;
-
-        public JacksonSerializer(ObjectMapper objectMapper) {
-            this.objectMapper = objectMapper;
-        }
-
-        @Override
-        public byte[] serialize(String topic, T data) {
-            if (data == null) return null;
-            try {
-                return objectMapper.writeValueAsBytes(data);
-            } catch (JsonProcessingException e) {
-                throw new SerializationException("Error serializing JSON message", e);
-            }
-        }
+    @Bean
+    public ConsumerFactory<String, String> watchlistEventConsumerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new StringDeserializer());
     }
 
-    public static class JacksonDeserializer<T> implements Deserializer<T> {
-        private final ObjectMapper objectMapper;
-        private final Class<T> targetType;
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> watchlistEventKafkaListenerContainerFactory(
+            ConsumerFactory<String, String> watchlistEventConsumerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(watchlistEventConsumerFactory);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
+        return factory;
+    }
 
-        public JacksonDeserializer(ObjectMapper objectMapper, Class<T> targetType) {
-            this.objectMapper = objectMapper;
-            this.targetType = targetType;
-        }
+    // --- Payment Event Consumer 설정 (String 기반) ---
 
-        @Override
-        public T deserialize(String topic, byte[] data) {
-            if (data == null) return null;
-            try {
-                return objectMapper.readValue(data, targetType);
-            } catch (IOException e) {
-                throw new SerializationException("Error deserializing JSON message", e);
-            }
-        }
+    @Bean
+    public ConsumerFactory<String, String> paymentEventConsumerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new StringDeserializer());
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> paymentEventKafkaListenerContainerFactory(
+            ConsumerFactory<String, String> paymentEventConsumerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(paymentEventConsumerFactory);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
+        return factory;
+    }
+
+    // --- Settlement Event Consumer 설정 (String 기반) ---
+
+    @Bean
+    public ConsumerFactory<String, String> settlementEventConsumerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new StringDeserializer());
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> settlementEventKafkaListenerContainerFactory(
+            ConsumerFactory<String, String> settlementEventConsumerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(settlementEventConsumerFactory);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
+        return factory;
+    }
+
+    // --- Notification Event Consumer 설정 (String 기반) ---
+
+    @Bean
+    public ConsumerFactory<String, String> notificationEventConsumerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new StringDeserializer());
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> notificationEventKafkaListenerContainerFactory(
+            ConsumerFactory<String, String> notificationEventConsumerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(notificationEventConsumerFactory);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
+        return factory;
     }
 }

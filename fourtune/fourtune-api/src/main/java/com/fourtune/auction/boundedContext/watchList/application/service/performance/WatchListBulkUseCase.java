@@ -1,15 +1,20 @@
 package com.fourtune.auction.boundedContext.watchList.application.service.performance;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.watchList.port.out.WatchListRepository;
+import com.fourtune.common.global.config.EventPublishingConfig;
 import com.fourtune.common.global.eventPublisher.EventPublisher;
 import com.fourtune.common.shared.watchList.event.WatchListAuctionStartedEvent;
 import com.fourtune.common.shared.watchList.event.WatchListAuctionEndedEvent;
+import com.fourtune.common.shared.watchList.kafka.WatchListEventType;
+import com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * DB Bulk 방식 WatchList 서비스
@@ -26,6 +31,9 @@ public class WatchListBulkUseCase {
 
     private final WatchListRepository watchListRepository;
     private final EventPublisher eventPublisher;
+    private final EventPublishingConfig eventPublishingConfig;
+    private final ObjectMapper objectMapper;
+    private final WatchListKafkaProducer watchListKafkaProducer;
 
     /**
      * 경매 시작 알림 처리 (Bulk 방식)
@@ -43,7 +51,7 @@ public class WatchListBulkUseCase {
         }
 
         // 이벤트 발행
-        eventPublisher.publish(new WatchListAuctionStartedEvent(userIds, auctionItemId));
+        publishWatchListEvent(userIds, auctionItemId, WatchListEventType.WATCHLIST_AUCTION_STARTED);
 
         // 1회 Bulk UPDATE: 알림 발송 완료 마킹
         int updatedCount = watchListRepository.bulkMarkStartAlertSent(auctionItemId);
@@ -67,13 +75,30 @@ public class WatchListBulkUseCase {
             return new ProcessResult(0, 0, 0);
         }
 
-        eventPublisher.publish(new WatchListAuctionEndedEvent(userIds, auctionItemId));
+        publishWatchListEvent(userIds, auctionItemId, WatchListEventType.WATCHLIST_AUCTION_ENDED);
         int updatedCount = watchListRepository.bulkMarkEndAlertSent(auctionItemId);
 
         long duration = System.currentTimeMillis() - startTime;
         log.info("[BULK] 경매 {} 종료 알림 처리 완료: {}명, {}ms", auctionItemId, userIds.size(), duration);
 
         return new ProcessResult(userIds.size(), 2, duration);
+    }
+
+    private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {
+        if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
+            try {
+                String payload = objectMapper.writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
+                watchListKafkaProducer.send(String.valueOf(auctionItemId), payload, type.name());
+            } catch (Exception e) {
+                log.error("[BULK] WatchList Kafka 이벤트 발행 실패: auctionItemId={}", auctionItemId, e);
+            }
+        } else {
+            if (type == WatchListEventType.WATCHLIST_AUCTION_STARTED) {
+                eventPublisher.publish(new WatchListAuctionStartedEvent(users, auctionItemId));
+            } else {
+                eventPublisher.publish(new WatchListAuctionEndedEvent(users, auctionItemId));
+            }
+        }
     }
 
     /**

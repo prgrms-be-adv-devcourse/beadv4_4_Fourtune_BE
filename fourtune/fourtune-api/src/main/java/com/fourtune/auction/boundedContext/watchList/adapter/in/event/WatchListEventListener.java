@@ -55,24 +55,36 @@ public class WatchListEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleAuctionItemCreatedEvent(AuctionItemCreatedEvent event){
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            return;
+        }
         watchListService.syncAuctionItem(event.auctionItemId(), event.title(), event.currentPrice(), event.thumbnailUrl());
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleAuctionItemModifiedEvent(AuctionItemUpdatedEvent event){
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            return;
+        }
         watchListService.syncAuctionItem(event.auctionItemId(), event.title(), event.currentPrice(), event.thumbnailUrl());
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleWatchListItemStartedEvent(AuctionStartedEvent event){
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            return;
+        }
         watchListService.processAuctionStart(event.auctionId());
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleWatchListItemEndedEvent(AuctionClosedEvent event){
+        if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
+            return;
+        }
         watchListService.processAuctionEnd(event.auctionId());
     }
 }

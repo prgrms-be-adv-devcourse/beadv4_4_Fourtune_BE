@@ -13,6 +13,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class UserModifiedUseCase {
@@ -48,7 +50,8 @@ public class UserModifiedUseCase {
 
     private void publishUserModifiedEvent(User user) {
         if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
-            outboxService.append(AGGREGATE_TYPE, user.getId(), UserEventType.USER_MODIFIED.name(), user.toDto());
+            outboxService.append(AGGREGATE_TYPE, user.getId(), UserEventType.USER_MODIFIED.name(),
+                    Map.of("eventType", UserEventType.USER_MODIFIED.name(), "aggregateId", user.getId(), "data", user.toDto()));
         } else {
             eventPublisher.publish(new UserModifiedEvent(user.toDto()));
         }

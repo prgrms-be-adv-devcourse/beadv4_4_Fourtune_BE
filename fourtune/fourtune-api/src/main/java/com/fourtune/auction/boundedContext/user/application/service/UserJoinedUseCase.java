@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -49,7 +50,8 @@ public class UserJoinedUseCase {
 
     private void publishUserJoinedEvent(User user) {
         if (eventPublishingConfig.isUserEventsKafkaEnabled()) {
-            outboxService.append(AGGREGATE_TYPE, user.getId(), UserEventType.USER_JOINED.name(), user.toDto());
+            outboxService.append(AGGREGATE_TYPE, user.getId(), UserEventType.USER_JOINED.name(),
+                    Map.of("eventType", UserEventType.USER_JOINED.name(), "aggregateId", user.getId(), "data", user.toDto()));
         } else {
             eventPublisher.publish(new UserJoinedEvent(user.toDto()));
         }
