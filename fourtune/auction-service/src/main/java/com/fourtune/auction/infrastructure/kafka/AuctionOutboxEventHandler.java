@@ -1,7 +1,7 @@
 package com.fourtune.auction.infrastructure.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fourtune.core.outbox.handler.OutboxEventHandler;
+import com.fourtune.outbox.handler.OutboxEventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * 경매 도메인 Outbox 이벤트 핸들러
- * payload = {"eventType":"...","aggregateId":123,"data":{...}} 형태로 저장된 JSON을 파싱 후 Kafka 발행
+ * payload = {"eventType":"...","aggregateId":123,"data":{...}} 형태로 저장된 JSON을 파싱
+ * 후 Kafka 발행
  * (User/Outbox 인터페이스 변경 없이 handle(String payload)만 사용)
  */
 @Slf4j
