@@ -121,6 +121,26 @@ public class AuctionSupport {
     }
 
     /**
+     * 시작 5분 전 경매 조회 (SCHEDULED 상태, [now+4분, now+5분] 윈도우)
+     */
+    public List<AuctionItem> findAuctionsStartingInFiveMinutes(java.time.LocalDateTime now) {
+        return auctionItemRepository.findByAuctionStartTimeBetweenAndStatus(
+                now.plusMinutes(4),
+                now.plusMinutes(5),
+                AuctionStatus.SCHEDULED);
+    }
+
+    /**
+     * 종료 5분 전 경매 조회 (ACTIVE 상태, [now+4분, now+5분] 윈도우)
+     */
+    public List<AuctionItem> findAuctionsEndingInFiveMinutes(java.time.LocalDateTime now) {
+        return auctionItemRepository.findByAuctionEndTimeBetweenAndStatus(
+                now.plusMinutes(4),
+                now.plusMinutes(5),
+                AuctionStatus.ACTIVE);
+    }
+
+    /**
      * 경매 삭제 가능 여부 검증
      * 입찰이 있거나 진행중인 경매는 삭제 불가
      */

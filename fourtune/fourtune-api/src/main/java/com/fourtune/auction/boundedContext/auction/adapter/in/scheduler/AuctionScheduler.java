@@ -1,9 +1,14 @@
 package com.fourtune.auction.boundedContext.auction.adapter.in.scheduler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionFacade;
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionSupport;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.common.shared.auction.event.AuctionEndingSoonEvent;
+import com.fourtune.common.shared.auction.event.AuctionStartingSoonEvent;
+import com.fourtune.common.shared.auction.kafka.AuctionEventType;
+import com.fourtune.common.shared.auction.kafka.AuctionKafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,6 +30,8 @@ public class AuctionScheduler {
     private final AuctionFacade auctionFacade;
     private final AuctionSupport auctionSupport;
     private final EventPublisher eventPublisher;
+    private final AuctionKafkaProducer auctionKafkaProducer;
+    private final ObjectMapper objectMapper;
 
     /**
      * 만료된 경매 종료 처리
@@ -73,13 +80,52 @@ public class AuctionScheduler {
     }
 
     /**
-     * 경매 시작 처리 (독립 트랜잭션)
-     * 각 경매마다 독립적인 트랜잭션으로 처리하여 하나 실패 시 다른 것들에 영향 없도록 함
+     * 관심상품 시작 5분 전 알림 발행
+     * 매 분 0초마다 실행
      */
+    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
+    public void sendStartingSoonAlerts() {
+        LocalDateTime now = LocalDateTime.now();
+        List<AuctionItem> auctions = auctionSupport.findAuctionsStartingInFiveMinutes(now);
 
+        if (auctions.isEmpty()) {
+            return;
+        }
+
+        log.info("관심상품 시작 5분 전 알림 대상: {}건", auctions.size());
+        for (AuctionItem auction : auctions) {
+            try {
+                String payload = objectMapper.writeValueAsString(new AuctionStartingSoonEvent(auction.getId()));
+                auctionKafkaProducer.send(String.valueOf(auction.getId()), payload, AuctionEventType.AUCTION_STARTING_SOON.name());
+                log.debug("AUCTION_STARTING_SOON 발행: auctionId={}", auction.getId());
+            } catch (Exception e) {
+                log.error("AUCTION_STARTING_SOON 발행 실패: auctionId={}", auction.getId(), e);
+            }
+        }
+    }
 
     /**
-     * 썸네일 URL 추출
+     * 관심상품 종료 5분 전 알림 발행
+     * 매 분 30초마다 실행
      */
+    @Scheduled(cron = "30 * * * * *", zone = "Asia/Seoul")
+    public void sendEndingSoonAlerts() {
+        LocalDateTime now = LocalDateTime.now();
+        List<AuctionItem> auctions = auctionSupport.findAuctionsEndingInFiveMinutes(now);
 
+        if (auctions.isEmpty()) {
+            return;
+        }
+
+        log.info("관심상품 종료 5분 전 알림 대상: {}건", auctions.size());
+        for (AuctionItem auction : auctions) {
+            try {
+                String payload = objectMapper.writeValueAsString(new AuctionEndingSoonEvent(auction.getId()));
+                auctionKafkaProducer.send(String.valueOf(auction.getId()), payload, AuctionEventType.AUCTION_ENDING_SOON.name());
+                log.debug("AUCTION_ENDING_SOON 발행: auctionId={}", auction.getId());
+            } catch (Exception e) {
+                log.error("AUCTION_ENDING_SOON 발행 실패: auctionId={}", auction.getId(), e);
+            }
+        }
+    }
 }

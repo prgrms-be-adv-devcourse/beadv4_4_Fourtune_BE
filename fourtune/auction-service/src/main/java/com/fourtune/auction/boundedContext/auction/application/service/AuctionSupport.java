@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -140,6 +141,26 @@ public class AuctionSupport {
         if (!auctionItem.getSellerId().equals(userId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
+    }
+
+    /**
+     * 시작 5분 전 경매 조회 (SCHEDULED 상태, [now+4분, now+5분] 윈도우)
+     */
+    public List<AuctionItem> findAuctionsStartingInFiveMinutes(java.time.LocalDateTime now) {
+        return auctionItemRepository.findByAuctionStartTimeBetweenAndStatus(
+                now.plusMinutes(4),
+                now.plusMinutes(5).minusSeconds(1),
+                AuctionStatus.SCHEDULED);
+    }
+
+    /**
+     * 종료 5분 전 경매 조회 (ACTIVE 상태, [now+4분, now+5분] 윈도우)
+     */
+    public List<AuctionItem> findAuctionsEndingInFiveMinutes(java.time.LocalDateTime now) {
+        return auctionItemRepository.findByAuctionEndTimeBetweenAndStatus(
+                now.plusMinutes(4),
+                now.plusMinutes(5).minusSeconds(1),
+                AuctionStatus.ACTIVE);
     }
 
 }

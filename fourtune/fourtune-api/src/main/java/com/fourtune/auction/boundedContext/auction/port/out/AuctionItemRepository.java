@@ -60,6 +60,24 @@ public interface AuctionItemRepository extends JpaRepository<AuctionItem, Long> 
     Optional<AuctionItem> findByIdWithLock(@Param("id") Long id);
 
     /**
+     * 시작 시간이 특정 범위에 해당하는 경매 조회 (관심상품 시작 알림용)
+     */
+    List<AuctionItem> findByAuctionStartTimeBetweenAndStatus(
+        LocalDateTime from,
+        LocalDateTime to,
+        AuctionStatus status
+    );
+
+    /**
+     * 종료 시간이 특정 범위에 해당하는 경매 조회 (관심상품 종료 알림용)
+     */
+    List<AuctionItem> findByAuctionEndTimeBetweenAndStatus(
+        LocalDateTime from,
+        LocalDateTime to,
+        AuctionStatus status
+    );
+
+    /**
      * 조회수 벌크 증가 (Redis 동기화용)
      */
     @Modifying
