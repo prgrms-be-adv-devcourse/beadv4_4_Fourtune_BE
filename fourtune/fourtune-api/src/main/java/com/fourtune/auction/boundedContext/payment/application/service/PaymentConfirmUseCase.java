@@ -1,6 +1,5 @@
 package com.fourtune.auction.boundedContext.payment.application.service;
 
-import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
 import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionResult;
 import com.fourtune.auction.boundedContext.payment.port.out.AuctionPort;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentGatewayPort;
@@ -94,7 +93,7 @@ public class PaymentConfirmUseCase {
                         throw new BusinessException(ErrorCode.PAYMENT_PURCHASE_NOT_ALLOWED);
                 }
 
-                if(!OrderStatus.PENDING.name().equals(orderDto.getOrderStatus())){
+                if(!"PENDING".equals(orderDto.getOrderStatus())){
                         throw new BusinessException(ErrorCode.PAYMENT_ORDER_NOT_PENDING);
                 }
 
