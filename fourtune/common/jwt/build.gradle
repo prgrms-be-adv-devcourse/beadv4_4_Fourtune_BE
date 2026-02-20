@@ -8,14 +8,12 @@ jar { enabled = true }
 dependencies {
     // 1. Base Module
     api project(':common:core') // Core 유틸/에러 등 상속
-    api project(':common:shared') // UserContext, UserResponse 등 공유 DTO 사용
+    api project(':common:shared') // 공유 DTO 사용
 
-    // 2. Security Framework
+    // 2. Security Framework (NO OAUTH)
     api 'org.springframework.boot:spring-boot-starter-security'
-    api 'org.springframework.boot:spring-boot-starter-oauth2-client' // OAuth2User 등 필요
 
     // 3. JWT Library
-    // api로 노출해야 예외처리(ExpiredJwtException) 등을 하위 서비스에서 직접 핸들링 가능
     api "io.jsonwebtoken:jjwt-api:${jwtVersion}"
     runtimeOnly "io.jsonwebtoken:jjwt-impl:${jwtVersion}"
     runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jwtVersion}"

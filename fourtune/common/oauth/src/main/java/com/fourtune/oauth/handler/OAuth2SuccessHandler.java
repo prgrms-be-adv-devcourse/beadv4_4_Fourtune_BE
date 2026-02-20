@@ -1,6 +1,6 @@
-package com.fourtune.security.handler;
+package com.fourtune.oauth.handler;
 
-import com.fourtune.security.jwt.JwtTokenProvider;
+import com.fourtune.jwt.JwtTokenProvider;
 import com.fourtune.shared.auth.dto.UserContext;
 import com.fourtune.shared.user.dto.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +15,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
-@Component
 @RequiredArgsConstructor
 @Slf4j
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -26,7 +25,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private String redirectUri;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+            Authentication authentication) throws IOException {
         UserContext userContext = (UserContext) authentication.getPrincipal();
 
         UserResponse userResponse = UserResponse.from(userContext);
@@ -38,6 +38,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
-        log.info("✅ 소셜 로그인 성공! 토큰과 함께 프론트엔드로 리다이렉트: {}", targetUrl);
+        log.info("소셜 로그인 성공! 토큰과 함께 프론트엔드로 리다이렉트: {}", targetUrl);
     }
 }

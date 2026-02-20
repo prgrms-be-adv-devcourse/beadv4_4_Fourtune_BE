@@ -1,4 +1,4 @@
-package com.fourtune.security.jwt;
+package com.fourtune.jwt;
 
 import com.fourtune.shared.auth.dto.UserContext;
 import com.fourtune.shared.user.dto.UserResponse;
@@ -102,8 +102,8 @@ public class JwtTokenProvider {
         String role = claims.get("role", String.class);
         Long userId = Long.valueOf(claims.getSubject());
 
-        Collection<? extends GrantedAuthority> authorities =
-                Collections.singletonList(new SimpleGrantedAuthority(role));
+        Collection<? extends GrantedAuthority> authorities = Collections
+                .singletonList(new SimpleGrantedAuthority(role));
 
         UserContext principal = new UserContext(userId, "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);

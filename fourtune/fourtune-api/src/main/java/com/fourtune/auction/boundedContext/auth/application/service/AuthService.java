@@ -7,7 +7,7 @@ import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
 import com.fourtune.core.error.ErrorCode;
 import com.fourtune.core.error.exception.BusinessException;
 import com.fourtune.core.eventPublisher.EventPublisher;
-import com.fourtune.security.jwt.JwtTokenProvider;
+import com.fourtune.jwt.JwtTokenProvider;
 import com.fourtune.shared.auth.dto.TokenResponse;
 import com.fourtune.shared.user.dto.UserLoginRequest;
 
@@ -56,7 +56,7 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenResponse reissue(String refreshToken){
+    public TokenResponse reissue(String refreshToken) {
         validateToken(refreshToken);
 
         String id = jwtTokenProvider.getUserIdFromToken(refreshToken);
@@ -88,18 +88,17 @@ public class AuthService {
         }
     }
 
-    private void validateToken(String refreshToken){
-        try{
+    private void validateToken(String refreshToken) {
+        try {
             jwtTokenProvider.validateToken(refreshToken);
-        }
-        catch(ExpiredJwtException e){
+        } catch (ExpiredJwtException e) {
             throw new BusinessException(ErrorCode.EXPIRED_REFRESH_TOKEN);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
     }
 
-    private void isCorrectRequestRefreshToken(Long userId, String refreshToken){
+    private void isCorrectRequestRefreshToken(Long userId, String refreshToken) {
         String storedToken = refreshTokenRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN));
 

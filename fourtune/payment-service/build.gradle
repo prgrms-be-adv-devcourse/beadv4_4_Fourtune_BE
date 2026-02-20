@@ -1,6 +1,6 @@
 dependencies {
 	implementation project(':common:core')
-	implementation project(':common:security')
+	implementation project(':common:jwt')
 	implementation project(':common:outbox')
 	implementation project(':common:kafka')
 	implementation project(':common:s3')

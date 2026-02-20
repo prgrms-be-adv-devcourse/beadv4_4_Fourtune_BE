@@ -1,4 +1,4 @@
-package com.fourtune.security.jwt;
+package com.fourtune.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.core.error.ErrorCode;

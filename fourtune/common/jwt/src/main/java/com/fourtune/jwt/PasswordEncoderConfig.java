@@ -1,4 +1,4 @@
-package com.fourtune.security.config;
+package com.fourtune.jwt;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
