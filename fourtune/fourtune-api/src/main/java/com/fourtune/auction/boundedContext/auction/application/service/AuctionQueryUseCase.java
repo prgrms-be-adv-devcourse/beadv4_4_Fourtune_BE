@@ -2,8 +2,8 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.mapper.AuctionMapper;
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.common.shared.auction.dto.AuctionItemDetailResponse;
-import com.fourtune.common.shared.auction.dto.AuctionItemResponse;
+import com.fourtune.shared.auction.dto.AuctionItemDetailResponse;
+import com.fourtune.shared.auction.dto.AuctionItemResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

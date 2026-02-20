@@ -2,8 +2,8 @@ package com.fourtune.auction.boundedContext.notification.mapper;
 
 import com.fourtune.auction.boundedContext.notification.domain.Notification;
 import com.fourtune.auction.boundedContext.notification.domain.NotificationSettings;
-import com.fourtune.common.shared.notification.dto.NotificationResponseDto;
-import com.fourtune.common.shared.notification.dto.NotificationSettingsResponse;
+import com.fourtune.shared.notification.dto.NotificationResponseDto;
+import com.fourtune.shared.notification.dto.NotificationSettingsResponse;
 import org.springframework.stereotype.Component;
 
 public class NotificationMapper {

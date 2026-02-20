@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.payment.domain.entity;
 
 import com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType;
-import com.fourtune.common.global.common.BaseIdAndTime;
+import com.fourtune.core.dto.BaseIdAndTime;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

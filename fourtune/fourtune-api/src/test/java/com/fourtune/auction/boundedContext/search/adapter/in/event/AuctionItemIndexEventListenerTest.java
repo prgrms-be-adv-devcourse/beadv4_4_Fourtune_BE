@@ -4,9 +4,9 @@ import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus
 import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.search.application.service.AuctionItemIndexingHandler;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
-import com.fourtune.common.shared.auction.event.AuctionItemCreatedEvent;
-import com.fourtune.common.shared.auction.event.AuctionItemDeletedEvent;
-import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.shared.auction.event.AuctionItemCreatedEvent;
+import com.fourtune.shared.auction.event.AuctionItemDeletedEvent;
+import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

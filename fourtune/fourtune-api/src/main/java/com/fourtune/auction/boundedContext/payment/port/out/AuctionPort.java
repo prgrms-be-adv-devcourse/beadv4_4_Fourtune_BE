@@ -1,6 +1,6 @@
 package com.fourtune.auction.boundedContext.payment.port.out;
 
-import com.fourtune.common.shared.payment.dto.OrderDto;
+import com.fourtune.shared.payment.dto.OrderDto;
 
 public interface AuctionPort {
     /**

@@ -1,6 +1,6 @@
 package com.fourtune.auction.boundedContext.notification.domain;
 
-import com.fourtune.common.shared.user.domain.ReplicaUser;
+import com.fourtune.shared.user.domain.ReplicaUser;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Builder;

@@ -1,8 +1,8 @@
 package com.fourtune.auction.boundedContext.payment.domain.entity;
 
 import com.fourtune.auction.boundedContext.payment.domain.constant.PaymentStatus;
-import com.fourtune.common.global.common.BaseIdAndTime;
-import com.fourtune.common.shared.payment.dto.PaymentDto;
+import com.fourtune.core.dto.BaseIdAndTime;
+import com.fourtune.shared.payment.dto.PaymentDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

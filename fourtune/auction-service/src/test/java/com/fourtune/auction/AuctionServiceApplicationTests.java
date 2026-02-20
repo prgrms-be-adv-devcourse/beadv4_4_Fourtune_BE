@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserServ
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import com.fourtune.common.shared.auth.handler.OAuth2SuccessHandler;
+import com.fourtune.security.handler.OAuth2SuccessHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -8,6 +8,7 @@ jar { enabled = true }
 dependencies {
     // 1. Base Module
     api project(':common:core') // Core 유틸/에러 등 상속
+    api project(':common:shared') // UserContext, UserResponse 등 공유 DTO 사용
 
     // 2. Security Framework
     api 'org.springframework.boot:spring-boot-starter-security'

@@ -3,7 +3,7 @@ package com.fourtune.auction.boundedContext.auction.adapter.in.scheduler;
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionFacade;
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionSupport;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
-import com.fourtune.common.global.eventPublisher.EventPublisher;
+import com.fourtune.core.eventPublisher.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

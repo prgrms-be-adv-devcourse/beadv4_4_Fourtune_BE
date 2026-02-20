@@ -2,7 +2,7 @@ package com.fourtune.auction.boundedContext.auction.adapter.in.web;
 
 import com.fourtune.auction.adapter.out.api.UserClient;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
-import com.fourtune.common.shared.auth.handler.OAuth2SuccessHandler;
+import com.fourtune.security.handler.OAuth2SuccessHandler;
 import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.auction.application.service.RedisViewCountService;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;

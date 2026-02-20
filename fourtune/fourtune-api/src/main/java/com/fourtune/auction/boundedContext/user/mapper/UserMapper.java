@@ -3,8 +3,8 @@ package com.fourtune.auction.boundedContext.user.mapper;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.common.shared.user.dto.UserResponse;
-import com.fourtune.common.shared.user.dto.UserSignUpRequest;
+import com.fourtune.shared.user.dto.UserResponse;
+import com.fourtune.shared.user.dto.UserSignUpRequest;
 import org.springframework.stereotype.Component;
 
 public class UserMapper {

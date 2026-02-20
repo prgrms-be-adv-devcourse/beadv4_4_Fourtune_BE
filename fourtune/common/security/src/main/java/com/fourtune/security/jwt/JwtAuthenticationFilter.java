@@ -1,8 +1,8 @@
-package com.fourtune.security.security.jwt;
+package com.fourtune.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fourtune.common.global.error.ErrorCode;
-import com.fourtune.common.global.error.ErrorResponse;
+import com.fourtune.core.error.ErrorCode;
+import com.fourtune.core.error.ErrorResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -36,8 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 log.debug("Security Context에 '{}' 인증 정보를 저장했습니다", authentication.getName());
             }
-        }
-        catch(ExpiredJwtException e){
+        } catch (ExpiredJwtException e) {
             reissueResponse(response);
             return;
         }

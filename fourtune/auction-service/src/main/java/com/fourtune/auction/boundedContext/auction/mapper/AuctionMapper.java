@@ -1,8 +1,8 @@
 package com.fourtune.auction.boundedContext.auction.mapper;
 
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
-import com.fourtune.common.shared.auction.dto.AuctionItemDetailResponse;
-import com.fourtune.common.shared.auction.dto.AuctionItemResponse;
+import com.fourtune.shared.auction.dto.AuctionItemDetailResponse;
+import com.fourtune.shared.auction.dto.AuctionItemResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

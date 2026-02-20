@@ -4,8 +4,8 @@ import com.fourtune.auction.boundedContext.auction.domain.constant.OrderType;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Order;
-import com.fourtune.common.shared.auction.dto.OrderDetailResponse;
-import com.fourtune.common.shared.auction.dto.OrderResponse;
+import com.fourtune.shared.auction.dto.OrderDetailResponse;
+import com.fourtune.shared.auction.dto.OrderResponse;
 import org.springframework.stereotype.Component;
 
 public class OrderMapper {

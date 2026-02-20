@@ -1,8 +1,8 @@
 package com.fourtune.auction.boundedContext.watchList.application.service;
 
 import com.fourtune.auction.boundedContext.watchList.mapper.WatchListMapper;
-import com.fourtune.common.shared.user.dto.UserResponse;
-import com.fourtune.common.shared.watchList.dto.WatchListResponseDto;
+import com.fourtune.shared.user.dto.UserResponse;
+import com.fourtune.shared.watchList.dto.WatchListResponseDto;
 import com.fourtune.auction.boundedContext.watchList.application.service.performance.WatchListRedisSetUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

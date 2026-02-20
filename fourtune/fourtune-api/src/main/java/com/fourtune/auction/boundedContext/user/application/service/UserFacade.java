@@ -2,8 +2,8 @@ package com.fourtune.auction.boundedContext.user.application.service;
 
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
-import com.fourtune.common.shared.user.dto.*;
-import com.fourtune.common.shared.user.dto.*;
+import com.fourtune.shared.user.dto.*;
+import com.fourtune.shared.user.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

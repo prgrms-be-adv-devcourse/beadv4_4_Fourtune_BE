@@ -1,7 +1,7 @@
-package com.fourtune.security.security.jwt;
+package com.fourtune.security.jwt;
 
-import com.fourtune.common.shared.auth.dto.UserContext;
-import com.fourtune.common.shared.user.dto.UserResponse;
+import com.fourtune.shared.auth.dto.UserContext;
+import com.fourtune.shared.user.dto.UserResponse;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -36,7 +36,6 @@ public class JwtTokenProvider {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
-
 
     public String createAccessToken(UserResponse user) {
         Date now = new Date();

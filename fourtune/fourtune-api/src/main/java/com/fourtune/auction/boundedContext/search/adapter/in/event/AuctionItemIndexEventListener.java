@@ -2,9 +2,9 @@ package com.fourtune.auction.boundedContext.search.adapter.in.event;
 
 import com.fourtune.auction.boundedContext.search.application.service.AuctionItemIndexingHandler;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
-import com.fourtune.common.shared.auction.event.AuctionItemCreatedEvent;
-import com.fourtune.common.shared.auction.event.AuctionItemDeletedEvent;
-import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.shared.auction.event.AuctionItemCreatedEvent;
+import com.fourtune.shared.auction.event.AuctionItemDeletedEvent;
+import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

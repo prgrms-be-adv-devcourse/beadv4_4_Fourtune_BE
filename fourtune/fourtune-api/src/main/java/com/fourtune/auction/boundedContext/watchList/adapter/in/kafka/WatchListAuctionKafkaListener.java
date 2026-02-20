@@ -2,12 +2,12 @@ package com.fourtune.auction.boundedContext.watchList.adapter.in.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.watchList.application.service.WatchListService;
-import com.fourtune.common.global.config.kafka.KafkaTopicConfig;
-import com.fourtune.common.shared.auction.event.AuctionClosedEvent;
-import com.fourtune.common.shared.auction.event.AuctionItemCreatedEvent;
-import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
-import com.fourtune.common.shared.auction.event.AuctionStartedEvent;
-import com.fourtune.common.shared.auction.kafka.AuctionEventType;
+import com.fourtune.kafka.KafkaTopicConfig;
+import com.fourtune.shared.auction.event.AuctionClosedEvent;
+import com.fourtune.shared.auction.event.AuctionItemCreatedEvent;
+import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.shared.auction.event.AuctionStartedEvent;
+import com.fourtune.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

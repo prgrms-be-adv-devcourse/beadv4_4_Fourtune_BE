@@ -2,7 +2,7 @@ package com.fourtune.security.config;
 
 import com.fourtune.security.jwt.JwtAuthenticationFilter;
 import com.fourtune.security.jwt.JwtTokenProvider;
-import com.fourtune.common.shared.auth.handler.OAuth2SuccessHandler;
+import com.fourtune.security.handler.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

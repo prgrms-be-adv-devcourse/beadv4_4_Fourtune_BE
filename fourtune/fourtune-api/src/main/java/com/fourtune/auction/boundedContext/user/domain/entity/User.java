@@ -2,8 +2,8 @@ package com.fourtune.auction.boundedContext.user.domain.entity;
 
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
-import com.fourtune.common.global.common.BaseTimeEntity;
-import com.fourtune.common.shared.user.dto.UserResponse;
+import com.fourtune.core.dto.BaseTimeEntity;
+import com.fourtune.shared.user.dto.UserResponse;
 import jakarta.persistence.*;
 import lombok.*;
 

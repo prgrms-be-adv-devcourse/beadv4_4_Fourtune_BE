@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.payment.mapper;
 
 import com.fourtune.auction.boundedContext.payment.domain.entity.Refund;
-import com.fourtune.common.shared.payment.dto.RefundResponse;
+import com.fourtune.shared.payment.dto.RefundResponse;
 
 public class PaymentMapper {
 

@@ -1,12 +1,12 @@
 package com.fourtune.auction.boundedContext.user.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.user.application.service.UserFacade;
-import com.fourtune.common.shared.auth.dto.UserContext;
-import com.fourtune.common.shared.user.dto.*;
-import com.fourtune.common.shared.user.dto.UserPasswordChangeRequest;
-import com.fourtune.common.shared.user.dto.UserSignUpRequest;
-import com.fourtune.common.shared.user.dto.UserUpdateRequest;
-import com.fourtune.common.shared.user.dto.UserWithdrawRequest;
+import com.fourtune.shared.auth.dto.UserContext;
+import com.fourtune.shared.user.dto.*;
+import com.fourtune.shared.user.dto.UserPasswordChangeRequest;
+import com.fourtune.shared.user.dto.UserSignUpRequest;
+import com.fourtune.shared.user.dto.UserUpdateRequest;
+import com.fourtune.shared.user.dto.UserWithdrawRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -9,7 +9,10 @@ include 'recommendation-service'
 include 'common:core'
 include 'common:security'
 include 'common:outbox'
-include 'common:infra'
+include 'common:kafka'
+include 'common:s3'
+include 'common:fcm'
+include 'common:shared'
 
 // 레거시 common module (추후 삭제 예정)
 include 'common'

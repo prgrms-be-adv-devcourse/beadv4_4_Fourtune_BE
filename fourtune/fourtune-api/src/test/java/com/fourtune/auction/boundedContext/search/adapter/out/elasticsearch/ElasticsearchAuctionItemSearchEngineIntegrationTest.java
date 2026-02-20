@@ -7,7 +7,7 @@ import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
 import com.fourtune.auction.boundedContext.search.domain.SearchPriceRange;
 import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
 import com.fourtune.auction.boundedContext.search.domain.constant.SearchSort;
-import com.fourtune.common.global.config.FirebaseConfig;
+import com.fourtune.core.config.FirebaseConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

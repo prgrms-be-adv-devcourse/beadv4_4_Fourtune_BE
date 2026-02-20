@@ -1,10 +1,10 @@
 package com.fourtune.auction.boundedContext.auth.adapter.in;
 
 import com.fourtune.auction.boundedContext.auth.application.service.AuthService;
-import com.fourtune.common.shared.auth.dto.ReissueRequest;
-import com.fourtune.common.shared.auth.dto.TokenResponse;
-import com.fourtune.common.shared.auth.dto.UserContext;
-import com.fourtune.common.shared.user.dto.UserLoginRequest;
+import com.fourtune.shared.auth.dto.ReissueRequest;
+import com.fourtune.shared.auth.dto.TokenResponse;
+import com.fourtune.shared.auth.dto.UserContext;
+import com.fourtune.shared.user.dto.UserLoginRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

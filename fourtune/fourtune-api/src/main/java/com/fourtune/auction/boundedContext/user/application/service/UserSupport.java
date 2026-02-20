@@ -2,8 +2,8 @@ package com.fourtune.auction.boundedContext.user.application.service;
 
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
-import com.fourtune.common.global.error.ErrorCode;
-import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.core.error.ErrorCode;
+import com.fourtune.core.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

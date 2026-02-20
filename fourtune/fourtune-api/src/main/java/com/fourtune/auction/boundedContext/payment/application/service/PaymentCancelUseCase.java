@@ -10,9 +10,9 @@ import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionRes
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentGatewayPort;
 import com.fourtune.auction.boundedContext.payment.port.out.PaymentRepository;
 import com.fourtune.auction.boundedContext.payment.port.out.RefundRepository;
-import com.fourtune.common.global.error.ErrorCode;
-import com.fourtune.common.global.error.exception.BusinessException;
-import com.fourtune.common.shared.payment.dto.OrderDto;
+import com.fourtune.core.error.ErrorCode;
+import com.fourtune.core.error.exception.BusinessException;
+import com.fourtune.shared.payment.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

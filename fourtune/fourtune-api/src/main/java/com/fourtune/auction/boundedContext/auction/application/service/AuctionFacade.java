@@ -1,9 +1,9 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
-import com.fourtune.common.shared.auction.dto.AuctionItemCreateRequest;
-import com.fourtune.common.shared.auction.dto.AuctionItemDetailResponse;
-import com.fourtune.common.shared.auction.dto.AuctionItemResponse;
-import com.fourtune.common.shared.auction.dto.AuctionItemUpdateRequest;
+import com.fourtune.shared.auction.dto.AuctionItemCreateRequest;
+import com.fourtune.shared.auction.dto.AuctionItemDetailResponse;
+import com.fourtune.shared.auction.dto.AuctionItemResponse;
+import com.fourtune.shared.auction.dto.AuctionItemUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

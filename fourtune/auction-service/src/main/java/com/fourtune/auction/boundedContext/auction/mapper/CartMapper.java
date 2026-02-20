@@ -5,8 +5,8 @@ import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Cart;
 import com.fourtune.auction.boundedContext.auction.domain.entity.CartItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
-import com.fourtune.common.shared.auction.dto.CartItemResponse;
-import com.fourtune.common.shared.auction.dto.CartResponse;
+import com.fourtune.shared.auction.dto.CartItemResponse;
+import com.fourtune.shared.auction.dto.CartResponse;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
