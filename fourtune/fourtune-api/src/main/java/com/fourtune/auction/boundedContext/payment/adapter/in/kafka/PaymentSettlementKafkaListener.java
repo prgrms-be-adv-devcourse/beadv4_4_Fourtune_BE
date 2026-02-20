@@ -29,7 +29,7 @@ public class PaymentSettlementKafkaListener {
     private final PaymentFacade paymentFacade;
 
     @KafkaListener(
-            topics = KafkaTopicConfig.PAYMENT_EVENTS_TOPIC,
+            topics = KafkaTopicConfig.SETTLEMENT_EVENTS_TOPIC,
             groupId = "payment-settlement-group",
             containerFactory = "paymentEventKafkaListenerContainerFactory"
     )
