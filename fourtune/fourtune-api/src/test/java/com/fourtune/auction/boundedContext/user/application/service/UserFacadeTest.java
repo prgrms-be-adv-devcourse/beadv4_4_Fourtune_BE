@@ -27,6 +27,15 @@ class UserFacadeTest {
     private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
 
     @MockitoBean
+    private com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener auctionItemIndexEventListener;
+
+    @MockitoBean
+    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchAuctionItemIndexingHandler elasticsearchAuctionItemIndexingHandler;
+
+    @MockitoBean
+    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository searchAuctionItemCrudRepository;
+
+    @MockitoBean
     private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
 
     @MockitoBean

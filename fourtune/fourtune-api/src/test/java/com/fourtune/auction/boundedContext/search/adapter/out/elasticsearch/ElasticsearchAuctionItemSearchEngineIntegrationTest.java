@@ -53,10 +53,25 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
     }
 
     @MockitoBean
-    private FirebaseConfig firebaseConfig;
+    private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
 
     @MockitoBean
-    private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
+    private com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener auctionItemIndexEventListener;
+
+    @MockitoBean
+    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchAuctionItemIndexingHandler elasticsearchAuctionItemIndexingHandler;
+
+    @MockitoBean
+    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository searchAuctionItemCrudRepository;
+
+    @MockitoBean
+    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+
+    @MockitoBean
+    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
 
     @Autowired
     private ElasticsearchAuctionItemSearchEngine searchEngine;
