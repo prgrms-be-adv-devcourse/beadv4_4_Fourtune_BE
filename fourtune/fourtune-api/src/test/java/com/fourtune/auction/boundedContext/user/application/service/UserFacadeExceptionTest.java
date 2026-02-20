@@ -1,5 +1,8 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
+import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
+import com.fourtune.api.infrastructure.kafka.search.SearchKafkaProducer;
+import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.core.error.ErrorCode;
 import com.fourtune.core.error.exception.BusinessException;
@@ -41,13 +44,13 @@ class UserFacadeExceptionTest {
     private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository searchAuctionItemCrudRepository;
 
     @MockitoBean
-    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+    private WatchListKafkaProducer watchListKafkaProducer;
 
     @MockitoBean
-    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+    private NotificationKafkaProducer notificationKafkaProducer;
 
     @MockitoBean
-    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
+    private SearchKafkaProducer searchKafkaProducer;
 
     @Test
     @DisplayName("로그인 시 비밀번호가 틀리면 LOGIN_INPUT_INVALID 예외가 발생한다")

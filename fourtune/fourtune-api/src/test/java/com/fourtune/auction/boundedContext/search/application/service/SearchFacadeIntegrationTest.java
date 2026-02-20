@@ -1,5 +1,7 @@
 package com.fourtune.auction.boundedContext.search.application.service;
 
+import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
+import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
 import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.NotificationUserKafkaListener;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.document.SearchAuctionItemDocument;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository;
@@ -10,8 +12,8 @@ import com.fourtune.auction.boundedContext.search.domain.constant.SearchSort;
 import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
 import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
 import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
-import com.fourtune.core.config.FirebaseConfig;
 import com.fourtune.api.infrastructure.kafka.search.SearchKafkaProducer;
+import com.fourtune.shared.search.event.SearchAuctionItemEvent;
 import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -79,13 +81,13 @@ class SearchFacadeIntegrationTest {
     private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchAuctionItemIndexingHandler elasticsearchAuctionItemIndexingHandler;
 
     @MockitoBean
-    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+    private WatchListKafkaProducer watchListKafkaProducer;
 
     @MockitoBean
-    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+    private NotificationKafkaProducer notificationKafkaProducer;
 
     @MockitoBean
-    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
+    private SearchKafkaProducer searchKafkaProducer;
 
     @Autowired
     private SearchFacade searchFacade;
@@ -157,12 +159,12 @@ class SearchFacadeIntegrationTest {
         // 4. Kafka 발행 검증
         // SearchKafkaProducer가 호출되었는지 및 Payload 검증
         await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
-            ArgumentCaptor<com.fourtune.common.shared.search.event.SearchAuctionItemEvent> captor = ArgumentCaptor
-                    .forClass(com.fourtune.common.shared.search.event.SearchAuctionItemEvent.class);
+            ArgumentCaptor<SearchAuctionItemEvent> captor = ArgumentCaptor
+                    .forClass(SearchAuctionItemEvent.class);
 
             verify(searchKafkaProducer, times(1)).send(captor.capture());
 
-            com.fourtune.common.shared.search.event.SearchAuctionItemEvent publishedEvent = captor.getValue();
+            SearchAuctionItemEvent publishedEvent = captor.getValue();
             assertThat(publishedEvent.keyword()).isEqualTo(keyword);
             assertThat(publishedEvent.userId()).isEqualTo(userId);
             assertThat(publishedEvent.resultCount()).isEqualTo(1);

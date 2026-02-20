@@ -1,6 +1,7 @@
 package com.fourtune.auction.infra.s3.service;
 
 import com.fourtune.s3.dto.S3PresignedUrlResponse;
+import com.fourtune.s3.service.S3Service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ class S3ServiceTest {
     private S3Presigner s3Presigner;
 
     @InjectMocks
-    private com.fourtune.common.infra.s3.service.S3Service s3Service;
+    private S3Service s3Service;
 
     @BeforeEach
     void setUp() {

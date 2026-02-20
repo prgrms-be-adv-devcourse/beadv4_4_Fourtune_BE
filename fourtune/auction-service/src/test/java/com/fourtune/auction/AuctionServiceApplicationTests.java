@@ -1,15 +1,12 @@
 package com.fourtune.auction;
 
 import com.fourtune.auction.adapter.out.api.UserClient;
-import com.fourtune.common.shared.auction.kafka.AuctionKafkaProducer;
+import com.fourtune.auction.infrastructure.kafka.AuctionKafkaProducer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-import com.fourtune.security.handler.OAuth2SuccessHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,12 +22,6 @@ class AuctionServiceApplicationTests {
 
     @MockitoBean
     private UserClient userClient;
-
-    @MockitoBean
-    private DefaultOAuth2UserService defaultOAuth2UserService;
-
-    @MockitoBean
-    private OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @MockitoBean
     private AuctionKafkaProducer auctionKafkaProducer;

@@ -1,5 +1,8 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
+import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
+import com.fourtune.api.infrastructure.kafka.search.SearchKafkaProducer;
+import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
 import com.fourtune.auction.boundedContext.auth.application.service.AuthService;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
@@ -36,13 +39,13 @@ class UserFacadeTest {
     private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository searchAuctionItemCrudRepository;
 
     @MockitoBean
-    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+    private WatchListKafkaProducer watchListKafkaProducer;
 
     @MockitoBean
-    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+    private NotificationKafkaProducer notificationKafkaProducer;
 
     @MockitoBean
-    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
+    private SearchKafkaProducer searchKafkaProducer;
 
     @Autowired
     private UserFacade userFacade;

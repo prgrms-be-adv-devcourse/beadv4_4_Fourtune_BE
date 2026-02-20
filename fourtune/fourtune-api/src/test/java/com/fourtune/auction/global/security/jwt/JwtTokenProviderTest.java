@@ -3,7 +3,7 @@ package com.fourtune.auction.global.security.jwt;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
-import com.fourtune.security.jwt.JwtTokenProvider;
+import com.fourtune.jwt.JwtTokenProvider;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

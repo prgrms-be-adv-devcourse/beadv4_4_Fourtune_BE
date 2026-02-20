@@ -1,7 +1,8 @@
 package com.fourtune.auction.global.security.jwt;
 
 import com.fourtune.core.error.ErrorCode;
-import com.fourtune.security.jwt.JwtTokenProvider;
+import com.fourtune.jwt.JwtAuthenticationFilter;
+import com.fourtune.jwt.JwtTokenProvider;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -40,7 +41,7 @@ class JwtFilterTest {
     private FilterChain filterChain;
 
     @InjectMocks
-    private com.fourtune.common.global.security.jwt.JwtAuthenticationFilter jwtAuthenticationFilter;
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @BeforeEach
     void setUp() {

@@ -8,7 +8,7 @@ import com.fourtune.auction.boundedContext.user.mapper.UserMapper;
 import com.fourtune.core.error.ErrorCode;
 import com.fourtune.core.error.exception.BusinessException;
 import com.fourtune.core.eventPublisher.EventPublisher;
-import com.fourtune.security.jwt.JwtTokenProvider;
+import com.fourtune.jwt.JwtTokenProvider;
 import com.fourtune.shared.auth.dto.TokenResponse;
 import com.fourtune.shared.user.dto.UserLoginRequest;
 import io.jsonwebtoken.ExpiredJwtException;
