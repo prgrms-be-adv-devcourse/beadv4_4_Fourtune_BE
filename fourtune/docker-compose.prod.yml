@@ -193,6 +193,52 @@ services:
           cpus: '0.5'
           memory: 1G
 
+  recommendation-service:
+    image: ghcr.io/prgrms-be-adv-devcourse/recommendation-service:latest
+    container_name: fourtune-recommendation-prod
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - AI_PROVIDER=${AI_PROVIDER}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+      # AWS
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - S3_USER_ID=prod
+      # Database
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/recommendation
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - fourtune-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   # Nginx
   nginx:
     image: nginx:alpine

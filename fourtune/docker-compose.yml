@@ -262,6 +262,61 @@ services:
       retries: 3
       start_period: 60s
 
+  # recommendation-service (추천 MSA — 8084, 호스트 9082)
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - MODULE_NAME=recommendation-service
+    image: recommendation-service:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - AI_PROVIDER=${AI_PROVIDER:-ollama}
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SERVER_PORT=8084
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+      # JWT & 암호화 (로컬 개발용)
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      # AWS
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - S3_USER_ID=dev
+      # Database
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/recommendation
+      - SPRING_DATASOURCE_USERNAME=fourtune_user
+      - SPRING_DATASOURCE_PASSWORD=fourtune
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    ports:
+      - "9082:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_started
+      fourtune-api:
+        condition: service_started
+    networks:
+      - fourtune-network
+    restart: "no"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   # Prometheus (메트릭 수집)
   prometheus:
     image: prom/prometheus:latest
