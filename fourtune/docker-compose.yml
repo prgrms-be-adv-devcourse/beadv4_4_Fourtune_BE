@@ -134,9 +134,9 @@ services:
     environment:
       # 기본 설정 (바로 실행 가능)
       - SPRING_PROFILES_ACTIVE=local
-      - DB_URL=jdbc:postgresql://postgres:5432/fourtune_db
-      - DB_USERNAME=fourtune_user
-      - DB_PASSWORD=fourtune
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/fourtune_db
+      - SPRING_DATASOURCE_USERNAME=fourtune_user
+      - SPRING_DATASOURCE_PASSWORD=fourtune
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=
@@ -192,9 +192,9 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=local
       # 결제 서비스 전용 DB (같은 DB를 쓴다면 동일하게, 분리했다면 해당 주소로)
-      - DB_URL=jdbc:postgresql://postgres:5432/fourtune_db
-      - DB_USERNAME=fourtune_user
-      - DB_PASSWORD=fourtune
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/fourtune_db
+      - SPRING_DATASOURCE_USERNAME=fourtune_user
+      - SPRING_DATASOURCE_PASSWORD=fourtune
       # Redis (결제 임시 데이터나 멱등성 체크용)
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -229,14 +229,15 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auction
       - SPRING_DATASOURCE_USERNAME=fourtune_user
       - SPRING_DATASOURCE_PASSWORD=fourtune
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
       - SERVER_PORT=8083
       - API_USER_BASE_URL=http://fourtune-api:8080
       - AWS_REGION=${AWS_REGION:-ap-northeast-2}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      # 중요: application-common.yml에서 ${AWS_ACCESS_KEY} 등을 사용할 것이므로 통일
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - SPRING_AUTOCONFIGURE_EXCLUDE=io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration
       - FIREBASE_ENABLED=false
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update

@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: recommendation-service
+  config:
+    import: "classpath:application-common.yml"
   profiles:
     active: local
   
@@ -22,7 +24,7 @@ spring:
         show_sql: true
         
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:redpanda:9092}
+    # bootstrap-servers comes from application-common.yml
     consumer:
       group-id: recommendation-group
       auto-offset-reset: latest
@@ -31,11 +33,7 @@ spring:
       properties:
         spring.json.trusted.packages: "*"
   
-  data:
-    redis:
-      host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+  # redis, jwt configs 삭제됨 (common 기본값 사용)
 
   security:
     oauth2:
@@ -77,8 +75,3 @@ spring.ai:
 app:
   oauth2:
     redirect-uri: http://localhost:3000/login-success
-
-jwt:
-  secret: ${JWT_SECRET}
-  access-token-expiration: 3600000 # 1 hour
-  refresh-token-expiration: 1209600000 # 14 days
