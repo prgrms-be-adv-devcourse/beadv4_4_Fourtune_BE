@@ -1,7 +1,5 @@
 package com.fourtune.auction.boundedContext.search.adapter.in.event;
 
-import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
-import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.search.application.service.AuctionItemIndexingHandler;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
 import com.fourtune.common.shared.auction.event.AuctionItemCreatedEvent;
@@ -115,8 +113,8 @@ class AuctionItemIndexEventListenerTest {
                 "TestSeller",
                 "Complete Test Auction",
                 "Detailed description",
-                Category.ELECTRONICS.toString(),
-                AuctionStatus.ACTIVE.toString(),
+                "ELECTRONICS",
+                "ACTIVE",
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(15000),
                 BigDecimal.valueOf(50000),  // buyNowPrice
@@ -163,8 +161,8 @@ class AuctionItemIndexEventListenerTest {
                 "TestSeller",
                 "Test Auction",
                 "Test Description",
-                Category.ELECTRONICS.toString(),
-                AuctionStatus.SCHEDULED.toString(),
+                "ELECTRONICS",
+                "SCHEDULED",
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(50000),  // buyNowPrice
@@ -186,8 +184,8 @@ class AuctionItemIndexEventListenerTest {
                 "UpdatedSeller",
                 "Updated Auction",
                 "Updated Description",
-                Category.ELECTRONICS.toString(),
-                AuctionStatus.ACTIVE.toString(),
+                "ELECTRONICS",
+                "ACTIVE",
                 BigDecimal.valueOf(10000),
                 BigDecimal.valueOf(15000),
                 BigDecimal.valueOf(60000),  // buyNowPrice

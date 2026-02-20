@@ -1,6 +1,7 @@
 package com.fourtune.auction;
 
 import com.fourtune.auction.adapter.out.api.UserClient;
+import com.fourtune.common.shared.auction.kafka.AuctionKafkaProducer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,6 +31,9 @@ class AuctionServiceApplicationTests {
 
     @MockitoBean
     private OAuth2SuccessHandler oAuth2SuccessHandler;
+
+    @MockitoBean
+    private AuctionKafkaProducer auctionKafkaProducer;
 
     @Test
     @DisplayName("Spring 컨텍스트가 정상 기동한다")

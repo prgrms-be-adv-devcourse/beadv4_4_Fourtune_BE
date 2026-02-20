@@ -2,6 +2,7 @@ package com.fourtune.auction.boundedContext.auction.adapter.in.web;
 
 import com.fourtune.auction.adapter.out.api.UserClient;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
+import com.fourtune.common.shared.auction.kafka.AuctionKafkaProducer;
 import com.fourtune.common.shared.auth.handler.OAuth2SuccessHandler;
 import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.auction.application.service.RedisViewCountService;
@@ -63,6 +64,9 @@ class ApiV1AuctionControllerIntegrationTest {
 
     @MockitoBean
     private RedisViewCountService redisViewCountService;
+
+    @MockitoBean
+    private AuctionKafkaProducer auctionKafkaProducer;
 
     private static final Long TEST_SELLER_ID = 1L;
     private static final String TEST_SELLER_NICKNAME = "테스트판매자";
