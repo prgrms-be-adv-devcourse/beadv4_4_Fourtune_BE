@@ -50,7 +50,22 @@ public interface AuctionItemRepository extends JpaRepository<AuctionItem, Long> 
         LocalDateTime startTime,
         AuctionStatus status
     );
-    
+
+    List<AuctionItem> findByAuctionStartTimeBetweenAndStatus(
+            LocalDateTime from,
+            LocalDateTime to,
+            AuctionStatus status
+    );
+
+    /**
+     * 종료 시간이 특정 범위에 해당하는 경매 조회 (관심상품 종료 알림용)
+     */
+    List<AuctionItem> findByAuctionEndTimeBetweenAndStatus(
+            LocalDateTime from,
+            LocalDateTime to,
+            AuctionStatus status
+    );
+
     /**
      * ID로 경매 조회 (Pessimistic Lock)
      * 입찰 시 동시성 제어를 위한 락

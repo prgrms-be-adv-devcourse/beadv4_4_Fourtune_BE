@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
  *
  * Redis Key 구조:
  * - watchlist:auction:{auctionItemId} -> Set<userId> (관심등록 유저)
- * - watchlist:alert:start:{auctionItemId} -> Set<userId> (시작 알림 발송 완료)
- * - watchlist:alert:end:{auctionItemId} -> Set<userId> (종료 알림 발송 완료)
+ * - watchlist:alert:start:{auctionItemId} -> "1" (시작 알림 발송 완료, SETNX)
+ * - watchlist:alert:end:{auctionItemId} -> "1" (종료 알림 발송 완료, SETNX)
  */
 @Service
 @RequiredArgsConstructor
@@ -80,23 +80,25 @@ public class WatchListRedisSetUseCase {
 
     /**
      * 경매 시작 알림 처리 (Redis Set 방식)
-     * DB 쿼리 0회, Redis 연산만 수행
+     * SETNX로 중복 방지 + 발송 마킹을 원자적으로 처리
      */
     public WatchListBulkUseCase.ProcessResult processAuctionStart(Long auctionItemId) {
         long startTime = System.currentTimeMillis();
 
-        // Redis SMEMBERS: 관심등록 유저 조회
+        // SETNX: 키가 없을 때만 set → true면 최초 처리, false면 이미 발송됨
+        Boolean isNew = redisTemplate.opsForValue().setIfAbsent(ALERT_START_SENT_KEY + auctionItemId, "1");
+        if (Boolean.FALSE.equals(isNew)) {
+            log.debug("[REDIS] 경매 {} 시작 알림 이미 발송됨, SKIP", auctionItemId);
+            return new WatchListBulkUseCase.ProcessResult(0, 0, 0);
+        }
+
         Set<Long> userIds = getInterestedUsers(auctionItemId);
 
         if (userIds.isEmpty()) {
             return new WatchListBulkUseCase.ProcessResult(0, 0, 0);
         }
 
-        // 이벤트 발행
         publishWatchListEvent(userIds.stream().toList(), auctionItemId, WatchListEventType.WATCHLIST_AUCTION_STARTED);
-
-        // Redis SADD: 알림 발송 완료 마킹
-        markStartAlertSent(auctionItemId, userIds);
 
         long duration = System.currentTimeMillis() - startTime;
         log.info("[REDIS] 경매 {} 시작 알림 처리 완료: {}명, {}ms", auctionItemId, userIds.size(), duration);
@@ -106,9 +108,17 @@ public class WatchListRedisSetUseCase {
 
     /**
      * 경매 종료 알림 처리 (Redis Set 방식)
+     * SETNX로 중복 방지 + 발송 마킹을 원자적으로 처리
      */
     public WatchListBulkUseCase.ProcessResult processAuctionEnd(Long auctionItemId) {
         long startTime = System.currentTimeMillis();
+
+        // SETNX: 키가 없을 때만 set → true면 최초 처리, false면 이미 발송됨
+        Boolean isNew = redisTemplate.opsForValue().setIfAbsent(ALERT_END_SENT_KEY + auctionItemId, "1");
+        if (Boolean.FALSE.equals(isNew)) {
+            log.debug("[REDIS] 경매 {} 종료 알림 이미 발송됨, SKIP", auctionItemId);
+            return new WatchListBulkUseCase.ProcessResult(0, 0, 0);
+        }
 
         Set<Long> userIds = getInterestedUsers(auctionItemId);
 
@@ -117,28 +127,11 @@ public class WatchListRedisSetUseCase {
         }
 
         publishWatchListEvent(userIds.stream().toList(), auctionItemId, WatchListEventType.WATCHLIST_AUCTION_ENDED);
-        markEndAlertSent(auctionItemId, userIds);
 
         long duration = System.currentTimeMillis() - startTime;
         log.info("[REDIS] 경매 {} 종료 알림 처리 완료: {}명, {}ms", auctionItemId, userIds.size(), duration);
 
         return new WatchListBulkUseCase.ProcessResult(userIds.size(), 0, duration);
-    }
-
-    /**
-     * 시작 알림 발송 완료 마킹
-     */
-    private void markStartAlertSent(Long auctionItemId, Set<Long> userIds) {
-        String key = ALERT_START_SENT_KEY + auctionItemId;
-        redisTemplate.opsForSet().add(key, userIds.toArray());
-    }
-
-    /**
-     * 종료 알림 발송 완료 마킹
-     */
-    private void markEndAlertSent(Long auctionItemId, Set<Long> userIds) {
-        String key = ALERT_END_SENT_KEY + auctionItemId;
-        redisTemplate.opsForSet().add(key, userIds.toArray());
     }
 
     private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {

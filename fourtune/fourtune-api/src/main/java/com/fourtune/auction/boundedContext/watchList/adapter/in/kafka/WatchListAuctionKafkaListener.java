@@ -7,6 +7,8 @@ import com.fourtune.shared.auction.event.AuctionClosedEvent;
 import com.fourtune.shared.auction.event.AuctionItemCreatedEvent;
 import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
 import com.fourtune.shared.auction.event.AuctionStartedEvent;
+import com.fourtune.shared.auction.event.AuctionEndingSoonEvent;
+import com.fourtune.shared.auction.event.AuctionStartingSoonEvent;
 import com.fourtune.shared.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,11 +29,7 @@ public class WatchListAuctionKafkaListener {
     private final WatchListService watchListService;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(
-            topics = KafkaTopicConfig.AUCTION_EVENTS_TOPIC,
-            groupId = "watchlist-auction-events-group",
-            containerFactory = "auctionEventKafkaListenerContainerFactory"
-    )
+    @KafkaListener(topics = KafkaTopicConfig.AUCTION_EVENTS_TOPIC, groupId = "watchlist-auction-events-group", containerFactory = "auctionEventKafkaListenerContainerFactory")
     public void consume(String payload, @Header(value = "X-Event-Type", required = false) String eventType) {
         if (eventType == null) {
             return;
@@ -55,17 +53,17 @@ public class WatchListAuctionKafkaListener {
                             event.auctionItemId(), event.title(), event.currentPrice(), event.thumbnailUrl());
                     log.debug("[WatchList] AuctionItemUpdated 처리 완료: auctionItemId={}", event.auctionItemId());
                 }
-                case AUCTION_STARTED -> {
-                    AuctionStartedEvent event = objectMapper.readValue(
-                            payload, AuctionStartedEvent.class);
+                case AUCTION_STARTING_SOON -> {
+                    AuctionStartingSoonEvent event = objectMapper.readValue(
+                            payload, AuctionStartingSoonEvent.class);
                     watchListService.processAuctionStart(event.auctionId());
-                    log.debug("[WatchList] AuctionStarted 처리 완료: auctionId={}", event.auctionId());
+                    log.debug("[WatchList] AuctionStartingSoon 처리 완료: auctionId={}", event.auctionId());
                 }
-                case AUCTION_CLOSED -> {
-                    AuctionClosedEvent event = objectMapper.readValue(
-                            payload, AuctionClosedEvent.class);
+                case AUCTION_ENDING_SOON -> {
+                    AuctionEndingSoonEvent event = objectMapper.readValue(
+                            payload, AuctionEndingSoonEvent.class);
                     watchListService.processAuctionEnd(event.auctionId());
-                    log.debug("[WatchList] AuctionClosed 처리 완료: auctionId={}", event.auctionId());
+                    log.debug("[WatchList] AuctionEndingSoon 처리 완료: auctionId={}", event.auctionId());
                 }
                 default -> {
                     // 관심상품 도메인에서 처리하지 않는 이벤트는 무시
