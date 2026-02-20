@@ -20,11 +20,6 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
-jwt:
-  secret: ${JWT_SECRET:dGVzdC1zZWNyZXQta2V5LXRoYXQtaXMtdmVyeS1zZWN1cmUtYW5kLWxvbmctZW5vdWdo}
-  access-token-expiration: 3600000        # 1 hour
-  refresh-token-expiration: 1209600000    # 14 days
-
   security:
     oauth2:
       client:
@@ -35,6 +30,12 @@ jwt:
             redirect-uri: ${OAUTH_BACKEND_URI:http://localhost:8080}/login/oauth2/code/google
             authorization-grant-type: authorization_code
             scope: profile, email
+
+jwt:
+  secret: ${JWT_SECRET:dGVzdC1zZWNyZXQta2V5LXRoYXQtaXMtdmVyeS1zZWN1cmUtYW5kLWxvbmctZW5vdWdo}
+  access-token-expiration: 3600000        # 1 hour
+  refresh-token-expiration: 1209600000    # 14 days
+
 
 cloud:
   aws:
