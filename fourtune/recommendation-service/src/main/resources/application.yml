@@ -38,8 +38,17 @@ spring:
   # security, oauth2, aws 설정들은 application-common.yml에 중앙화 되어있음.
 
 feature:
+  kafka:
+    enabled: true
   ai:
-    provider: ${AI_PROVIDER:ollama} # ollama 또는 OpenAI
+    provider: ${AI_PROVIDER:ollama} # ollama(로컬/개발) 또는 openai(프로덕션)
+
+# ── 추천 스케줄러 설정 ──
+recommendation:
+  schedule:
+    interval: ${REC_SCHEDULE_INTERVAL:86400000} # 기본 24시간 (ms). 로컬: 30000 (30초)
+  cache:
+    ttl: ${REC_CACHE_TTL:86400} # 캐시 TTL (초). 기본 24시간
 
 spring.ai:
   ollama:
@@ -51,6 +60,6 @@ spring.ai:
     chat:
       model: gpt-3.5-turbo
 
-app:
-  oauth2:
-    redirect-uri: http://localhost:3000/login-success
+api:
+  search:
+    base-url: ${API_SEARCH_BASE_URL:http://localhost:8080}
