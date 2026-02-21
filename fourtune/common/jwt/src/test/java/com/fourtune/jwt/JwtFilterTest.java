@@ -1,8 +1,6 @@
-package com.fourtune.auction.global.security.jwt;
+package com.fourtune.jwt;
 
 import com.fourtune.core.error.ErrorCode;
-import com.fourtune.jwt.JwtAuthenticationFilter;
-import com.fourtune.jwt.JwtTokenProvider;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -111,7 +109,7 @@ class JwtFilterTest {
 
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
 
-        //  getAuthentication은 호출되면 안 됨 (유효하지 않으므로)
+        // getAuthentication은 호출되면 안 됨 (유효하지 않으므로)
         verify(jwtTokenProvider, never()).getAuthentication(anyString());
 
         // 다음 필터로 진행

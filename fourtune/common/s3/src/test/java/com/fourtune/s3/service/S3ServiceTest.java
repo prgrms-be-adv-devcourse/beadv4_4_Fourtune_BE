@@ -1,7 +1,6 @@
-package com.fourtune.auction.infra.s3.service;
+package com.fourtune.s3.service;
 
 import com.fourtune.s3.dto.S3PresignedUrlResponse;
-import com.fourtune.s3.service.S3Service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

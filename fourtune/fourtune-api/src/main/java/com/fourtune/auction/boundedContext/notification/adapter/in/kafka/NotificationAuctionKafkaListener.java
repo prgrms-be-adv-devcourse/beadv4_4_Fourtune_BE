@@ -114,6 +114,6 @@ public class NotificationAuctionKafkaListener {
         log.info("[Notification] 입찰 취소 이벤트 수신 - auctionId={}, sellerId={}", event.auctionId(), event.sellerId());
 
         notificationFacade.createNotification(
-                event.sellerId(), event.auctionId(), NotificationType.BID_RECEIVED);
+                event.sellerId(), event.auctionId(), NotificationType.BID_CANCELED);
     }
 }
