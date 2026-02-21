@@ -44,7 +44,7 @@ public class GlobalJwtSecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     // 1. 공통으로 열어두는 예외 경로 (Preflight 등)
                     auth.requestMatchers(org.springframework.web.cors.CorsUtils::isPreFlightRequest).permitAll();
-                    auth.requestMatchers("/actuator/prometheus").permitAll();
+                    auth.requestMatchers("/actuator/prometheus", "/v3/api-docs").permitAll();
 
                     // 2. 서비스 고유의 라우팅 확장점이 있다면 조립해줌
                     routeCustomizer.ifPresent(customizer -> customizer.customize(auth));

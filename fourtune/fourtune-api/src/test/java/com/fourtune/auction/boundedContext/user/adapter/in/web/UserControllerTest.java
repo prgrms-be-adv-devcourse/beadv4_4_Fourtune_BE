@@ -80,7 +80,7 @@ public class UserControllerTest {
 
         // 2. 회원가입 (정상 데이터) - post 메서드는 MockMvcRequestBuilders.post여야 합니다.
         UserSignUpRequest validRequest = new UserSignUpRequest(
-                "test@example.com", "Password123!", "정상 닉네임", "010-1234-5678"
+                "test@example.com", "Password123!", "정상 닉네임", "010-1364-6512"
         );
 
         mockMvc.perform(post("/api/users/signup")
@@ -114,7 +114,7 @@ public class UserControllerTest {
     @DisplayName("GET /api/users/{id} - 가입된 유저 ID로 조회 시 id, email, nickname이 반환된다")
     void getUserByIdTest() throws Exception {
         UserSignUpRequest signup = new UserSignUpRequest(
-                "public@example.com", "Password123!", "공개닉네임", "010-1111-2222"
+                "public@example.com", "Password123!", "공개닉네임", "010-1118-2222"
         );
         mockMvc.perform(post("/api/users/signup")
                         .contentType(MediaType.APPLICATION_JSON)
