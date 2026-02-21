@@ -22,4 +22,5 @@ public final class RecommendationConstants {
     // ── Redis 키 프리픽스 ──
     public static final String USER_METRICS_KEY_PREFIX = "metrics:user:";
     public static final String CATEGORY_FIELD_PREFIX = "category:";
+    public static final String RECOMMENDATION_CACHE_PREFIX = "rec:user:";
 }
