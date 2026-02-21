@@ -18,5 +18,7 @@ public class RecommendationSecurityRoute implements SecurityRouteCustomizer {
             AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         // 인기 추천 (비로그인 허용)
         auth.requestMatchers("/api/v1/recommendations/popular").permitAll();
+        // Actuator (Docker 헬스체크용)
+        auth.requestMatchers("/actuator/**").permitAll();
     }
 }
