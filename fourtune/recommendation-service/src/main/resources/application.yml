@@ -38,6 +38,8 @@ spring:
   # security, oauth2, aws 설정들은 application-common.yml에 중앙화 되어있음.
 
 feature:
+  kafka:
+    enabled: true
   ai:
     provider: ${AI_PROVIDER:ollama} # ollama 또는 OpenAI
 
@@ -51,6 +53,6 @@ spring.ai:
     chat:
       model: gpt-3.5-turbo
 
-app:
-  oauth2:
-    redirect-uri: http://localhost:3000/login-success
+api:
+  search:
+    base-url: ${API_SEARCH_BASE_URL:http://localhost:8080}
