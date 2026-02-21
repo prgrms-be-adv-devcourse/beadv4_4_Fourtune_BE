@@ -3,15 +3,15 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.port.out.UserPort;
-import com.fourtune.common.global.eventPublisher.EventPublisher;
-import com.fourtune.common.shared.auction.dto.AuctionItemUpdateRequest;
+import com.fourtune.core.eventPublisher.EventPublisher;
+import com.fourtune.shared.auction.dto.AuctionItemUpdateRequest;
 
 import java.util.Set;
-import com.fourtune.common.shared.auction.event.AuctionUpdatedEvent;
-import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
-import com.fourtune.common.global.config.EventPublishingConfig;
-import com.fourtune.common.global.outbox.service.OutboxService;
-import com.fourtune.common.shared.auction.kafka.AuctionEventType;
+import com.fourtune.shared.auction.event.AuctionUpdatedEvent;
+import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.core.config.EventPublishingConfig;
+import com.fourtune.outbox.service.OutboxService;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -134,8 +134,8 @@ public class AuctionUpdateUseCase {
             status == com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.SOLD ||
             status == com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.SOLD_BY_BUY_NOW ||
             status == com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.CANCELLED) {
-            throw new com.fourtune.common.global.error.exception.BusinessException(
-                    com.fourtune.common.global.error.ErrorCode.AUCTION_NOT_MODIFIABLE
+            throw new com.fourtune.core.error.exception.BusinessException(
+                    com.fourtune.core.error.ErrorCode.AUCTION_NOT_MODIFIABLE
             );
         }
         

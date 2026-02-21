@@ -2,14 +2,14 @@ package com.fourtune.auction.boundedContext.watchList.adapter.in.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.watchList.application.service.WatchListService;
-import com.fourtune.common.global.config.kafka.KafkaTopicConfig;
-import com.fourtune.common.shared.auction.event.AuctionClosedEvent;
-import com.fourtune.common.shared.auction.event.AuctionEndingSoonEvent;
-import com.fourtune.common.shared.auction.event.AuctionItemCreatedEvent;
-import com.fourtune.common.shared.auction.event.AuctionItemUpdatedEvent;
-import com.fourtune.common.shared.auction.event.AuctionStartedEvent;
-import com.fourtune.common.shared.auction.event.AuctionStartingSoonEvent;
-import com.fourtune.common.shared.auction.kafka.AuctionEventType;
+import com.fourtune.kafka.KafkaTopicConfig;
+import com.fourtune.shared.auction.event.AuctionClosedEvent;
+import com.fourtune.shared.auction.event.AuctionItemCreatedEvent;
+import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
+import com.fourtune.shared.auction.event.AuctionStartedEvent;
+import com.fourtune.shared.auction.event.AuctionEndingSoonEvent;
+import com.fourtune.shared.auction.event.AuctionStartingSoonEvent;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -29,11 +29,7 @@ public class WatchListAuctionKafkaListener {
     private final WatchListService watchListService;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(
-            topics = KafkaTopicConfig.AUCTION_EVENTS_TOPIC,
-            groupId = "watchlist-auction-events-group",
-            containerFactory = "auctionEventKafkaListenerContainerFactory"
-    )
+    @KafkaListener(topics = KafkaTopicConfig.AUCTION_EVENTS_TOPIC, groupId = "watchlist-auction-events-group", containerFactory = "auctionEventKafkaListenerContainerFactory")
     public void consume(String payload, @Header(value = "X-Event-Type", required = false) String eventType) {
         if (eventType == null) {
             return;

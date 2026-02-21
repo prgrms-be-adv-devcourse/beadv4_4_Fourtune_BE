@@ -1,8 +1,8 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
-import com.fourtune.common.shared.auction.dto.BidDetailResponse;
-import com.fourtune.common.shared.auction.dto.BidHistoryResponse;
-import com.fourtune.common.shared.auction.dto.BidResponse;
+import com.fourtune.shared.auction.dto.BidDetailResponse;
+import com.fourtune.shared.auction.dto.BidHistoryResponse;
+import com.fourtune.shared.auction.dto.BidResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

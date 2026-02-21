@@ -2,9 +2,9 @@ package com.fourtune.auction.boundedContext.payment.adapter.in.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
-import com.fourtune.common.shared.payment.event.PaymentUserCreatedEvent;
-import com.fourtune.common.global.config.kafka.KafkaTopicConfig;
-import com.fourtune.common.shared.payment.kafka.PaymentEventMapper;
+import com.fourtune.shared.payment.event.PaymentUserCreatedEvent;
+import com.fourtune.kafka.KafkaTopicConfig;
+import com.fourtune.shared.kafka.payment.PaymentEventMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

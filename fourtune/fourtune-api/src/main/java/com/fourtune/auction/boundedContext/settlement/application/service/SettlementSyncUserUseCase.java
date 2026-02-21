@@ -2,9 +2,9 @@ package com.fourtune.auction.boundedContext.settlement.application.service;
 
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementUserRepository;
-import com.fourtune.common.global.eventPublisher.EventPublisher;
-import com.fourtune.common.shared.settlement.event.SettlementUserCreatedEvent;
-import com.fourtune.common.shared.user.dto.UserResponse;
+import com.fourtune.core.eventPublisher.EventPublisher;
+import com.fourtune.shared.settlement.event.SettlementUserCreatedEvent;
+import com.fourtune.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionFacade;
 import com.fourtune.auction.boundedContext.auction.application.service.AuctionSupport;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
-import com.fourtune.common.global.eventPublisher.EventPublisher;
-import com.fourtune.common.shared.auction.event.AuctionEndingSoonEvent;
-import com.fourtune.common.shared.auction.event.AuctionStartingSoonEvent;
-import com.fourtune.common.shared.auction.kafka.AuctionEventType;
-import com.fourtune.common.shared.auction.kafka.AuctionKafkaProducer;
+import com.fourtune.core.eventPublisher.EventPublisher;
+import com.fourtune.shared.auction.event.AuctionEndingSoonEvent;
+import com.fourtune.shared.auction.event.AuctionStartingSoonEvent;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
+import com.fourtune.auction.infrastructure.kafka.AuctionKafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -96,7 +96,8 @@ public class AuctionScheduler {
         for (AuctionItem auction : auctions) {
             try {
                 String payload = objectMapper.writeValueAsString(new AuctionStartingSoonEvent(auction.getId()));
-                auctionKafkaProducer.send(String.valueOf(auction.getId()), payload, AuctionEventType.AUCTION_STARTING_SOON.name());
+                auctionKafkaProducer.send(String.valueOf(auction.getId()), payload,
+                        AuctionEventType.AUCTION_STARTING_SOON.name());
                 log.debug("AUCTION_STARTING_SOON 발행: auctionId={}", auction.getId());
             } catch (Exception e) {
                 log.error("AUCTION_STARTING_SOON 발행 실패: auctionId={}", auction.getId(), e);
@@ -121,7 +122,8 @@ public class AuctionScheduler {
         for (AuctionItem auction : auctions) {
             try {
                 String payload = objectMapper.writeValueAsString(new AuctionEndingSoonEvent(auction.getId()));
-                auctionKafkaProducer.send(String.valueOf(auction.getId()), payload, AuctionEventType.AUCTION_ENDING_SOON.name());
+                auctionKafkaProducer.send(String.valueOf(auction.getId()), payload,
+                        AuctionEventType.AUCTION_ENDING_SOON.name());
                 log.debug("AUCTION_ENDING_SOON 발행: auctionId={}", auction.getId());
             } catch (Exception e) {
                 log.error("AUCTION_ENDING_SOON 발행 실패: auctionId={}", auction.getId(), e);

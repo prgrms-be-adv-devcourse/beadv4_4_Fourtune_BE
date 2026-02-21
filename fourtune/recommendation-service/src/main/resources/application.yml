@@ -4,13 +4,15 @@ server:
 spring:
   application:
     name: recommendation-service
+  config:
+    import: "classpath:application-common.yml"
   profiles:
     active: local
   
   datasource:
-    url: jdbc:postgresql://localhost:5432/fourtune_db
-    username: fourtune_user
-    password: fourtune
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/recommendation}
+    username: ${DB_USERNAME:fourtune_user}
+    password: ${DB_PASSWORD:fourtune}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -22,7 +24,7 @@ spring:
         show_sql: true
         
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:redpanda:9092}
+    # bootstrap-servers comes from application-common.yml
     consumer:
       group-id: recommendation-group
       auto-offset-reset: latest
@@ -31,34 +33,9 @@ spring:
       properties:
         spring.json.trusted.packages: "*"
   
-  data:
-    redis:
-      host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+  # redis, jwt configs 삭제됨 (common 기본값 사용)
 
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: dummy-client-id
-            client-secret: dummy-client-secret
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            authorization-grant-type: authorization_code
-            scope: profile, email
-  cloud:
-    aws:
-      region:
-        static: ap-northeast-2
-      credentials:
-        access-key: dummy-access-key
-        secret-key: dummy-secret-key
-      s3:
-        bucket: dummy-bucket
-        path-prefix: dummy-prefix
-      stack:
-        auto: false
+  # security, oauth2, aws 설정들은 application-common.yml에 중앙화 되어있음.
 
 feature:
   ai:
@@ -77,8 +54,3 @@ spring.ai:
 app:
   oauth2:
     redirect-uri: http://localhost:3000/login-success
-
-jwt:
-  secret: ${JWT_SECRET}
-  access-token-expiration: 3600000 # 1 hour
-  refresh-token-expiration: 1209600000 # 14 days

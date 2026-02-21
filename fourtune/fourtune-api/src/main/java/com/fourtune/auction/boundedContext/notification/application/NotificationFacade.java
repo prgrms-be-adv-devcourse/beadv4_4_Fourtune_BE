@@ -1,10 +1,10 @@
 package com.fourtune.auction.boundedContext.notification.application;
 
 import com.fourtune.auction.boundedContext.notification.domain.constant.NotificationType;
-import com.fourtune.common.shared.notification.dto.NotificationResponseDto;
-import com.fourtune.common.shared.notification.dto.NotificationSettingsResponse;
-import com.fourtune.common.shared.notification.dto.NotificationSettingsUpdateRequest;
-import com.fourtune.common.shared.user.dto.UserResponse;
+import com.fourtune.shared.notification.dto.NotificationResponseDto;
+import com.fourtune.shared.notification.dto.NotificationSettingsResponse;
+import com.fourtune.shared.notification.dto.NotificationSettingsUpdateRequest;
+import com.fourtune.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

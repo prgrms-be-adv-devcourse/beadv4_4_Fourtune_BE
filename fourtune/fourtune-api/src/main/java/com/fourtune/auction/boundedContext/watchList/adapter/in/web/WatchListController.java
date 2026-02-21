@@ -1,9 +1,9 @@
 package com.fourtune.auction.boundedContext.watchList.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.watchList.application.service.WatchListService;
-import com.fourtune.common.shared.auth.dto.UserContext;
-import com.fourtune.common.shared.watchList.dto.WatchListRequestDto;
-import com.fourtune.common.shared.watchList.dto.WatchListResponseDto;
+import com.fourtune.shared.auth.dto.UserContext;
+import com.fourtune.shared.watchList.dto.WatchListRequestDto;
+import com.fourtune.shared.watchList.dto.WatchListResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

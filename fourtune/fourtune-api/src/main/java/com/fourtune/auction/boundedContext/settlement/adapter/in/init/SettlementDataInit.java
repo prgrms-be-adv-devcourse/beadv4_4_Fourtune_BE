@@ -5,9 +5,9 @@ import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementCa
 import com.fourtune.auction.boundedContext.settlement.domain.entity.SettlementUser;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementCandidatedItemRepository;
 import com.fourtune.auction.boundedContext.settlement.port.out.SettlementUserRepository;
-import com.fourtune.common.global.eventPublisher.EventPublisher;
-import com.fourtune.common.shared.user.dto.UserResponse;
-import com.fourtune.common.shared.user.event.UserJoinedEvent;
+import com.fourtune.core.eventPublisher.EventPublisher;
+import com.fourtune.shared.user.dto.UserResponse;
+import com.fourtune.shared.user.event.UserJoinedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

@@ -1,13 +1,16 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
+import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
+import com.fourtune.api.infrastructure.kafka.search.SearchKafkaProducer;
+import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
 import com.fourtune.auction.boundedContext.auth.application.service.AuthService;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.auction.boundedContext.user.port.out.UserRepository;
-import com.fourtune.common.global.error.ErrorCode;
-import com.fourtune.common.global.error.exception.BusinessException;
-import com.fourtune.common.shared.auth.dto.TokenResponse;
-import com.fourtune.common.shared.user.dto.UserLoginRequest;
-import com.fourtune.common.shared.user.dto.UserSignUpRequest;
+import com.fourtune.core.error.ErrorCode;
+import com.fourtune.core.error.exception.BusinessException;
+import com.fourtune.shared.auth.dto.TokenResponse;
+import com.fourtune.shared.user.dto.UserLoginRequest;
+import com.fourtune.shared.user.dto.UserSignUpRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,13 +39,13 @@ class UserFacadeTest {
     private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository searchAuctionItemCrudRepository;
 
     @MockitoBean
-    private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+    private WatchListKafkaProducer watchListKafkaProducer;
 
     @MockitoBean
-    private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+    private NotificationKafkaProducer notificationKafkaProducer;
 
     @MockitoBean
-    private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
+    private SearchKafkaProducer searchKafkaProducer;
 
     @Autowired
     private UserFacade userFacade;

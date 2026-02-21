@@ -2,8 +2,8 @@ package com.fourtune.auction.boundedContext.watchList.adapter.in.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.watchList.application.service.WatchListService;
-import com.fourtune.common.shared.auction.event.*;
-import com.fourtune.common.shared.auction.kafka.AuctionEventType;
+import com.fourtune.shared.auction.event.*;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +29,8 @@ class WatchListAuctionKafkaListenerTest {
     @InjectMocks
     private WatchListAuctionKafkaListener listener;
 
-    // ── AUCTION_ITEM_CREATED ──────────────────────────────────────────────────────
+    // ── AUCTION_ITEM_CREATED
+    // ──────────────────────────────────────────────────────
 
     @Test
     @DisplayName("AUCTION_ITEM_CREATED: syncAuctionItem(id, title, price, thumbnail) 호출")
@@ -42,8 +43,7 @@ class WatchListAuctionKafkaListenerTest {
                 BigDecimal.valueOf(5000), true,
                 LocalDateTime.now(), LocalDateTime.now().plusDays(1),
                 "https://thumbnail.url", LocalDateTime.now(), LocalDateTime.now(),
-                0L, 0, 0
-        );
+                0L, 0, 0);
 
         when(objectMapper.readValue(payload, AuctionItemCreatedEvent.class)).thenReturn(event);
 
@@ -54,7 +54,8 @@ class WatchListAuctionKafkaListenerTest {
         verify(watchListService).syncAuctionItem(1L, "경매상품", BigDecimal.valueOf(1000), "https://thumbnail.url");
     }
 
-    // ── AUCTION_ITEM_UPDATED ──────────────────────────────────────────────────────
+    // ── AUCTION_ITEM_UPDATED
+    // ──────────────────────────────────────────────────────
 
     @Test
     @DisplayName("AUCTION_ITEM_UPDATED: syncAuctionItem(id, title, price, thumbnail) 호출")
@@ -76,7 +77,8 @@ class WatchListAuctionKafkaListenerTest {
         verify(watchListService).syncAuctionItem(2L, "수정된상품", BigDecimal.valueOf(2000), "https://updated.url");
     }
 
-    // ── AUCTION_STARTING_SOON ─────────────────────────────────────────────────────
+    // ── AUCTION_STARTING_SOON
+    // ─────────────────────────────────────────────────────
 
     @Test
     @DisplayName("AUCTION_STARTING_SOON: processAuctionStart(auctionId) 호출")
@@ -94,7 +96,8 @@ class WatchListAuctionKafkaListenerTest {
         verify(watchListService).processAuctionStart(100L);
     }
 
-    // ── AUCTION_ENDING_SOON ───────────────────────────────────────────────────────
+    // ── AUCTION_ENDING_SOON
+    // ───────────────────────────────────────────────────────
 
     @Test
     @DisplayName("AUCTION_ENDING_SOON: processAuctionEnd(auctionId) 호출")

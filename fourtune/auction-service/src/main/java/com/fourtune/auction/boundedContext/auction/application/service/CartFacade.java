@@ -1,6 +1,6 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
-import com.fourtune.common.shared.auction.dto.CartResponse;
+import com.fourtune.shared.auction.dto.CartResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

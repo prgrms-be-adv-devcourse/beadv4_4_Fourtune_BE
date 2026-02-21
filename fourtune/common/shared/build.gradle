@@ -1,0 +1,39 @@
+plugins {
+    id 'java-library'
+}
+
+bootJar { enabled = false }
+jar { enabled = true }
+
+dependencies {
+    // 1. 공통 의존성
+    api project(':common:core')
+
+    // 2. JSON
+    api 'com.fasterxml.jackson.core:jackson-databind'
+
+    // 3. Security (오직 인터페이스를 위한 코어 라이브러리만 제공, 필터망 전파 차단)
+    compileOnly 'org.springframework.security:spring-security-core'
+    compileOnly 'org.springframework.security:spring-security-oauth2-core'
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // QueryDSL (ReplicaUser 등을 위해 QClass 생성 필요. jpa 라이브러리는 core에서 api로 상속받음)
+    annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+}
+
+def generatedDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
+tasks.withType(JavaCompile).configureEach {
+    options.generatedSourceOutputDirectory = generatedDir
+}
+clean {
+    delete layout.buildDirectory.dir("generated")
+}

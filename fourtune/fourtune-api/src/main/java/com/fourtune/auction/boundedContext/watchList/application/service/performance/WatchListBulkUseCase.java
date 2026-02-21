@@ -2,12 +2,12 @@ package com.fourtune.auction.boundedContext.watchList.application.service.perfor
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.watchList.port.out.WatchListRepository;
-import com.fourtune.common.global.config.EventPublishingConfig;
-import com.fourtune.common.global.eventPublisher.EventPublisher;
-import com.fourtune.common.shared.watchList.event.WatchListAuctionStartedEvent;
-import com.fourtune.common.shared.watchList.event.WatchListAuctionEndedEvent;
-import com.fourtune.common.shared.watchList.kafka.WatchListEventType;
-import com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer;
+import com.fourtune.core.config.EventPublishingConfig;
+import com.fourtune.core.eventPublisher.EventPublisher;
+import com.fourtune.shared.watchList.event.WatchListAuctionStartedEvent;
+import com.fourtune.shared.watchList.event.WatchListAuctionEndedEvent;
+import com.fourtune.api.infrastructure.kafka.watchList.WatchListEventType;
+import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

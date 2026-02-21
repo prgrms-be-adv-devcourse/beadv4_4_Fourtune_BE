@@ -3,8 +3,8 @@ package com.fourtune.auction.boundedContext.notification.adapter.in.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.notification.application.NotificationFacade;
 import com.fourtune.auction.boundedContext.notification.domain.constant.NotificationType;
-import com.fourtune.common.shared.auction.event.*;
-import com.fourtune.common.shared.auction.kafka.AuctionEventType;
+import com.fourtune.shared.auction.event.*;
+import com.fourtune.shared.kafka.auction.AuctionEventType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,8 +40,7 @@ class NotificationAuctionKafkaListenerTest {
         String payload = "{}";
         BidPlacedEvent event = new BidPlacedEvent(
                 1L, 100L, "경매상품", 10L, 20L, 15L,
-                BigDecimal.valueOf(5000), LocalDateTime.now()
-        );
+                BigDecimal.valueOf(5000), LocalDateTime.now());
 
         when(objectMapper.readValue(payload, BidPlacedEvent.class)).thenReturn(event);
 
@@ -57,8 +56,7 @@ class NotificationAuctionKafkaListenerTest {
         String payload = "{}";
         BidPlacedEvent event = new BidPlacedEvent(
                 1L, 100L, "경매상품", 10L, 20L, null,
-                BigDecimal.valueOf(5000), LocalDateTime.now()
-        );
+                BigDecimal.valueOf(5000), LocalDateTime.now());
 
         when(objectMapper.readValue(payload, BidPlacedEvent.class)).thenReturn(event);
 
@@ -75,8 +73,7 @@ class NotificationAuctionKafkaListenerTest {
     void consume_AuctionClosed_WithWinner() throws Exception {
         String payload = "{}";
         AuctionClosedEvent event = new AuctionClosedEvent(
-                100L, "경매상품", 10L, 20L, BigDecimal.valueOf(10000), "ORD-001"
-        );
+                100L, "경매상품", 10L, 20L, BigDecimal.valueOf(10000), "ORD-001");
 
         when(objectMapper.readValue(payload, AuctionClosedEvent.class)).thenReturn(event);
 
@@ -91,8 +88,7 @@ class NotificationAuctionKafkaListenerTest {
     void consume_AuctionClosed_WithoutWinner() throws Exception {
         String payload = "{}";
         AuctionClosedEvent event = new AuctionClosedEvent(
-                100L, "경매상품", 10L, null, null, null
-        );
+                100L, "경매상품", 10L, null, null, null);
 
         when(objectMapper.readValue(payload, AuctionClosedEvent.class)).thenReturn(event);
 
@@ -109,8 +105,7 @@ class NotificationAuctionKafkaListenerTest {
     void consume_AuctionBuyNow() throws Exception {
         String payload = "{}";
         AuctionBuyNowEvent event = new AuctionBuyNowEvent(
-                100L, 10L, 30L, BigDecimal.valueOf(20000), "ORD-002", LocalDateTime.now()
-        );
+                100L, 10L, 30L, BigDecimal.valueOf(20000), "ORD-002", LocalDateTime.now());
 
         when(objectMapper.readValue(payload, AuctionBuyNowEvent.class)).thenReturn(event);
 
@@ -143,8 +138,7 @@ class NotificationAuctionKafkaListenerTest {
         String payload = "{}";
         BidCanceledEvent event = new BidCanceledEvent(
                 1L, 100L, "경매상품", 10L, 20L,
-                BigDecimal.valueOf(5000), LocalDateTime.now()
-        );
+                BigDecimal.valueOf(5000), LocalDateTime.now());
 
         when(objectMapper.readValue(payload, BidCanceledEvent.class)).thenReturn(event);
 

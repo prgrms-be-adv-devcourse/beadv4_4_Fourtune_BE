@@ -1,6 +1,6 @@
 package com.fourtune.auction.boundedContext.notification.domain;
 
-import com.fourtune.common.global.common.BaseTimeEntity;
+import com.fourtune.core.dto.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

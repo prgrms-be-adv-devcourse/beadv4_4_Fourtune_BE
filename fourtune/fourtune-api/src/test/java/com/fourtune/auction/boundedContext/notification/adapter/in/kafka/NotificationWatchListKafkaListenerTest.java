@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.notification.application.NotificationFacade;
 import com.fourtune.auction.boundedContext.notification.domain.constant.NotificationType;
-import com.fourtune.common.shared.watchList.kafka.WatchListEventType;
+import com.fourtune.api.infrastructure.kafka.watchList.WatchListEventType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,8 +48,7 @@ class NotificationWatchListKafkaListenerTest {
         verify(notificationFacade).createGroupNotification(
                 argThat(users -> users.containsAll(List.of(10L, 20L, 30L)) && users.size() == 3),
                 eq(1L),
-                eq(NotificationType.WATCHLIST_START)
-        );
+                eq(NotificationType.WATCHLIST_START));
     }
 
     @Test
@@ -70,8 +69,7 @@ class NotificationWatchListKafkaListenerTest {
         verify(notificationFacade).createGroupNotification(
                 argThat(users -> users.containsAll(List.of(11L, 22L)) && users.size() == 2),
                 eq(2L),
-                eq(NotificationType.WATCHLIST_END)
-        );
+                eq(NotificationType.WATCHLIST_END));
     }
 
     @Test

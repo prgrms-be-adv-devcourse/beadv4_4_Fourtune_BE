@@ -1,12 +1,12 @@
 package com.fourtune.auction.boundedContext.auction.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.auction.application.service.BidFacade;
-import com.fourtune.common.global.common.ApiResponse;
-import com.fourtune.common.shared.auction.dto.BidDetailResponse;
-import com.fourtune.common.shared.auction.dto.BidHistoryResponse;
-import com.fourtune.common.shared.auction.dto.BidPlaceRequest;
-import com.fourtune.common.shared.auction.dto.BidResponse;
-import com.fourtune.common.shared.auth.dto.UserContext;
+import com.fourtune.core.dto.ApiResponse;
+import com.fourtune.shared.auction.dto.BidDetailResponse;
+import com.fourtune.shared.auction.dto.BidHistoryResponse;
+import com.fourtune.shared.auction.dto.BidPlaceRequest;
+import com.fourtune.shared.auction.dto.BidResponse;
+import com.fourtune.shared.auth.dto.UserContext;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

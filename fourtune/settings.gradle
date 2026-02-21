@@ -2,6 +2,19 @@ rootProject.name = 'fourtune'
 
 include 'fourtune-api'
 include 'payment-service'
-include 'common'
 include 'auction-service'
 include 'recommendation-service'
+
+// 단계 2: Common 모듈 분리
+include 'common:core'
+include 'common:jwt'
+include 'common:oauth'
+include 'common:outbox'
+include 'common:kafka'
+include 'common:s3'
+include 'common:fcm'
+include 'common:shared'
+include 'common:redis'
+
+// 레거시 common module (추후 삭제 예정)
+include 'common'

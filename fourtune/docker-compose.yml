@@ -226,17 +226,18 @@ services:
         - MODULE_NAME=auction-service
     image: auction-service:latest
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auction
-      - SPRING_DATASOURCE_USERNAME=fourtune_user
-      - SPRING_DATASOURCE_PASSWORD=fourtune
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - DB_URL=jdbc:postgresql://postgres:5432/auction
+      - DB_USERNAME=fourtune_user
+      - DB_PASSWORD=fourtune
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
       - SERVER_PORT=8083
       - API_USER_BASE_URL=http://fourtune-api:8080
       - AWS_REGION=${AWS_REGION:-ap-northeast-2}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      # 중요: application-common.yml에서 ${AWS_ACCESS_KEY} 등을 사용할 것이므로 통일
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - SPRING_AUTOCONFIGURE_EXCLUDE=io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration
       - FIREBASE_ENABLED=false
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
@@ -290,9 +291,9 @@ services:
       - AWS_S3_BUCKET=${AWS_S3_BUCKET}
       - S3_USER_ID=dev
       # Database
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/recommendation
-      - SPRING_DATASOURCE_USERNAME=fourtune_user
-      - SPRING_DATASOURCE_PASSWORD=fourtune
+      - DB_URL=jdbc:postgresql://postgres:5432/recommendation
+      - DB_USERNAME=fourtune_user
+      - DB_PASSWORD=fourtune
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     ports:
       - "9082:8084"

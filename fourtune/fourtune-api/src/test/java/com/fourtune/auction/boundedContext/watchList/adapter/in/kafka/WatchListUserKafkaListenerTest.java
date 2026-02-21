@@ -3,7 +3,7 @@ package com.fourtune.auction.boundedContext.watchList.adapter.in.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
 import com.fourtune.auction.boundedContext.watchList.application.service.WatchListService;
-import com.fourtune.common.shared.user.dto.UserResponse;
+import com.fourtune.shared.user.dto.UserResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

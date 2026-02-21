@@ -3,7 +3,7 @@ package com.fourtune.auction.boundedContext.watchList.adapter.in.web;
 import com.fourtune.auction.boundedContext.watchList.domain.WatchList;
 import com.fourtune.auction.boundedContext.watchList.mapper.WatchListMapper;
 import com.fourtune.auction.boundedContext.watchList.port.out.WatchListRepository;
-import com.fourtune.common.shared.watchList.dto.WatchListResponseDto;
+import com.fourtune.shared.watchList.dto.WatchListResponseDto;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;

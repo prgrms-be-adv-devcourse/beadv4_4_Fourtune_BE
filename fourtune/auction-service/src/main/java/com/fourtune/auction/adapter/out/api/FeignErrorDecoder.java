@@ -1,10 +1,10 @@
 package com.fourtune.auction.adapter.out.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fourtune.common.global.error.ErrorCode;
-import com.fourtune.common.global.error.ErrorCodes;
-import com.fourtune.common.global.error.ErrorResponse;
-import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.core.error.ErrorCode;
+import com.fourtune.core.error.ErrorCodes;
+import com.fourtune.core.error.ErrorResponse;
+import com.fourtune.core.error.exception.BusinessException;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 import lombok.RequiredArgsConstructor;

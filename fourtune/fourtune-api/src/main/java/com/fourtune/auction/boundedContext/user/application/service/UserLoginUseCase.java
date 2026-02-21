@@ -1,11 +1,11 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.common.global.error.ErrorCode;
-import com.fourtune.common.global.error.exception.BusinessException;
-import com.fourtune.common.global.security.jwt.JwtTokenProvider; // (가정) JWT 생성기
-import com.fourtune.common.shared.user.dto.UserLoginRequest;
-import com.fourtune.common.shared.user.dto.UserLoginResponse;
+import com.fourtune.core.error.ErrorCode;
+import com.fourtune.core.error.exception.BusinessException;
+import com.fourtune.jwt.JwtTokenProvider;
+import com.fourtune.shared.user.dto.UserLoginRequest;
+import com.fourtune.shared.user.dto.UserLoginResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,8 +28,7 @@ public class UserLoginUseCase {
         return new UserLoginResponse(
                 user.getId(),
                 user.getEmail(),
-                user.getNickname()
-        );
+                user.getNickname());
     }
 
     private void validatePassword(String rawPassword, String encodedPassword) {

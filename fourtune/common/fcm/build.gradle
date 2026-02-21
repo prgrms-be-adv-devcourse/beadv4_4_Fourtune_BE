@@ -1,0 +1,12 @@
+plugins {
+    id 'java-library'
+}
+
+bootJar { enabled = false }
+jar { enabled = true }
+
+dependencies {
+    api project(':common:core')
+    api 'com.google.firebase:firebase-admin:9.2.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

@@ -1,12 +1,12 @@
 package com.fourtune.auction.boundedContext.watchList.application.service.performance;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fourtune.common.global.config.EventPublishingConfig;
-import com.fourtune.common.global.eventPublisher.EventPublisher;
-import com.fourtune.common.shared.watchList.event.WatchListAuctionStartedEvent;
-import com.fourtune.common.shared.watchList.event.WatchListAuctionEndedEvent;
-import com.fourtune.common.shared.watchList.kafka.WatchListEventType;
-import com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer;
+import com.fourtune.core.config.EventPublishingConfig;
+import com.fourtune.core.eventPublisher.EventPublisher;
+import com.fourtune.shared.watchList.event.WatchListAuctionStartedEvent;
+import com.fourtune.shared.watchList.event.WatchListAuctionEndedEvent;
+import com.fourtune.api.infrastructure.kafka.watchList.WatchListEventType;
+import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.annotation.PostConstruct;

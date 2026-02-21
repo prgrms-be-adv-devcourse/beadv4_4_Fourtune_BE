@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.search.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.search.application.service.RecentSearchService;
-import com.fourtune.common.shared.auth.dto.UserContext;
+import com.fourtune.shared.auth.dto.UserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

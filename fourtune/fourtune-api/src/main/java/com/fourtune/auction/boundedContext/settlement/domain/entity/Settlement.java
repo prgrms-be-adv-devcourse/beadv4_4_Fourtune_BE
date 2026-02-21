@@ -2,9 +2,9 @@ package com.fourtune.auction.boundedContext.settlement.domain.entity;
 
 import com.fourtune.auction.boundedContext.settlement.adapter.in.web.dto.SettlementResponse;
 import com.fourtune.auction.boundedContext.settlement.domain.constant.SettlementEventType;
-import com.fourtune.common.global.common.BaseIdAndTime;
-import com.fourtune.common.shared.settlement.dto.SettlementDto;
-import com.fourtune.common.shared.settlement.event.SettlementCompletedEvent;
+import com.fourtune.core.dto.BaseIdAndTime;
+import com.fourtune.shared.settlement.dto.SettlementDto;
+import com.fourtune.shared.settlement.event.SettlementCompletedEvent;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -2,8 +2,7 @@ package com.fourtune.auction.boundedContext.auction.adapter.in.web;
 
 import com.fourtune.auction.adapter.out.api.UserClient;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
-import com.fourtune.common.shared.auction.kafka.AuctionKafkaProducer;
-import com.fourtune.common.shared.auth.handler.OAuth2SuccessHandler;
+import com.fourtune.auction.infrastructure.kafka.AuctionKafkaProducer;
 import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
 import com.fourtune.auction.boundedContext.auction.application.service.RedisViewCountService;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
@@ -16,7 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
@@ -45,115 +43,109 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class ApiV1AuctionControllerIntegrationTest {
 
-    @Autowired
-    private WebApplicationContext context;
+        @Autowired
+        private WebApplicationContext context;
 
-    private MockMvc mockMvc;
+        private MockMvc mockMvc;
 
-    @Autowired
-    private AuctionItemRepository auctionItemRepository;
+        @Autowired
+        private AuctionItemRepository auctionItemRepository;
 
-    @MockitoBean
-    private UserClient userClient;
+        @MockitoBean
+        private UserClient userClient;
 
-    @MockitoBean
-    private DefaultOAuth2UserService defaultOAuth2UserService;
+        @MockitoBean
+        private RedisViewCountService redisViewCountService;
 
-    @MockitoBean
-    private OAuth2SuccessHandler oAuth2SuccessHandler;
+        @MockitoBean
+        private AuctionKafkaProducer auctionKafkaProducer;
 
-    @MockitoBean
-    private RedisViewCountService redisViewCountService;
+        private static final Long TEST_SELLER_ID = 1L;
+        private static final String TEST_SELLER_NICKNAME = "테스트판매자";
+        private static final String TEST_TITLE = "통합테스트 경매 상품";
 
-    @MockitoBean
-    private AuctionKafkaProducer auctionKafkaProducer;
+        @BeforeEach
+        void setUp() {
+                this.mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 
-    private static final Long TEST_SELLER_ID = 1L;
-    private static final String TEST_SELLER_NICKNAME = "테스트판매자";
-    private static final String TEST_TITLE = "통합테스트 경매 상품";
+                when(userClient.getNicknamesByIds(anyList()))
+                                .thenReturn(Map.of(String.valueOf(TEST_SELLER_ID), TEST_SELLER_NICKNAME));
+                when(redisViewCountService.getViewCount(any(Long.class), any(Long.class)))
+                                .thenAnswer(inv -> inv.getArgument(1));
 
-    @BeforeEach
-    void setUp() {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+                AuctionItem item = AuctionItem.builder()
+                                .sellerId(TEST_SELLER_ID)
+                                .title(TEST_TITLE)
+                                .description("테스트 설명")
+                                .category(Category.ETC)
+                                .startPrice(BigDecimal.valueOf(10_000))
+                                .bidUnit(1000)
+                                .auctionStartTime(LocalDateTime.now().minusHours(1))
+                                .auctionEndTime(LocalDateTime.now().plusDays(1))
+                                .status(AuctionStatus.ACTIVE)
+                                .currentPrice(BigDecimal.valueOf(10_000))
+                                .build();
+                auctionItemRepository.save(item);
+        }
 
-        when(userClient.getNicknamesByIds(anyList()))
-                .thenReturn(Map.of(String.valueOf(TEST_SELLER_ID), TEST_SELLER_NICKNAME));
-        when(redisViewCountService.getViewCount(any(Long.class), any(Long.class)))
-                .thenAnswer(inv -> inv.getArgument(1));
+        @Test
+        @DisplayName("GET /api/v1/auctions/{id} — 경매 상세 조회 시 Mock 닉네임이 응답에 포함된다")
+        void getAuctionDetail_returnsSellerNicknameFromMock() throws Exception {
+                List<AuctionItem> all = auctionItemRepository.findAll();
+                Long id = all.get(0).getId();
 
-        AuctionItem item = AuctionItem.builder()
-                .sellerId(TEST_SELLER_ID)
-                .title(TEST_TITLE)
-                .description("테스트 설명")
-                .category(Category.ETC)
-                .startPrice(BigDecimal.valueOf(10_000))
-                .bidUnit(1000)
-                .auctionStartTime(LocalDateTime.now().minusHours(1))
-                .auctionEndTime(LocalDateTime.now().plusDays(1))
-                .status(AuctionStatus.ACTIVE)
-                .currentPrice(BigDecimal.valueOf(10_000))
-                .build();
-        auctionItemRepository.save(item);
-    }
+                mockMvc.perform(get("/api/v1/auctions/{id}", id))
+                                .andDo(print())
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id").value(id))
+                                .andExpect(jsonPath("$.sellerId").value(TEST_SELLER_ID))
+                                .andExpect(jsonPath("$.sellerNickname").value(TEST_SELLER_NICKNAME))
+                                .andExpect(jsonPath("$.title").value(TEST_TITLE))
+                                .andExpect(jsonPath("$.status").value(AuctionStatus.ACTIVE.name()))
+                                .andExpect(jsonPath("$.currentPrice").value(10000));
+        }
 
-    @Test
-    @DisplayName("GET /api/v1/auctions/{id} — 경매 상세 조회 시 Mock 닉네임이 응답에 포함된다")
-    void getAuctionDetail_returnsSellerNicknameFromMock() throws Exception {
-        List<AuctionItem> all = auctionItemRepository.findAll();
-        Long id = all.get(0).getId();
+        @Test
+        @DisplayName("GET /api/v1/auctions/{id} — 존재하지 않는 ID는 404")
+        void getAuctionDetail_notFound_returns404() throws Exception {
+                mockMvc.perform(get("/api/v1/auctions/{id}", 99_999L))
+                                .andDo(print())
+                                .andExpect(status().isNotFound());
+        }
 
-        mockMvc.perform(get("/api/v1/auctions/{id}", id))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.sellerId").value(TEST_SELLER_ID))
-                .andExpect(jsonPath("$.sellerNickname").value(TEST_SELLER_NICKNAME))
-                .andExpect(jsonPath("$.title").value(TEST_TITLE))
-                .andExpect(jsonPath("$.status").value(AuctionStatus.ACTIVE.name()))
-                .andExpect(jsonPath("$.currentPrice").value(10000));
-    }
+        @Test
+        @WithMockUser
+        @DisplayName("GET /api/v1/auctions — 경매 목록 조회 시 저장한 경매가 포함된다")
+        void getAuctionList_returnsSavedItems() throws Exception {
+                mockMvc.perform(get("/api/v1/auctions").param("size", "10"))
+                                .andDo(print())
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content").isArray())
+                                .andExpect(jsonPath("$.content.length()").value(1))
+                                .andExpect(jsonPath("$.content[0].title").value(TEST_TITLE))
+                                .andExpect(jsonPath("$.content[0].sellerId").value(TEST_SELLER_ID))
+                                .andExpect(jsonPath("$.content[0].status").value(AuctionStatus.ACTIVE.name()));
+        }
 
-    @Test
-    @DisplayName("GET /api/v1/auctions/{id} — 존재하지 않는 ID는 404")
-    void getAuctionDetail_notFound_returns404() throws Exception {
-        mockMvc.perform(get("/api/v1/auctions/{id}", 99_999L))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-    }
+        @Test
+        @WithMockUser
+        @DisplayName("GET /api/v1/auctions?status=ACTIVE — ACTIVE만 조회된다")
+        void getAuctionList_filterByStatus_returnsMatching() throws Exception {
+                mockMvc.perform(get("/api/v1/auctions").param("status", "ACTIVE").param("size", "10"))
+                                .andDo(print())
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.content[0].status").value(AuctionStatus.ACTIVE.name()));
+        }
 
-    @Test
-    @WithMockUser
-    @DisplayName("GET /api/v1/auctions — 경매 목록 조회 시 저장한 경매가 포함된다")
-    void getAuctionList_returnsSavedItems() throws Exception {
-        mockMvc.perform(get("/api/v1/auctions").param("size", "10"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].title").value(TEST_TITLE))
-                .andExpect(jsonPath("$.content[0].sellerId").value(TEST_SELLER_ID))
-                .andExpect(jsonPath("$.content[0].status").value(AuctionStatus.ACTIVE.name()));
-    }
+        @Test
+        @WithMockUser
+        @DisplayName("PATCH /api/v1/auctions/{id}/view — 조회수 증가 요청이 200으로 처리된다")
+        void increaseViewCount_returns200() throws Exception {
+                List<AuctionItem> all = auctionItemRepository.findAll();
+                Long id = all.get(0).getId();
 
-    @Test
-    @WithMockUser
-    @DisplayName("GET /api/v1/auctions?status=ACTIVE — ACTIVE만 조회된다")
-    void getAuctionList_filterByStatus_returnsMatching() throws Exception {
-        mockMvc.perform(get("/api/v1/auctions").param("status", "ACTIVE").param("size", "10"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].status").value(AuctionStatus.ACTIVE.name()));
-    }
-
-    @Test
-    @WithMockUser
-    @DisplayName("PATCH /api/v1/auctions/{id}/view — 조회수 증가 요청이 200으로 처리된다")
-    void increaseViewCount_returns200() throws Exception {
-        List<AuctionItem> all = auctionItemRepository.findAll();
-        Long id = all.get(0).getId();
-
-        mockMvc.perform(patch("/api/v1/auctions/{id}/view", id))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
+                mockMvc.perform(patch("/api/v1/auctions/{id}/view", id))
+                                .andDo(print())
+                                .andExpect(status().isOk());
+        }
 }

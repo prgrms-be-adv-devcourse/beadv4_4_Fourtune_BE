@@ -1,5 +1,8 @@
 package com.fourtune.auction;
 
+import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
+import com.fourtune.api.infrastructure.kafka.search.SearchKafkaProducer;
+import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
 import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,13 +15,13 @@ class FourtuneApplicationTests {
 	private FirebaseMessaging firebaseMessaging;
 
 	@MockitoBean
-	private com.fourtune.common.shared.watchList.kafka.WatchListKafkaProducer watchListKafkaProducer;
+	private WatchListKafkaProducer watchListKafkaProducer;
 
 	@MockitoBean
-	private com.fourtune.common.shared.notification.kafka.NotificationKafkaProducer notificationKafkaProducer;
+	private NotificationKafkaProducer notificationKafkaProducer;
 
 	@MockitoBean
-	private com.fourtune.common.shared.search.kafka.SearchKafkaProducer searchKafkaProducer;
+	private SearchKafkaProducer searchKafkaProducer;
 
 	@Test
 	void contextLoads() {

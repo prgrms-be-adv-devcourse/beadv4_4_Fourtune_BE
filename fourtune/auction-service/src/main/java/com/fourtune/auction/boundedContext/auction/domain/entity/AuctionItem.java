@@ -3,9 +3,9 @@ package com.fourtune.auction.boundedContext.auction.domain.entity;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionPolicy;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
 import com.fourtune.auction.boundedContext.auction.domain.constant.Category;
-import com.fourtune.common.global.common.BaseTimeEntity;
-import com.fourtune.common.global.error.ErrorCode;
-import com.fourtune.common.global.error.exception.BusinessException;
+import com.fourtune.core.dto.BaseTimeEntity;
+import com.fourtune.core.error.ErrorCode;
+import com.fourtune.core.error.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.*;
 

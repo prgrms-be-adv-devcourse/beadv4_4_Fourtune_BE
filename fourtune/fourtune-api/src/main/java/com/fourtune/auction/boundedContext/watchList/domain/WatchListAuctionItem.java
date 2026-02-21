@@ -1,6 +1,6 @@
 package com.fourtune.auction.boundedContext.watchList.domain;
 
-import com.fourtune.common.shared.watchList.domain.ReplicaAuctionItem;
+import com.fourtune.shared.watchList.domain.ReplicaAuctionItem;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
