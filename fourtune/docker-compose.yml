@@ -15,6 +15,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
 
     networks:
       - fourtune-network
@@ -122,11 +123,14 @@ services:
       - fourtune-network
 
   # Spring Boot Application (로컬 개발용)
-  app:
+  fourtune-api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fourtune-app-local
+      args:
+        - MODULE_NAME=fourtune-api  # 1번 주문: api 모듈로 빌드해!
+    image: fourtune-api:latest
+
     environment:
       # 기본 설정 (바로 실행 가능)
       - SPRING_PROFILES_ACTIVE=local
@@ -151,14 +155,17 @@ services:
       - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY:-test_ck_YZ1aOwX7K8m5POogaBGV3yQxzvNP}
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY:-test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R}
       - KAKAO_ADMIN_KEY=${KAKAO_ADMIN_KEY:-}
-      # OAUTH 설정
-      - OAUTH_BACKEND_URI
-      - OAUTH_FRONTEND_URI
-      - OAUTH_CLIENT_ID
-      - OAUTH_CLIENT_SECRET
+      # OAuth (기본값; 실제 Google 로그인 시 .env에 OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET 등 설정)
+      - OAUTH_BACKEND_URI=${OAUTH_BACKEND_URI:-http://localhost:9080}
+      - OAUTH_FRONTEND_URI=${OAUTH_FRONTEND_URI:-http://localhost:3000}
+      - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID:-docker-client-id}
+      - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET:-docker-client-secret}
+      # PAYMENT 분리
+      - PAYOUT_URL=http://payment-service:8081
+      - CASH_URL=http://payment-service:8081
+      - FIREBASE_ENABLED=false
     ports:
-      - "8080:8080"
-      - "5005:5005" # 디버깅 포트
+      - "9080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -173,6 +180,181 @@ services:
     # 개발 중 자동 재시작 방지
     restart: "no"
 
+  payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - MODULE_NAME=payment-service  # 1번 주문: api 모듈로 빌드해!
+    image: payment-service:latest
+
+    # ... (기존 build, image 설정)
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      # 결제 서비스 전용 DB (같은 DB를 쓴다면 동일하게, 분리했다면 해당 주소로)
+      - DB_URL=jdbc:postgresql://postgres:5432/fourtune_db
+      - DB_USERNAME=fourtune_user
+      - DB_PASSWORD=fourtune
+      # Redis (결제 임시 데이터나 멱등성 체크용)
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # Kafka (결제 완료 이벤트를 api에 보낼 때 필요)
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      # PG사 정보 (api에서 payment로 옮겨왔다면 여기서 관리해야 함)
+      - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY}
+      - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
+      # 만약 결제 서비스에서 암호화가 필요하다면
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    ports:
+      - "8082:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    networks:
+      - fourtune-network
+
+  # auction-service (경매 MSA — 8083, 호스트 9081)
+  auction-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - MODULE_NAME=auction-service
+    image: auction-service:latest
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/auction
+      - DB_USERNAME=fourtune_user
+      - DB_PASSWORD=fourtune
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - SERVER_PORT=8083
+      - API_USER_BASE_URL=http://fourtune-api:8080
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      # 중요: application-common.yml에서 ${AWS_ACCESS_KEY} 등을 사용할 것이므로 통일
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - SPRING_AUTOCONFIGURE_EXCLUDE=io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration
+      - FIREBASE_ENABLED=false
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+    ports:
+      - "9081:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_started
+      fourtune-api:
+        condition: service_started
+    networks:
+      - fourtune-network
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # recommendation-service (추천 MSA — 8084, 호스트 9082)
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - MODULE_NAME=recommendation-service
+    image: recommendation-service:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - AI_PROVIDER=${AI_PROVIDER:-ollama}
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SERVER_PORT=8084
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+      # JWT & 암호화 (로컬 개발용)
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      # AWS
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - S3_USER_ID=dev
+      # Database
+      - DB_URL=jdbc:postgresql://postgres:5432/recommendation
+      - DB_USERNAME=fourtune_user
+      - DB_PASSWORD=fourtune
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    ports:
+      - "9082:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_started
+      fourtune-api:
+        condition: service_started
+    networks:
+      - fourtune-network
+    restart: "no"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Prometheus (메트릭 수집)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fourtune-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - fourtune-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Grafana (메트릭 시각화)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fourtune-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - fourtune-network
+
   # Nginx는 로컬 개발에서 불필요
   # 필요 시 docker-compose.dev.yml 사용
 
@@ -184,6 +366,10 @@ volumes:
   elasticsearch_data:
     driver: local
   redpanda_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
 
 networks:

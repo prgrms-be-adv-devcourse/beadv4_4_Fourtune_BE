@@ -1,0 +1,56 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: recommendation-service
+  config:
+    import: "classpath:application-common.yml"
+  profiles:
+    active: local
+  
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/recommendation}
+    username: ${DB_USERNAME:fourtune_user}
+    password: ${DB_PASSWORD:fourtune}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        
+  kafka:
+    # bootstrap-servers comes from application-common.yml
+    consumer:
+      group-id: recommendation-group
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+  
+  # redis, jwt configs 삭제됨 (common 기본값 사용)
+
+  # security, oauth2, aws 설정들은 application-common.yml에 중앙화 되어있음.
+
+feature:
+  ai:
+    provider: ${AI_PROVIDER:ollama} # ollama 또는 OpenAI
+
+spring.ai:
+  ollama:
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    chat:
+      model: llama3
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    chat:
+      model: gpt-3.5-turbo
+
+app:
+  oauth2:
+    redirect-uri: http://localhost:3000/login-success

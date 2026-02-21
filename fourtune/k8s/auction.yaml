@@ -1,0 +1,62 @@
+# -------------------
+# 1. 배포(Deployment) 설정
+# : 앱을 몇 개 띄울지, 어떤 이미지를 쓸지 관리하는 '공장장'입니다.
+# -------------------
+apiVersion: apps/v1
+kind: Deployment        # 리소스 종류: 배포 관리자
+metadata:
+  name: auction-api     # 이 배포 관리자의 이름 (쿠버네티스 내에서 식별용)
+spec:
+  replicas: 2           # [중요] "파드(서버)를 항상 2개 유지해라" (하나는 죽어도 서비스 유지)
+  selector:
+    matchLabels:
+      app: auction      # "app: auction"이라는 이름표가 붙은 파드만 관리하겠다.
+  template:             # 여기서부터가 실제로 생성될 파드(서버)의 모양(붕어빵 틀)입니다.
+    metadata:
+      labels:
+        app: auction    # 파드에 "app: auction"이라는 이름표를 붙임 (위의 selector와 짝꿍)
+    spec:
+      containers:
+        - name: auction-container             # 컨테이너의 이름
+          image: daeyeonkim1/auction-backend:v1 # [핵심] 아까 푸시한 도커 허브 이미지 주소!
+          imagePullPolicy: Always             # 항상 도커 허브에서 최신 이미지를 다운받아라 (캐시 사용 X)
+          ports:
+            - containerPort: 8080               # 스프링 부트가 내부에서 열고 있는 포트 (application.yml 설정)
+          env:
+            # 1. DB 주소를 'host.docker.internal'로 변경
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres-service:5432/fourtune_db
+            - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+              value: org.postgresql.Driver
+            - name: SPRING_DATASOURCE_USERNAME
+              value: postgres
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "1234"
+
+          resources:                          # 자원 제한 (이거 안 쓰면 서버 자원 혼자 다 쓸 수도 있음)
+            requests:
+              memory: "256Mi"                 # 최소 이만큼은 메모리 보장해줘
+              cpu: "250m"                     # CPU 0.25개는 보장해줘
+            limits:
+              memory: "512Mi"                 # 최대 이 이상은 쓰지 마 (넘으면 강제 종료)
+              cpu: "500m"                     # CPU 0.5개 이상 쓰지 마
+
+---
+# (구분선: 파일 하나에 여러 설정을 넣을 때 씀)
+
+# -------------------
+# 2. 서비스(Service) 설정
+# : 외부에서 파드에 접속할 수 있게 해주는 '안내 데스크(로드밸런서)'입니다.
+# -------------------
+apiVersion: v1
+kind: Service           # 리소스 종류: 접속 관리자
+metadata:
+  name: auction-service # 서비스 이름
+spec:
+  type: LoadBalancer    # [중요] 외부(브라우저)에서 접속 가능하게 IP를 열어줌 (도커 데스크탑은 localhost로 연결)
+  selector:
+    app: auction        # "app: auction" 이름표가 붙은 파드들에게 트래픽을 전달하겠다.
+  ports:
+    - protocol: TCP
+      port: 80          # 사용자가 들어올 포트 (http://localhost:80)
+      targetPort: 8080  # 실제로 파드가 듣고 있는 포트 (스프링 부트 8080)

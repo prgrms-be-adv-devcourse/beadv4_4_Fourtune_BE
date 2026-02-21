@@ -1,0 +1,13 @@
+plugins {
+    id 'java-library'
+}
+
+bootJar { enabled = false }
+jar { enabled = true }
+
+dependencies {
+    api project(':common:core')
+
+    // Redis
+    api 'org.springframework.boot:spring-boot-starter-data-redis'
+}

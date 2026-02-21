@@ -76,3 +76,16 @@ jacoco.xml
 **/src/main/generated/
 
 firebase-service-account.json
+
+### Docs (미추적) ###
+fourtune/docs/
+
+### JMeter 생성물 ###
+fourtune/jmeter/out/
+
+*.md
+prometheus.yml
+*.json
+WatchListPerformanceTest.java
+nul
+*.py
