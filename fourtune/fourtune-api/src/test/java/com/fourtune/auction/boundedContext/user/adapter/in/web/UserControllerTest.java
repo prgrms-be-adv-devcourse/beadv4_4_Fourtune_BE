@@ -1,7 +1,9 @@
 package com.fourtune.auction.boundedContext.user.adapter.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
 import com.fourtune.api.infrastructure.kafka.search.SearchKafkaProducer;
 import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
@@ -31,104 +33,103 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class UserControllerTest {
 
-    private MockMvc mockMvc;
-    private ObjectMapper objectMapper;
+        private MockMvc mockMvc;
+        private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
+        @MockitoBean
+        private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
 
-    @MockitoBean
-    private com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener auctionItemIndexEventListener;
+        @MockitoBean
+        private com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener auctionItemIndexEventListener;
 
-    @MockitoBean
-    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchAuctionItemIndexingHandler elasticsearchAuctionItemIndexingHandler;
+        @MockitoBean
+        private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchAuctionItemIndexingHandler elasticsearchAuctionItemIndexingHandler;
 
-    @MockitoBean
-    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository searchAuctionItemCrudRepository;
+        @MockitoBean
+        private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository searchAuctionItemCrudRepository;
 
-    @MockitoBean
-    private WatchListKafkaProducer watchListKafkaProducer;
+        @MockitoBean
+        private WatchListKafkaProducer watchListKafkaProducer;
 
-    @MockitoBean
-    private NotificationKafkaProducer notificationKafkaProducer;
+        @MockitoBean
+        private NotificationKafkaProducer notificationKafkaProducer;
 
-    @MockitoBean
-    private SearchKafkaProducer searchKafkaProducer;
+        @MockitoBean
+        private SearchKafkaProducer searchKafkaProducer;
 
-    @Autowired
-    private WebApplicationContext context;
+        @Autowired
+        private WebApplicationContext context;
 
-    @Autowired
-    private UserRepository userRepository;
+        @Autowired
+        private UserRepository userRepository;
 
-    @BeforeEach
-    void setUp() {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
-                .addFilters(new CharacterEncodingFilter("UTF-8", true))
-                .build();
-    }
+        @BeforeEach
+        void setUp() {
+                this.objectMapper = new ObjectMapper();
+                this.objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+                this.objectMapper.registerModule(new JavaTimeModule());
 
-    @Test
-    @DisplayName("Swagger UI와 회원가입 API는 인증 없이 접근 가능하다")
-    void publicPathTest() throws Exception {
-        // 1. Swagger 데이터 경로 확인
-        mockMvc.perform(get("/v3/api-docs"))
-                .andDo(print())
-                .andExpect(status().isOk());
+                this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
+                                .addFilters(new CharacterEncodingFilter("UTF-8", true))
+                                .build();
+        }
 
-        // 2. 회원가입 (정상 데이터) - post 메서드는 MockMvcRequestBuilders.post여야 합니다.
-        UserSignUpRequest validRequest = new UserSignUpRequest(
-                "test@example.com", "Password123!", "정상 닉네임", "010-1364-6512"
-        );
+        @Test
+        @DisplayName("Swagger UI와 회원가입 API는 인증 없이 접근 가능하다")
+        void publicPathTest() throws Exception {
+                // 1. Swagger 데이터 경로 확인
+                mockMvc.perform(get("/v3/api-docs"))
+                                .andDo(print())
+                                .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/users/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validRequest)))
-                .andExpect(status().isCreated());
-    }
+                // 2. 회원가입 (정상 데이터) - post 메서드는 MockMvcRequestBuilders.post여야 합니다.
+                UserSignUpRequest validRequest = new UserSignUpRequest(
+                                "test@example.com", "Password123!", "정상 닉네임", "010-1364-6512");
 
-    @Test
-    @DisplayName("이메일 형식이 틀리면 400 에러와 함께 검증 메시지를 반환한다")
-    void validationFailTest() throws Exception {
-        // Given: 유효하지 않은 데이터
-        UserSignUpRequest invalidRequest = new UserSignUpRequest(
-                "wrong-email", "123", "01012345678", ""
-        );
+                mockMvc.perform(post("/api/users/signup")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(validRequest)))
+                                .andExpect(status().isCreated());
+        }
 
-        // When & Then
-        mockMvc.perform(post("/api/users/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest())
-                .andDo(print())
-                .andExpect(result -> {
-                    String content = result.getResponse().getContentAsString();
-                    assertThat(content).isNotEmpty();
-                    System.out.println("발생한 에러 메시지: " + content);
-                });
-    }
+        @Test
+        @DisplayName("이메일 형식이 틀리면 400 에러와 함께 검증 메시지를 반환한다")
+        void validationFailTest() throws Exception {
+                // Given: 유효하지 않은 데이터
+                UserSignUpRequest invalidRequest = new UserSignUpRequest(
+                                "wrong-email", "123", "01012345678", "");
 
-    @Test
-    @DisplayName("GET /api/users/{id} - 가입된 유저 ID로 조회 시 id, email, nickname이 반환된다")
-    void getUserByIdTest() throws Exception {
-        UserSignUpRequest signup = new UserSignUpRequest(
-                "public@example.com", "Password123!", "공개닉네임", "010-1118-2222"
-        );
-        mockMvc.perform(post("/api/users/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(signup)))
-                .andExpect(status().isCreated());
+                // When & Then
+                mockMvc.perform(post("/api/users/signup")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(invalidRequest)))
+                                .andExpect(status().isBadRequest())
+                                .andDo(print())
+                                .andExpect(result -> {
+                                        String content = result.getResponse().getContentAsString();
+                                        assertThat(content).isNotEmpty();
+                                        System.out.println("발생한 에러 메시지: " + content);
+                                });
+        }
 
-        Long userId = userRepository.findByEmail("public@example.com").orElseThrow().getId();
-        var result = mockMvc.perform(get("/api/users/" + userId))
-                .andExpect(status().isOk())
-                .andReturn();
-        String json = result.getResponse().getContentAsString();
-        UserResponse parsed = objectMapper.readValue(json, UserResponse.class);
-        assertThat(parsed.id()).isEqualTo(userId);
-        assertThat(parsed.email()).isEqualTo("public@example.com");
-        assertThat(parsed.nickname()).isEqualTo("공개닉네임");
-    }
+        @Test
+        @DisplayName("GET /api/users/{id} - 가입된 유저 ID로 조회 시 id, email, nickname이 반환된다")
+        void getUserByIdTest() throws Exception {
+                UserSignUpRequest signup = new UserSignUpRequest(
+                                "public@example.com", "Password123!", "공개닉네임", "010-1118-2222");
+                mockMvc.perform(post("/api/users/signup")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(signup)))
+                                .andExpect(status().isCreated());
+
+                Long userId = userRepository.findByEmail("public@example.com").orElseThrow().getId();
+                var result = mockMvc.perform(get("/api/users/" + userId))
+                                .andExpect(status().isOk())
+                                .andReturn();
+                String json = result.getResponse().getContentAsString();
+                UserResponse parsed = objectMapper.readValue(json, UserResponse.class);
+                assertThat(parsed.id()).isEqualTo(userId);
+                assertThat(parsed.email()).isEqualTo("public@example.com");
+                assertThat(parsed.nickname()).isEqualTo("공개닉네임");
+        }
 }
