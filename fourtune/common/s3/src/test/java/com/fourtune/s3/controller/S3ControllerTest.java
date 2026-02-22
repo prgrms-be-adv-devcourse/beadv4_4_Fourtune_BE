@@ -1,6 +1,5 @@
-package com.fourtune.auction.infra.s3.controller;
+package com.fourtune.s3.controller;
 
-import com.fourtune.s3.controller.S3Controller;
 import com.fourtune.s3.dto.S3PresignedUrlResponse;
 import com.fourtune.s3.service.S3Service;
 import org.junit.jupiter.api.BeforeEach;

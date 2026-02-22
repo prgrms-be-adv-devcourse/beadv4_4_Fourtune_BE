@@ -22,7 +22,7 @@ subprojects {
 	ext {
 		querydslVersion = '5.0.0'
 		jwtVersion = '0.12.3'
-		openFeignVersion = '3.1.8'
+		openFeignVersion = '5.0.1'
 	}
 
 	java {
