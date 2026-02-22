@@ -17,7 +17,8 @@ public class PaymentCompleteSettlementUseCase {
 
         @Transactional // [중요] 입금/출금의 원자성 보장을 위해 트랜잭션 추가
         public Wallet settlementCashComplete(SettlementDto dto){
-                Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow(
+                // 동시 정산 시 Lost Update 방지: 시스템·수급자 지갑 비관적 락
+                Wallet systemWallet = paymentSupport.findSystemWalletForUpdate().orElseThrow(
                         () -> new BusinessException(ErrorCode.PAYMENT_SYSTEM_WALLET_NOT_FOUND)
                 );
 
@@ -26,7 +27,7 @@ public class PaymentCompleteSettlementUseCase {
                 }
 
                 if(dto.getPayeeEmail().equals(CashPolicy.PLATFORM_REVENUE_USER_EMAIL)){
-                        Wallet platformWallet = paymentSupport.findPlatformWallet().orElseThrow(
+                        Wallet platformWallet = paymentSupport.findPlatformWalletForUpdate().orElseThrow(
                                 () -> new BusinessException(ErrorCode.PAYMENT_PLATFORM_WALLET_NOT_FOUND)
                         );
 
@@ -48,7 +49,7 @@ public class PaymentCompleteSettlementUseCase {
                         return platformWallet;
                 }
                 else{
-                        Wallet payeeWallet = paymentSupport.findWalletByUserEmail(dto.getPayeeEmail()).orElseThrow(
+                        Wallet payeeWallet = paymentSupport.findWalletByUserEmailForUpdate(dto.getPayeeEmail()).orElseThrow(
                                 () -> new BusinessException(ErrorCode.PAYMENT_WALLET_NOT_FOUND)
                         );
 
