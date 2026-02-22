@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.watchList.adapter.in.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
+import com.fourtune.shared.user.event.UserEventType;
 import com.fourtune.auction.boundedContext.watchList.application.service.WatchListService;
 import com.fourtune.kafka.KafkaTopicConfig;
 import com.fourtune.shared.user.dto.UserResponse;

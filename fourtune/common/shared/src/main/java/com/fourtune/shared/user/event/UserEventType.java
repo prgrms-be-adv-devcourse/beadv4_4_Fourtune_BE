@@ -1,4 +1,4 @@
-package com.fourtune.auction.boundedContext.user.domain.constant;
+package com.fourtune.shared.user.event;
 
 public enum UserEventType {
     USER_JOINED,

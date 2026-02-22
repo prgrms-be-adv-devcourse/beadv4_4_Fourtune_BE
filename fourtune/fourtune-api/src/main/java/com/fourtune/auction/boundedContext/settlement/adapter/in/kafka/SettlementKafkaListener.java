@@ -2,11 +2,10 @@ package com.fourtune.auction.boundedContext.settlement.adapter.in.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.settlement.application.service.SettlementFacade;
-import com.fourtune.kafka.KafkaConfig;
 import com.fourtune.kafka.KafkaTopicConfig;
 import com.fourtune.shared.settlement.event.SettlementCompletedEvent;
 import com.fourtune.shared.settlement.event.SettlementUserCreatedEvent;
-import com.fourtune.api.infrastructure.kafka.settlement.SettlementEventMapper;
+import com.fourtune.shared.kafka.settlement.SettlementEventMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

@@ -1,4 +1,4 @@
-package com.fourtune.api.infrastructure.kafka.settlement;
+package com.fourtune.shared.kafka.settlement;
 
 import com.fourtune.shared.settlement.event.*;
 import lombok.extern.slf4j.Slf4j;

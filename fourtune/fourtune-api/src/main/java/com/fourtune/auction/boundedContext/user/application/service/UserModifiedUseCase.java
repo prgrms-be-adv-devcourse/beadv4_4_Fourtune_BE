@@ -1,6 +1,5 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
-import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.core.error.ErrorCode;
@@ -8,6 +7,7 @@ import com.fourtune.core.error.exception.BusinessException;
 import com.fourtune.core.eventPublisher.EventPublisher;
 import com.fourtune.outbox.service.OutboxService;
 import com.fourtune.shared.user.dto.UserUpdateRequest;
+import com.fourtune.shared.user.event.UserEventType;
 import com.fourtune.shared.user.event.UserModifiedEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
