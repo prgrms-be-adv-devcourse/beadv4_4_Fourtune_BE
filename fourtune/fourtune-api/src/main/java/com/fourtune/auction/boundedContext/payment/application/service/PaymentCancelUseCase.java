@@ -26,6 +26,7 @@ public class PaymentCancelUseCase {
     private final RefundRepository refundRepository;
     private final PaymentGatewayPort paymentGatewayPort;
     private final PaymentSupport paymentSupport;
+    private final PaymentRefundRetryRecorder paymentRefundRetryRecorder;
     /**
      * 결제 취소 (환불) 요청
      * @param cancelReason 취소 사유
@@ -51,25 +52,29 @@ public class PaymentCancelUseCase {
         }
 
         PaymentUser paymentUser = payment.getPaymentUser();
-        Wallet payerWallet = paymentSupport.findWalletByUser(paymentUser).orElseThrow(
+        Wallet payerWallet = paymentSupport.findWalletByUserIdForUpdate(paymentUser.getId()).orElseThrow(
                 () -> new BusinessException(ErrorCode.PAYMENT_WALLET_NOT_FOUND)
         );
-
-        Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow(
+        Wallet systemWallet = paymentSupport.findSystemWalletForUpdate().orElseThrow(
                 () -> new BusinessException(ErrorCode.PAYMENT_SYSTEM_WALLET_NOT_FOUND)
         );
 
         // 시스템 지갑에서 돈을 뺄 수 있는지 확인하고 차감 (잔액 부족 시 예외 발생 -> 롤백됨)
-        if(systemWallet.getBalance() < cancelAmount){
+        if (systemWallet.getBalance() < requestAmount) {
             log.warn("결제 취소 실패 - 시스템 지갑 잔액 부족. user={}, amount={}", payment.getPaymentUser().getId(), requestAmount);
             throw new BusinessException(ErrorCode.PAYMENT_WALLET_INSUFFICIENT_BALANCE);
         }
         systemWallet.debit(requestAmount, CashEventType.환불__주문취소__결제금액, "Order", orderDto.getAuctionOrderId());
         payerWallet.credit(requestAmount, CashEventType.환불__주문취소__결제금액, "Order", orderDto.getAuctionOrderId());
 
-        // 6. [외부] PG사 취소 요청
-        // 내부 지갑 정리가 끝났으므로 실제 돈을 돌려줌
-        PaymentExecutionResult result = paymentGatewayPort.cancel(payment.getPaymentKey(), cancelReason, requestAmount);
+        // 6. [외부] PG사 취소 요청 (실패 시 1.5 재시도 이벤트 기록 후 예외)
+        PaymentExecutionResult result;
+        try {
+            result = paymentGatewayPort.cancel(payment.getPaymentKey(), cancelReason, requestAmount);
+        } catch (Exception e) {
+            paymentRefundRetryRecorder.recordRefundPgRetry(payment.getPaymentKey(), orderDto.getOrderId(), requestAmount, cancelReason);
+            throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
+        }
 
         // 7. [상태 변경] DB 업데이트
         if (result.isSuccess()) {

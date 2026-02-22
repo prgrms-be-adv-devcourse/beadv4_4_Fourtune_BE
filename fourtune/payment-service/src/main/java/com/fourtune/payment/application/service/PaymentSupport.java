@@ -23,6 +23,7 @@ public class PaymentSupport {
     public Optional<PaymentUser> findUserByEmail(String email) {
         return paymentUserRepository.findByEmail(email);
     }
+
     public Optional<PaymentUser> findUserByUserId(Long userId) {
         return paymentUserRepository.findById(userId);
     }
@@ -31,9 +32,14 @@ public class PaymentSupport {
         return walletRepository.findWalletByPaymentUser(paymentUser);
     }
 
-    public Optional<Wallet> findWalletByUserEmail(String email){
+    public Optional<Wallet> findWalletByUserEmail(String email) {
         PaymentUser user = findUserByEmail(email).orElseThrow();
         return findWalletByUser(user);
+    }
+
+    public Optional<Wallet> findWalletByUserEmailForUpdate(String email) {
+        PaymentUser user = findUserByEmail(email).orElseThrow();
+        return walletRepository.findWalletByPaymentUserForUpdate(user);
     }
 
     public Optional<Wallet> findWalletByUserId(Long userId) {
@@ -41,14 +47,32 @@ public class PaymentSupport {
         return findWalletByUser(user);
     }
 
+    /** 고객 지갑 조회 (비관적 락, 결제 차감 시 동시성 제어용) */
+    public Optional<Wallet> findWalletByUserIdForUpdate(Long userId) {
+        PaymentUser user = findUserByUserId(userId).orElseThrow();
+        return walletRepository.findWalletByPaymentUserForUpdate(user);
+    }
+
     public Optional<Wallet> findSystemWallet() {
         PaymentUser systemUser = paymentUserRepository.findByEmail(CashPolicy.SYSTEM_HOLDING_USER_EMAIL).orElseThrow();
         return walletRepository.findWalletByPaymentUser(systemUser);
     }
 
+    /** 시스템 지갑 조회 (비관적 락, 정산/환불 시 동시성 제어용) */
+    public Optional<Wallet> findSystemWalletForUpdate() {
+        PaymentUser systemUser = paymentUserRepository.findByEmail(CashPolicy.SYSTEM_HOLDING_USER_EMAIL).orElseThrow();
+        return walletRepository.findWalletByPaymentUserForUpdate(systemUser);
+    }
+
     public Optional<Wallet> findPlatformWallet() {
-        PaymentUser systemUser = paymentUserRepository.findByEmail(CashPolicy.PLATFORM_REVENUE_USER_EMAIL).orElseThrow();
+        PaymentUser systemUser = paymentUserRepository.findByEmail(CashPolicy.PLATFORM_REVENUE_USER_EMAIL)
+                .orElseThrow();
         return walletRepository.findWalletByPaymentUser(systemUser);
+    }
+
+    public Optional<Wallet> findPlatformWalletForUpdate() {
+        PaymentUser user = paymentUserRepository.findByEmail(CashPolicy.PLATFORM_REVENUE_USER_EMAIL).orElseThrow();
+        return walletRepository.findWalletByPaymentUserForUpdate(user);
     }
 
     public Long getWalletBalanceByUserId(Long userId) {
@@ -61,15 +85,15 @@ public class PaymentSupport {
         return wallet.getCashLogs();
     }
 
-    public List<Payment> findPaymentListByUserId(Long userId){
+    public List<Payment> findPaymentListByUserId(Long userId) {
         return paymentRepository.findPaymentsByPaymentUserId(userId);
     }
 
-    public List<Refund> findRefundListByUserId(Long userId){
+    public List<Refund> findRefundListByUserId(Long userId) {
         return refundRepository.findRefundsByPayment_PaymentUser_Id(userId);
     }
 
-    public List<CashLog> findSliceCashLogs(Long userId, int page, int size){
+    public List<CashLog> findSliceCashLogs(Long userId, int page, int size) {
         return cashLogRepository.findCashLogsByPaymentUserIdOrderByIdDesc(userId, PageRequest.of(page, size));
     }
 

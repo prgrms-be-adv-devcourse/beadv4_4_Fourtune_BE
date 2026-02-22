@@ -31,15 +31,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * fourtune-api 모듈 JWT 보안 통합 테스트
  *
- * <p>실제 SecurityFilterChain(JwtAuthenticationFilter + Spring Security)을 적용한 상태에서
- * 각 도메인 엔드포인트의 인증·인가 동작을 검증한다.</p>
+ * <p>
+ * 실제 SecurityFilterChain(JwtAuthenticationFilter + Spring Security)을 적용한 상태에서
+ * 각 도메인 엔드포인트의 인증·인가 동작을 검증한다.
+ * </p>
  *
  * <ul>
- *   <li>토큰 없음    → 302 (OAuth2 로그인 리다이렉트)</li>
- *   <li>만료된 토큰  → 401 + JSON 에러 (필터가 직접 응답)</li>
- *   <li>유효한 토큰  → 보안 통과 (2xx 또는 비즈니스 로직 결과)</li>
- *   <li>공개 경로    → 토큰 없이도 접근 가능</li>
- *   <li>관리자 권한  → ROLE_ADMIN 토큰 필요</li>
+ * <li>토큰 없음 → 302 (OAuth2 로그인 리다이렉트)</li>
+ * <li>만료된 토큰 → 401 + JSON 에러 (필터가 직접 응답)</li>
+ * <li>유효한 토큰 → 보안 통과 (2xx 또는 비즈니스 로직 결과)</li>
+ * <li>공개 경로 → 토큰 없이도 접근 가능</li>
+ * <li>관리자 권한 → ROLE_ADMIN 토큰 필요</li>
  * </ul>
  */
 @SpringBootTest
@@ -82,6 +84,9 @@ class JwtSecurityTest {
     // ── 서비스 계층 Mock (컨트롤러 처리 정상 완료용) ──────────────────────────────
     @MockitoBean
     private NotificationFacade notificationFacade;
+
+    @MockitoBean
+    private com.fourtune.auction.boundedContext.notification.application.NotificationSettingsService notificationSettingsService;
 
     @MockitoBean
     private FcmService fcmService;
@@ -141,7 +146,7 @@ class JwtSecurityTest {
         @DisplayName("만료된 토큰 → GET /api/v1/notifications → 401 + 에러코드 T001")
         void expiredToken_returns401WithErrorCode() throws Exception {
             mockMvc.perform(get("/api/v1/notifications")
-                            .header("Authorization", "Bearer " + expiredToken()))
+                    .header("Authorization", "Bearer " + expiredToken()))
                     .andExpect(status().isUnauthorized())
                     .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.code").value("T001"));
@@ -151,7 +156,7 @@ class JwtSecurityTest {
         @DisplayName("유효한 USER 토큰 → GET /api/v1/notifications → 200 (인증 통과)")
         void validToken_returns200() throws Exception {
             mockMvc.perform(get("/api/v1/notifications")
-                            .header("Authorization", "Bearer " + validUserToken()))
+                    .header("Authorization", "Bearer " + validUserToken()))
                     .andExpect(status().isOk());
         }
 
@@ -159,7 +164,7 @@ class JwtSecurityTest {
         @DisplayName("만료된 토큰 → GET /api/v1/notifications/settings → 401")
         void expiredToken_settings_returns401() throws Exception {
             mockMvc.perform(get("/api/v1/notifications/settings")
-                            .header("Authorization", "Bearer " + expiredToken()))
+                    .header("Authorization", "Bearer " + expiredToken()))
                     .andExpect(status().isUnauthorized());
         }
     }
@@ -183,7 +188,7 @@ class JwtSecurityTest {
         @DisplayName("만료된 토큰 → GET /api/v1/watch-lists → 401 + 에러코드 T001")
         void expiredToken_returns401WithErrorCode() throws Exception {
             mockMvc.perform(get("/api/v1/watch-lists")
-                            .header("Authorization", "Bearer " + expiredToken()))
+                    .header("Authorization", "Bearer " + expiredToken()))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("T001"));
         }
@@ -192,7 +197,7 @@ class JwtSecurityTest {
         @DisplayName("유효한 USER 토큰 → GET /api/v1/watch-lists → 200 (인증 통과)")
         void validToken_returns200() throws Exception {
             mockMvc.perform(get("/api/v1/watch-lists")
-                            .header("Authorization", "Bearer " + validUserToken()))
+                    .header("Authorization", "Bearer " + validUserToken()))
                     .andExpect(status().isOk());
         }
 
@@ -200,8 +205,8 @@ class JwtSecurityTest {
         @DisplayName("토큰 없음 → POST /api/v1/watch-lists/toggle → 302 (인증 필요)")
         void noToken_toggle_returns302() throws Exception {
             mockMvc.perform(post("/api/v1/watch-lists/toggle")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"auctionItemId\":1}"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"auctionItemId\":1}"))
                     .andExpect(status().is3xxRedirection());
         }
     }
@@ -218,8 +223,8 @@ class JwtSecurityTest {
         @DisplayName("토큰 없음 → PATCH /api/users/profile → 302 (인증 필요)")
         void noToken_updateProfile_returns302() throws Exception {
             mockMvc.perform(patch("/api/users/profile")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"nickname\":\"newname\"}"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"nickname\":\"newname\"}"))
                     .andExpect(status().is3xxRedirection());
         }
 
@@ -227,9 +232,9 @@ class JwtSecurityTest {
         @DisplayName("만료된 토큰 → PATCH /api/users/profile → 401")
         void expiredToken_updateProfile_returns401() throws Exception {
             mockMvc.perform(patch("/api/users/profile")
-                            .header("Authorization", "Bearer " + expiredToken())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"nickname\":\"newname\"}"))
+                    .header("Authorization", "Bearer " + expiredToken())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"nickname\":\"newname\"}"))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("T001"));
         }
@@ -239,8 +244,8 @@ class JwtSecurityTest {
         void signup_noToken_isPermitted() throws Exception {
             // 유효하지 않은 요청이어도 보안 차단(401/302)이 아닌 검증 오류(400)로 응답해야 함
             mockMvc.perform(post("/api/users/signup")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"email\":\"bad\"}"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"email\":\"bad\"}"))
                     .andExpect(status().isBadRequest());
         }
     }
@@ -264,7 +269,7 @@ class JwtSecurityTest {
         @DisplayName("만료된 토큰 → GET /api/settlements/latest → 401")
         void expiredToken_returns401() throws Exception {
             mockMvc.perform(get("/api/settlements/latest")
-                            .header("Authorization", "Bearer " + expiredToken()))
+                    .header("Authorization", "Bearer " + expiredToken()))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.code").value("T001"));
         }
@@ -273,7 +278,7 @@ class JwtSecurityTest {
         @DisplayName("유효한 토큰 → GET /api/settlements/latest → 200 (인증 통과)")
         void validToken_returns200() throws Exception {
             mockMvc.perform(get("/api/settlements/latest")
-                            .header("Authorization", "Bearer " + validUserToken()))
+                    .header("Authorization", "Bearer " + validUserToken()))
                     .andExpect(status().isOk());
         }
     }
@@ -316,7 +321,7 @@ class JwtSecurityTest {
         @DisplayName("USER 토큰으로 /api/admin/** 접근 → 403 (권한 부족)")
         void userToken_adminEndpoint_returns403() throws Exception {
             mockMvc.perform(get("/api/admin/users")
-                            .header("Authorization", "Bearer " + validUserToken()))
+                    .header("Authorization", "Bearer " + validUserToken()))
                     .andExpect(status().isForbidden());
         }
 
@@ -332,7 +337,7 @@ class JwtSecurityTest {
         void adminToken_adminEndpoint_passesSecurity() throws Exception {
             // ROLE_ADMIN 권한으로 접근 → 보안은 통과하나 핸들러 없으므로 404
             mockMvc.perform(get("/api/admin/users")
-                            .header("Authorization", "Bearer " + validAdminToken()))
+                    .header("Authorization", "Bearer " + validAdminToken()))
                     .andExpect(status().isNotFound());
         }
     }
