@@ -18,6 +18,9 @@ dependencies {
     runtimeOnly "io.jsonwebtoken:jjwt-impl:${jwtVersion}"
     runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jwtVersion}"
 
+    // Feign (optional - Feign이 classpath에 있을 때만 FeignJwtAutoConfig 활성화)
+    compileOnly "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
