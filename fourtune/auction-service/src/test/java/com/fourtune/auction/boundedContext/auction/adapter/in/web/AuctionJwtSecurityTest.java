@@ -96,12 +96,12 @@ class AuctionJwtSecurityTest {
     class AuctionSecurity {
 
         @Test
-        @DisplayName("토큰 없음 → POST /api/v1/auctions (경매 등록) → 302 (인증 필요)")
-        void noToken_createAuction_returns302() throws Exception {
+        @DisplayName("토큰 없음 → POST /api/v1/auctions (경매 등록) → 403 (인증 필요)")
+        void noToken_createAuction_returns403() throws Exception {
             mockMvc.perform(post("/api/v1/auctions")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{}"))
-                    .andExpect(status().is3xxRedirection());
+                    .andExpect(status().isForbidden());
         }
 
         @Test
@@ -144,10 +144,10 @@ class AuctionJwtSecurityTest {
         }
 
         @Test
-        @DisplayName("토큰 없음 → DELETE /api/v1/auctions/{id} → 302 (인증 필요)")
-        void noToken_deleteAuction_returns302() throws Exception {
+        @DisplayName("토큰 없음 → DELETE /api/v1/auctions/{id} → 403 (인증 필요)")
+        void noToken_deleteAuction_returns403() throws Exception {
             mockMvc.perform(delete("/api/v1/auctions/1"))
-                    .andExpect(status().is3xxRedirection());
+                    .andExpect(status().isForbidden());
         }
 
         @Test
@@ -169,12 +169,12 @@ class AuctionJwtSecurityTest {
     class BidSecurity {
 
         @Test
-        @DisplayName("토큰 없음 → POST /api/v1/bids (입찰) → 302 (인증 필요)")
-        void noToken_placeBid_returns302() throws Exception {
+        @DisplayName("토큰 없음 → POST /api/v1/bids (입찰) → 403 (인증 필요)")
+        void noToken_placeBid_returns403() throws Exception {
             mockMvc.perform(post("/api/v1/bids")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{}"))
-                    .andExpect(status().is3xxRedirection());
+                    .andExpect(status().isForbidden());
         }
 
         @Test
@@ -199,17 +199,17 @@ class AuctionJwtSecurityTest {
         }
 
         @Test
-        @DisplayName("토큰 없음 → DELETE /api/v1/bids/{id} (입찰 취소) → 302 (인증 필요)")
-        void noToken_cancelBid_returns302() throws Exception {
+        @DisplayName("토큰 없음 → DELETE /api/v1/bids/{id} (입찰 취소) → 403 (인증 필요)")
+        void noToken_cancelBid_returns403() throws Exception {
             mockMvc.perform(delete("/api/v1/bids/1"))
-                    .andExpect(status().is3xxRedirection());
+                    .andExpect(status().isForbidden());
         }
 
         @Test
-        @DisplayName("토큰 없음 → GET /api/v1/bids/my (내 입찰 목록) → 302 (인증 필요)")
-        void noToken_getMyBids_returns302() throws Exception {
+        @DisplayName("토큰 없음 → GET /api/v1/bids/my (내 입찰 목록) → 403 (인증 필요)")
+        void noToken_getMyBids_returns403() throws Exception {
             mockMvc.perform(get("/api/v1/bids/my"))
-                    .andExpect(status().is3xxRedirection());
+                    .andExpect(status().isForbidden());
         }
     }
 
@@ -222,10 +222,10 @@ class AuctionJwtSecurityTest {
     class CartSecurity {
 
         @Test
-        @DisplayName("토큰 없음 → GET /api/v1/cart → 302 (인증 필요)")
-        void noToken_getCart_returns302() throws Exception {
+        @DisplayName("토큰 없음 → GET /api/v1/cart → 403 (인증 필요)")
+        void noToken_getCart_returns403() throws Exception {
             mockMvc.perform(get("/api/v1/cart"))
-                    .andExpect(status().is3xxRedirection());
+                    .andExpect(status().isForbidden());
         }
 
         @Test
@@ -247,10 +247,10 @@ class AuctionJwtSecurityTest {
     class OrderSecurity {
 
         @Test
-        @DisplayName("토큰 없음 → GET /api/v1/orders → 302 (인증 필요)")
-        void noToken_getOrders_returns302() throws Exception {
+        @DisplayName("토큰 없음 → GET /api/v1/orders → 403 (인증 필요)")
+        void noToken_getOrders_returns403() throws Exception {
             mockMvc.perform(get("/api/v1/orders"))
-                    .andExpect(status().is3xxRedirection());
+                    .andExpect(status().isForbidden());
         }
 
         @Test
