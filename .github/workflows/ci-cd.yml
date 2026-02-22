@@ -223,7 +223,8 @@ jobs:
           key: ${{ secrets.DEV_SSH_KEY }}
           script: |
             cd /home/fourtune/fourtune || exit 1
-            git pull origin develop || exit 1
+            git fetch origin || exit 1
+            git reset --hard origin/develop || exit 1
             docker-compose -f docker-compose.dev.yml build app || exit 1
             docker-compose -f docker-compose.dev.yml up -d || exit 1
             docker system prune -af
