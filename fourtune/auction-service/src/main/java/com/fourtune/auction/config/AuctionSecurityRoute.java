@@ -11,6 +11,6 @@ public class AuctionSecurityRoute implements SecurityRouteCustomizer {
     @Override
     public void customize(
             AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
-        auth.requestMatchers("/api/v1/auctions/*", "/api/v1/search/**").permitAll();
+        auth.requestMatchers("/api/v1/auctions", "/api/v1/auctions/*", "/api/v1/search/**").permitAll();
     }
 }
