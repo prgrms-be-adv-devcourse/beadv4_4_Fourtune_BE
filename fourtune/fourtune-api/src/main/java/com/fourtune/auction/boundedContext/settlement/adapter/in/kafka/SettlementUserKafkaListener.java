@@ -2,7 +2,7 @@ package com.fourtune.auction.boundedContext.settlement.adapter.in.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.settlement.application.service.SettlementFacade;
-import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
+import com.fourtune.shared.user.event.UserEventType;
 import com.fourtune.kafka.KafkaTopicConfig;
 import com.fourtune.shared.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;

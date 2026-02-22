@@ -3,7 +3,7 @@ package com.fourtune.auction.boundedContext.notification.adapter.in.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.notification.application.NotificationFacade;
 import com.fourtune.auction.boundedContext.notification.application.NotificationSettingsService;
-import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
+import com.fourtune.shared.user.event.UserEventType;
 import com.fourtune.shared.user.dto.UserResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
