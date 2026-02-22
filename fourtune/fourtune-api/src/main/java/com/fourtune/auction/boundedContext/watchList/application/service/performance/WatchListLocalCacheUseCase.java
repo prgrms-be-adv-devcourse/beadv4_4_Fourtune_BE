@@ -11,6 +11,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +47,7 @@ public class WatchListLocalCacheUseCase {
     private final EventPublisher eventPublisher;
     private final EventPublishingConfig eventPublishingConfig;
     private final ObjectMapper objectMapper;
-    private final WatchListKafkaProducer watchListKafkaProducer;
+    private final ObjectProvider<WatchListKafkaProducer> watchListKafkaProducerProvider;
 
     // 관심등록 캐시: auctionItemId -> Set<userId>
     private Cache<Long, Set<Long>> auctionToUsersCache;
@@ -163,8 +164,10 @@ public class WatchListLocalCacheUseCase {
     private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {
         if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
             try {
-                String payload = objectMapper.writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
-                watchListKafkaProducer.send(String.valueOf(auctionItemId), payload, type.name());
+                String payload = objectMapper
+                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
+                watchListKafkaProducerProvider
+                        .ifAvailable(producer -> producer.send(String.valueOf(auctionItemId), payload, type.name()));
             } catch (Exception e) {
                 log.error("[LOCAL] WatchList Kafka 이벤트 발행 실패: auctionItemId={}", auctionItemId, e);
             }
@@ -217,8 +220,7 @@ public class WatchListLocalCacheUseCase {
                 runtime.freeMemory(),
                 runtime.maxMemory(),
                 auctionToUsersCache.estimatedSize(),
-                unlimitedCache.estimatedSize()
-        );
+                unlimitedCache.estimatedSize());
     }
 
     /**
@@ -229,8 +231,7 @@ public class WatchListLocalCacheUseCase {
             long freeMemory,
             long maxMemory,
             long limitedCacheSize,
-            long unlimitedCacheSize
-    ) {
+            long unlimitedCacheSize) {
         public long usedMemory() {
             return totalMemory - freeMemory;
         }

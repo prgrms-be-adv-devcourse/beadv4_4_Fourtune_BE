@@ -13,6 +13,8 @@ import com.fourtune.api.infrastructure.kafka.notification.NotificationEventType;
 import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,20 +30,20 @@ public class NotificationCreateUseCase {
     private final EventPublisher eventPublisher;
     private final EventPublishingConfig eventPublishingConfig;
     private final ObjectMapper objectMapper;
-    private final NotificationKafkaProducer notificationKafkaProducer;
+    private final ObjectProvider<NotificationKafkaProducer> notificationKafkaProducerProvider;
 
     @Transactional
-    public void bidPlaceToSeller(Long sellerId, Long bidderId, Long auctionId, NotificationType type){
+    public void bidPlaceToSeller(Long sellerId, Long bidderId, Long auctionId, NotificationType type) {
         if (sellerId.equals(bidderId)) {
             throw new BusinessException(ErrorCode.SELF_BIDDING_NOT_ALLOWED);
         }
-        
+
         String relatedUrl = "/auctions/" + auctionId;
         createNotification(sellerId, relatedUrl, type);
     }
 
     @Transactional
-    public void createNotificationWithUrl(Long receiverId, Long auctionId, NotificationType type){
+    public void createNotificationWithUrl(Long receiverId, Long auctionId, NotificationType type) {
         String relatedUrl = "/auctions/" + auctionId;
 
         createNotification(receiverId, relatedUrl, type);
@@ -62,7 +64,7 @@ public class NotificationCreateUseCase {
         createNotification(receiverId, relatedUrl, type);
     }
 
-    private void createNotification(Long receiverId, String relatedUrl, NotificationType type){
+    private void createNotification(Long receiverId, String relatedUrl, NotificationType type) {
         NotificationUser user = notificationSupport.findByUserId(receiverId);
 
         Notification notification = Notification.builder()
@@ -83,13 +85,14 @@ public class NotificationCreateUseCase {
                         "title", notification.getTitle(),
                         "content", notification.getContent(),
                         "relatedUrl", relatedUrl));
-                notificationKafkaProducer.send(
-                        String.valueOf(receiverId), payload, NotificationEventType.NOTIFICATION_CREATED.name());
+                notificationKafkaProducerProvider.ifAvailable(producer -> producer.send(String.valueOf(receiverId),
+                        payload, NotificationEventType.NOTIFICATION_CREATED.name()));
             } catch (Exception e) {
                 log.error("Notification Kafka 이벤트 발행 실패: receiverId={}", receiverId, e);
             }
         } else {
-            eventPublisher.publish(new NotificationEvent(receiverId, notification.getTitle(), notification.getContent(), relatedUrl));
+            eventPublisher.publish(
+                    new NotificationEvent(receiverId, notification.getTitle(), notification.getContent(), relatedUrl));
         }
     }
 
