@@ -1,0 +1,41 @@
+# Prometheus Configuration for Fourtune (Local Development & Docker Compose)
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Prometheus 자체 메트릭
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Spring Boot — 로컬에서 단일 앱 실행 시 (IntelliJ 등)
+  - job_name: 'fourtune-app'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+        labels:
+          application: 'fourtune'
+          environment: 'local'
+
+  # Docker Compose 내부 네트워크: fourtune-api (모놀리스)
+  - job_name: 'fourtune-api'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['fourtune-api:8080']
+        labels:
+          application: 'fourtune-api'
+          environment: 'docker'
+
+  # Docker Compose 내부 네트워크: auction-service (경매 MSA, 8083)
+  - job_name: 'auction-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['auction-service:8083']
+        labels:
+          application: 'auction-service'
+          environment: 'docker'

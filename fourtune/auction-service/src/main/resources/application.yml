@@ -1,0 +1,83 @@
+# 경매 서비스 메인 설정 (로직/운영용). 테스트는 application-test.yml 및 테스트 코드에서.
+# Postgres 사용 시: 로컬에 auction DB 없으면 생성 필요 → psql -U postgres -c "CREATE DATABASE auction;"
+# 또는 프로파일 없이 기동만 확인하려면: --spring.profiles.active=local (H2 메모리 DB)
+spring:
+  application:
+    name: auction-service
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/auction}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY:local}
+        secret-key: ${AWS_SECRET_KEY:local}
+      region:
+        static: ${AWS_REGION:ap-northeast-2}
+      s3:
+        bucket: ${AWS_S3_BUCKET:auction-local}
+        path-prefix: ${S3_PATH_PREFIX:local}
+
+server:
+  port: ${SERVER_PORT:8083}
+
+# common OAuth2SuccessHandler (OAuth 로그인은 API 서버에서 처리, 경매 서비스는 리다이렉트 URI만 필요)
+app:
+  oauth2:
+    redirect-uri: ${OAUTH_FRONTEND_URI:http://localhost:3000/login-success}
+
+# common FirebaseConfig 비활성 (경매 서비스는 FCM 미사용)
+firebase:
+  enabled: false
+
+# JWT (common JwtTokenProvider 필수)
+# - 로컬: JWT_SECRET 미설정 시 아래 기본값 사용 (프로덕션에서는 반드시 JWT_SECRET 환경변수로 설정)
+jwt:
+  secret: ${JWT_SECRET:dGVzdC1zZWNyZXQta2V5LWZvci10ZXN0aW5nLW9ubHktbWluLTI1Ni1iaXRzLXJlcXVpcmVkLWZvci1obWFjLXNoYTI1Ni1hbGdvcml0aG0tdGVzdC1rZXktMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTA=}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:1800000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:1209600000}
+
+api:
+  user:
+    base-url: ${API_USER_BASE_URL:http://localhost:8080}
+
+feature:
+  kafka:
+    enabled: true
+  kafka.auction-events:
+    enabled: true
+
+# Outbox (common OutboxPublisher 사용, feature.kafka.enabled=true 시 활성)
+outbox:
+  publisher:
+    batch-size: 100
+    max-retry-count: 3
+    poll-interval-ms: 1000
+
+# Actuator (health, Prometheus 메트릭)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.fourtune: DEBUG

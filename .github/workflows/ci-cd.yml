@@ -92,14 +92,14 @@ jobs:
         uses: dorny/test-reporter@v1
         with:
           name: Test Results
-          path: fourtune/build/test-results/test/*.xml
+          path: '**/build/test-results/test/*.xml'
           reporter: java-junit
-      
+
       - name: Upload test coverage
         if: always()
         uses: codecov/codecov-action@v3
         with:
-          files: ./fourtune/build/reports/jacoco/test/jacocoTestReport.xml
+          files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
           flags: unittests
           name: codecov-umbrella
 
@@ -122,9 +122,8 @@ jobs:
 
       - name: Make Firebase Key File
         run: |
-          mkdir -p ./fourtune/src/main/resources
-
-          echo '${{ secrets.FIREBASE_KEY }}' > ./fourtune/src/main/resources/firebase-service-account.json
+          mkdir -p ./fourtune/fourtune-api/src/main/resources
+          echo '${{ secrets.FIREBASE_KEY }}' > ./fourtune/fourtune-api/src/main/resources/firebase-service-account.json
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./fourtune/gradlew
@@ -133,11 +132,18 @@ jobs:
         working-directory: ./fourtune
         run: ./gradlew build -x test --no-daemon
       
-      - name: Upload build artifact
+      - name: Upload fourtune-api artifact
         uses: actions/upload-artifact@v4
         with:
-          name: fourtune-jar
-          path: fourtune/build/libs/*.jar
+          name: fourtune-api-jar
+          path: fourtune/fourtune-api/build/libs/*.jar
+          retention-days: 7
+
+      - name: Upload payment-service artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: payment-service-jar
+          path: fourtune/payment-service/build/libs/*.jar
           retention-days: 7
 
   docker-build:
@@ -150,45 +156,52 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Download build artifact
+      - name: Download fourtune-api artifact
         uses: actions/download-artifact@v4
         with:
-          name: fourtune-jar
-          path: fourtune/build/libs
+          name: fourtune-api-jar
+          path: fourtune/fourtune-api/build/libs
 
-      # [추가] 도커 빌드 환경에서도 파일을 다시 생성해줍니다.
+      - name: Download payment-service artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: payment-service-jar
+          path: fourtune/payment-service/build/libs
+
       - name: Make Firebase Key File for Docker
         run: |
-          mkdir -p ./fourtune/src/main/resources
-          echo '${{ secrets.FIREBASE_KEY }}' > ./fourtune/src/main/resources/firebase-service-account.json
-      
+          mkdir -p ./fourtune/fourtune-api/src/main/resources
+          echo '${{ secrets.FIREBASE_KEY }}' > ./fourtune/fourtune-api/src/main/resources/firebase-service-account.json
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/fourtune
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-      
-      - name: Build and push Docker image
+
+      - name: Build and push fourtune-api image
         uses: docker/build-push-action@v5
         with:
           context: ./fourtune
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            MODULE_NAME=fourtune-api
+          tags: ghcr.io/${{ github.repository_owner }}/fourtune-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push payment-service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./fourtune
+          push: true
+          build-args: |
+            MODULE_NAME=payment-service
+          tags: ghcr.io/${{ github.repository_owner }}/payment-service:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -210,7 +223,8 @@ jobs:
           key: ${{ secrets.DEV_SSH_KEY }}
           script: |
             cd /home/fourtune/fourtune || exit 1
-            git pull origin develop || exit 1
+            git fetch origin || exit 1
+            git reset --hard origin/develop || exit 1
             docker-compose -f docker-compose.dev.yml build app || exit 1
             docker-compose -f docker-compose.dev.yml up -d || exit 1
             docker system prune -af
@@ -233,7 +247,8 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
             cd /home/ubuntu/fourtune
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
             cd fourtune
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose -f docker-compose.prod.yml pull

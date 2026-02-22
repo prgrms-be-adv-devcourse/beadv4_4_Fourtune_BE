@@ -1,0 +1,27 @@
+plugins {
+    id 'java-library'
+}
+
+bootJar { enabled = false }
+jar { enabled = true }
+
+dependencies {
+    // 1. Base Module
+    api project(':common:core') // Core 유틸/에러 등 상속
+    api project(':common:shared') // 공유 DTO 사용
+
+    // 2. Security Framework (NO OAUTH)
+    api 'org.springframework.boot:spring-boot-starter-security'
+
+    // 3. JWT Library
+    api "io.jsonwebtoken:jjwt-api:${jwtVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:${jwtVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jwtVersion}"
+
+    // Feign (optional - Feign이 classpath에 있을 때만 FeignJwtAutoConfig 활성화)
+    compileOnly "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}

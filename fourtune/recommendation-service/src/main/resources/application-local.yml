@@ -1,0 +1,12 @@
+# ── 로컬 개발 환경 전용 설정 ──
+# 프로필 활성화: spring.profiles.active=local (application.yml에서 기본 활성화)
+
+recommendation:
+  schedule:
+    interval: 30000    # 30초 (AI 추천 배치 갱신 주기)
+  cache:
+    ttl: 60            # 1분 (캐시 TTL)
+
+feature:
+  ai:
+    provider: ollama   # 로컬에서는 Ollama 사용
