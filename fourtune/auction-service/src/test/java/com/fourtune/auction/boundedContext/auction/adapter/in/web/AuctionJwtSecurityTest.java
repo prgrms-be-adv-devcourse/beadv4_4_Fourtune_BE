@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * <p>SecurityConfig permitAll 규칙:</p>
  * <ul>
+ *   <li>{@code GET /api/v1/auctions} → permitAll (비로그인 목록 조회)</li>
  *   <li>{@code GET /api/v1/auctions/{id}} → permitAll (비로그인 상세 조회)</li>
  *   <li>그 외 경매/입찰/장바구니/주문 API → authenticated</li>
  * </ul>
@@ -135,18 +136,10 @@ class AuctionJwtSecurityTest {
         }
 
         @Test
-        @DisplayName("토큰 없음 → GET /api/v1/auctions (목록) → 302 (인증 필요)")
-        void noToken_getAuctionList_returns302() throws Exception {
-            // GET /api/v1/auctions 는 permitAll 목록에 없으므로 인증 필요
+        @DisplayName("토큰 없음 → GET /api/v1/auctions (목록) → 보안 통과 (200, permitAll)")
+        void noToken_getAuctionList_isPermitted() throws Exception {
+            // GET /api/v1/auctions 는 permitAll → 비로그인 목록 조회 가능
             mockMvc.perform(get("/api/v1/auctions"))
-                    .andExpect(status().is3xxRedirection());
-        }
-
-        @Test
-        @DisplayName("유효한 토큰 → GET /api/v1/auctions (목록) → 보안 통과 (200)")
-        void validToken_getAuctionList_passesSecurity() throws Exception {
-            mockMvc.perform(get("/api/v1/auctions")
-                            .header("Authorization", "Bearer " + validUserToken()))
                     .andExpect(status().isOk());
         }
 
