@@ -1,6 +1,5 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
-import com.fourtune.auction.boundedContext.user.domain.constant.UserEventType;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.core.error.ErrorCode;
