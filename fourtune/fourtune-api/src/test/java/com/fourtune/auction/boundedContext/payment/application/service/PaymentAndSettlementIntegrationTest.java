@@ -168,6 +168,7 @@ class PaymentAndSettlementIntegrationTest {
                 long pgAmount = ORDER_AMOUNT;
 
                 paymentCashCompleteUseCase.cashComplete(order, pgAmount, PAYMENT_KEY);
+                walletRepository.flush();
 
                 Wallet customer = walletRepository.findWalletByPaymentUser(customerUser).orElseThrow();
                 Wallet system = walletRepository.findWalletByPaymentUser(systemUser).orElseThrow();
@@ -208,7 +209,7 @@ class PaymentAndSettlementIntegrationTest {
                 systemWallet.credit(5_000L,
                                 com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType.임시보관__주문결제,
                                 "Order", 1L);
-                walletRepository.save(systemWallet);
+                walletRepository.saveAndFlush(systemWallet);
 
                 long settleAmount = 3_000L;
                 SettlementDto dto = SettlementDto.builder()
@@ -237,7 +238,7 @@ class PaymentAndSettlementIntegrationTest {
                 systemWallet.credit(10_000L,
                                 com.fourtune.auction.boundedContext.payment.domain.constant.CashEventType.임시보관__주문결제,
                                 "Order", 1L);
-                walletRepository.save(systemWallet);
+                walletRepository.saveAndFlush(systemWallet);
 
                 long settleAmount = 9_000L;
                 SettlementDto dto = SettlementDto.builder()
