@@ -7,6 +7,7 @@ dependencies {
 	implementation project(':common:fcm')
 	implementation project(':common:shared')
 	implementation project(':common:redis')
+	implementation project(':common:feign')
 
 	// Spring Boot Starters (common·fourtune-api와 동일한 스타터/버전)
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

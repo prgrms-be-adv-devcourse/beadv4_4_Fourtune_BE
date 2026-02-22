@@ -1,4 +1,4 @@
-package com.fourtune.jwt;
+package com.fourtune.feign;
 
 import feign.RequestInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +15,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  * 별도 FeignConfig 없이 build.gradle에 Feign 의존성만 추가하면 동작합니다.
  */
 @Configuration
-@ConditionalOnClass(RequestInterceptor.class)
 public class FeignJwtAutoConfig {
 
     @Bean
