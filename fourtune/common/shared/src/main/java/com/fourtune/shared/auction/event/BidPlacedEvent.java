@@ -16,6 +16,7 @@ public record BidPlacedEvent(
     Long bidderId,
     Long previousBidderId,  // 이전 최고 입찰자 (알림용)
     BigDecimal bidAmount,
-    LocalDateTime bidTime
+    LocalDateTime bidTime,
+    String category       // 추천 프로파일링용 (auction item category)
 ) {
 }
