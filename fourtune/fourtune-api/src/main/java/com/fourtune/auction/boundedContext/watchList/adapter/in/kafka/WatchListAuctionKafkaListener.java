@@ -43,14 +43,14 @@ public class WatchListAuctionKafkaListener {
                     AuctionItemCreatedEvent event = objectMapper.readValue(
                             payload, AuctionItemCreatedEvent.class);
                     watchListService.syncAuctionItem(
-                            event.auctionItemId(), event.title(), event.currentPrice(), event.thumbnailUrl());
+                            event.auctionItemId(), event.title(), event.currentPrice(), event.thumbnailUrl(), event.category());
                     log.debug("[WatchList] AuctionItemCreated 처리 완료: auctionItemId={}", event.auctionItemId());
                 }
                 case AUCTION_ITEM_UPDATED -> {
                     AuctionItemUpdatedEvent event = objectMapper.readValue(
                             payload, AuctionItemUpdatedEvent.class);
                     watchListService.syncAuctionItem(
-                            event.auctionItemId(), event.title(), event.currentPrice(), event.thumbnailUrl());
+                            event.auctionItemId(), event.title(), event.currentPrice(), event.thumbnailUrl(), event.category());
                     log.debug("[WatchList] AuctionItemUpdated 처리 완료: auctionItemId={}", event.auctionItemId());
                 }
                 case AUCTION_STARTING_SOON -> {

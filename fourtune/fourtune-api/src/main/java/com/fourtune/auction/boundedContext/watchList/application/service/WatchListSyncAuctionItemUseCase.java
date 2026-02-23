@@ -18,7 +18,7 @@ public class WatchListSyncAuctionItemUseCase {
     private final WatchListItemsRepository watchListItemsRepository;
 
     @Transactional
-    public void syncAuctionItem(Long auctionItemId, String title, BigDecimal currentPrice, String thumbnailUrl) {
+    public void syncAuctionItem(Long auctionItemId, String title, BigDecimal currentPrice, String thumbnailUrl, String category) {
         log.info("관심상품 경매 물품 동기화 시작 - ItemId: {}", auctionItemId);
 
         watchListSupport.findOptionalByAuctionItemId(auctionItemId)
@@ -27,7 +27,8 @@ public class WatchListSyncAuctionItemUseCase {
                             existingItem.updateSync(
                                     title,
                                     currentPrice,
-                                    thumbnailUrl
+                                    thumbnailUrl,
+                                    category
                             );
                             log.info("기존 관심상품 Replica 업데이트 완료 : {}", auctionItemId);
                         },
@@ -37,6 +38,7 @@ public class WatchListSyncAuctionItemUseCase {
                                     .title(title)
                                     .currentPrice(currentPrice)
                                     .thumbnailImageUrl(thumbnailUrl)
+                                    .category(category)
                                     .build();
 
                             watchListItemsRepository.save(newItem);
