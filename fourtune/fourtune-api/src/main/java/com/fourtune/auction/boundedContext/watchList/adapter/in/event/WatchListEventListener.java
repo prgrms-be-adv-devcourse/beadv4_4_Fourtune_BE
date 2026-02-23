@@ -58,7 +58,7 @@ public class WatchListEventListener {
         if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
             return;
         }
-        watchListService.syncAuctionItem(event.auctionItemId(), event.title(), event.currentPrice(), event.thumbnailUrl());
+        watchListService.syncAuctionItem(event.auctionItemId(), event.title(), event.currentPrice(), event.thumbnailUrl(), event.category());
     }
 
     @Async
@@ -67,7 +67,7 @@ public class WatchListEventListener {
         if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
             return;
         }
-        watchListService.syncAuctionItem(event.auctionItemId(), event.title(), event.currentPrice(), event.thumbnailUrl());
+        watchListService.syncAuctionItem(event.auctionItemId(), event.title(), event.currentPrice(), event.thumbnailUrl(), event.category());
     }
 
     @Async

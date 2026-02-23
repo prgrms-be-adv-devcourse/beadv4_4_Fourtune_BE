@@ -191,8 +191,8 @@ services:
     # ... (기존 build, image 설정)
     environment:
       - SPRING_PROFILES_ACTIVE=local
-      # 결제 서비스 전용 DB (같은 DB를 쓴다면 동일하게, 분리했다면 해당 주소로)
-      - DB_URL=jdbc:postgresql://postgres:5432/fourtune_db
+      # 결제 서비스 전용 DB (서비스별 DB 분리)
+      - DB_URL=jdbc:postgresql://postgres:5432/payment_db
       - DB_USERNAME=fourtune_user
       - DB_PASSWORD=fourtune
       # Redis (결제 임시 데이터나 멱등성 체크용)

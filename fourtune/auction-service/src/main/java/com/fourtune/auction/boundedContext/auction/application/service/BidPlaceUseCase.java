@@ -89,6 +89,7 @@ public class BidPlaceUseCase {
         
         // 7. 이벤트 발행 (실시간 알림 등에 사용)
         Long previousBidderId = previousHighestBid.map(Bid::getBidderId).orElse(null);
+        String category = auctionItem.getCategory() != null ? auctionItem.getCategory().toString() : null;
         BidPlacedEvent bidPlacedEvent = new BidPlacedEvent(
                 savedBid.getId(),
                 auctionId,
@@ -97,7 +98,8 @@ public class BidPlaceUseCase {
                 bidderId,
                 previousBidderId,
                 bidAmount,
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                category
         );
         if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
             outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.BID_PLACED.name(), Map.of("eventType", AuctionEventType.BID_PLACED.name(), "aggregateId", auctionId, "data", bidPlacedEvent));
