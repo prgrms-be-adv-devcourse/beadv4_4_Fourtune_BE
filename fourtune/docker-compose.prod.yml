@@ -168,6 +168,7 @@ services:
       - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8080
       - DB_URL=jdbc:postgresql://postgres:5432/payment_db
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
