@@ -279,6 +279,9 @@ api:
 
 ---
 # Development Profile
+server:
+  forward-headers-strategy: native
+
 spring:
   config:
     activate:
@@ -380,6 +383,9 @@ api:
 
 ---
 # Production Profile
+server:
+  forward-headers-strategy: native
+
 spring:
   config:
     activate:
