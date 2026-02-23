@@ -17,19 +17,17 @@ public class PaymentCompleteSettlementUseCase {
 
         @Transactional // [중요] 입금/출금의 원자성 보장을 위해 트랜잭션 추가
         public Wallet settlementCashComplete(SettlementDto dto){
-                // payee가 이번달 정산받을 금액이 들어있는 dto를 참고하여 현금 이동해주기
-                Wallet systemWallet = paymentSupport.findSystemWallet().orElseThrow(
+                // 동시 정산 시 Lost Update 방지: 시스템·수급자 지갑 비관적 락
+                Wallet systemWallet = paymentSupport.findSystemWalletForUpdate().orElseThrow(
                         () -> new BusinessException(ErrorCode.PAYMENT_SYSTEM_WALLET_NOT_FOUND)
                 );
 
-                // [추가] 시스템 지갑 잔액 부족 확인
-                // 정산금을 줄 돈이 없으면 예외를 발생시켜 트랜잭션을 롤백시킵니다.
                 if (systemWallet.getBalance() < dto.getAmount()) {
                         throw new BusinessException(ErrorCode.PAYMENT_WALLET_INSUFFICIENT_BALANCE);
                 }
 
                 if(dto.getPayeeEmail().equals(CashPolicy.PLATFORM_REVENUE_USER_EMAIL)){
-                        Wallet platformWallet = paymentSupport.findPlatformWallet().orElseThrow(
+                        Wallet platformWallet = paymentSupport.findPlatformWalletForUpdate().orElseThrow(
                                 () -> new BusinessException(ErrorCode.PAYMENT_PLATFORM_WALLET_NOT_FOUND)
                         );
 
@@ -51,7 +49,7 @@ public class PaymentCompleteSettlementUseCase {
                         return platformWallet;
                 }
                 else{
-                        Wallet payeeWallet = paymentSupport.findWalletByUserEmail(dto.getPayeeEmail()).orElseThrow(
+                        Wallet payeeWallet = paymentSupport.findWalletByUserEmailForUpdate(dto.getPayeeEmail()).orElseThrow(
                                 () -> new BusinessException(ErrorCode.PAYMENT_WALLET_NOT_FOUND)
                         );
 

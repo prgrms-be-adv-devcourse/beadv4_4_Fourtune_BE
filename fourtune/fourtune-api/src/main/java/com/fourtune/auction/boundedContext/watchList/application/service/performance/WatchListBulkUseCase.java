@@ -10,6 +10,7 @@ import com.fourtune.api.infrastructure.kafka.watchList.WatchListEventType;
 import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +34,7 @@ public class WatchListBulkUseCase {
     private final EventPublisher eventPublisher;
     private final EventPublishingConfig eventPublishingConfig;
     private final ObjectMapper objectMapper;
-    private final WatchListKafkaProducer watchListKafkaProducer;
+    private final ObjectProvider<WatchListKafkaProducer> watchListKafkaProducerProvider;
 
     /**
      * 경매 시작 알림 처리 (Bulk 방식)
@@ -87,8 +88,10 @@ public class WatchListBulkUseCase {
     private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {
         if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
             try {
-                String payload = objectMapper.writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
-                watchListKafkaProducer.send(String.valueOf(auctionItemId), payload, type.name());
+                String payload = objectMapper
+                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
+                watchListKafkaProducerProvider
+                        .ifAvailable(producer -> producer.send(String.valueOf(auctionItemId), payload, type.name()));
             } catch (Exception e) {
                 log.error("[BULK] WatchList Kafka 이벤트 발행 실패: auctionItemId={}", auctionItemId, e);
             }
@@ -107,6 +110,6 @@ public class WatchListBulkUseCase {
     public record ProcessResult(
             int userCount,
             int queryCount,
-            long durationMs
-    ) {}
+            long durationMs) {
+    }
 }

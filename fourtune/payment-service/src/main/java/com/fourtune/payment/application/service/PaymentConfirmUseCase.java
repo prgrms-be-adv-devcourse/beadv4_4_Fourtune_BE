@@ -1,108 +1,76 @@
 package com.fourtune.payment.application.service;
 
+import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.core.error.ErrorCode;
 import com.fourtune.core.error.exception.BusinessException;
 import com.fourtune.core.eventPublisher.EventPublisher;
+import com.fourtune.outbox.service.OutboxService;
+import com.fourtune.payment.domain.constant.PaymentStatus;
+import com.fourtune.payment.domain.entity.Payment;
 import com.fourtune.payment.domain.vo.PaymentExecutionResult;
-import com.fourtune.payment.port.out.AuctionPort;
 import com.fourtune.payment.port.out.PaymentGatewayPort;
+import com.fourtune.payment.port.out.PaymentRepository;
+import com.fourtune.shared.kafka.payment.PaymentEventMapper;
 import com.fourtune.shared.payment.dto.OrderDto;
 import com.fourtune.shared.payment.event.PaymentFailedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentConfirmUseCase {
 
-        private final PaymentGatewayPort paymentGatewayPort;     // 외부: Toss
-        private final AuctionPort auctionPort;                   // 외부/내부: 경매 모듈 정보 조회
-        private final PaymentCashCompleteUseCase paymentCashCompleteUseCase;  // 내부: 지갑 로직 (기존 로직 활용)
-        private final EventPublisher eventPublisher;
+    private static final String AGGREGATE_TYPE_PAYMENT = "Payment";
 
-        @Transactional
-        public PaymentExecutionResult confirmPayment(String paymentKey, String orderId, Long pgAmount, Long userId) {
+    private final PaymentGatewayPort paymentGatewayPort;
+    private final PaymentConfirmInternalUseCase paymentConfirmInternalUseCase;
+    private final PaymentRepository paymentRepository;
+    private final EventPublisher eventPublisher;
+    private final OutboxService outboxService;
+    private final EventPublishingConfig eventPublishingConfig;
 
-                // 1. [외부] Toss 결제 승인 요청 (트랜잭션 밖에서 수행 권장)
-                // 여기가 실패하면 그냥 에러 던지고 끝남 (돈 안 나감)
-                PaymentExecutionResult result = paymentGatewayPort.confirm(paymentKey, orderId, pgAmount);
-
-                // 2. [내부] 시스템 검증 및 자산 이동 (보상 트랜잭션 필요 구간)
-                try {
-                        processInternalSystemLogic(orderId, pgAmount, paymentKey, userId);
-                } catch (Exception e) {
-                        log.error("내부 시스템 처리 실패. 결제 승인 취소를 진행합니다. orderId={}, error={}", orderId, e.getMessage());
-
-                        // 3. [보상 트랜잭션] 내부 로직 실패 시 Toss 결제 취소
-                        try{
-                                paymentGatewayPort.cancel(paymentKey, "System Logic Failed: " + e.getMessage(), null);
-                        }catch (Exception cancelEx){
-                                log.error("CRITICAL: 결제 취소 실패! (수동 환불 필요) paymentKey={}, error={}", paymentKey, cancelEx.getMessage());
-
-                                OrderDto orderDto =OrderDto.builder()
-                                        .orderId(orderId)
-                                        .userId(userId)
-                                        .items(null)
-                                        .build();
-
-                                eventPublisher.publish(new PaymentFailedEvent(
-                                        "P311",
-                                        "결제 취소 실패(관리자 문의)",
-                                        orderDto,
-                                        pgAmount,
-                                        0L
-                                ));
-
-                                throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
-                        }
-
-                        OrderDto orderDto =OrderDto.builder()
-                                .orderId(orderId)
-                                .userId(userId)
-                                .items(null)
-                                .build();
-
-                        // 실패 이벤트 발행
-                        eventPublisher.publish(new PaymentFailedEvent(
-                                "500",
-                                "내부 시스템 오류로 결제가 취소되었습니다.",
-                                orderDto,
-                                pgAmount,
-                                0L
-                        ));
-
-                        throw e; // 컨트롤러에게 예외 다시 던짐
-                }
-                return result;
+    public PaymentExecutionResult confirmPayment(String paymentKey, String orderId, Long pgAmount, Long userId) {
+        var existing = paymentRepository.findPaymentByOrderId(orderId);
+        if (existing.isPresent()) {
+            Payment p = existing.get();
+            if (p.getStatus() == PaymentStatus.APPROVED) {
+                log.debug("이미 처리된 결제 orderId={}, 기존 결과 반환", orderId);
+                return PaymentExecutionResult.success(p.getPaymentKey(), p.getOrderId(), p.getAmount());
+            }
         }
 
-        // 내부 로직은 데이터 정합성을 위해 트랜잭션으로 묶음
-        // 현재: 충전결제x, 주문금액 = pg결제금액
-        protected void processInternalSystemLogic(String orderId, Long pgAmount, String paymentKey, Long userId) {
-                // 2-1. 경매 주문 정보 확인
-                OrderDto orderDto = auctionPort.getOrder(orderId);
+        PaymentExecutionResult result = paymentGatewayPort.confirm(paymentKey, orderId, pgAmount);
 
-                if (orderDto == null) {
-                        throw new BusinessException(ErrorCode.PAYMENT_AUCTION_ORDER_NOT_FOUND);
-                }
+        try {
+            paymentConfirmInternalUseCase.processInternalSystemLogic(orderId, pgAmount, paymentKey, userId);
+        } catch (Exception e) {
+            log.error("내부 시스템 처리 실패. 결제 승인 취소를 진행합니다. orderId={}, error={}", orderId, e.getMessage());
 
-                if(!orderDto.getUserId().equals(userId)){
-                        throw new BusinessException(ErrorCode.PAYMENT_PURCHASE_NOT_ALLOWED);
-                }
+            try {
+                paymentGatewayPort.cancel(paymentKey, "System Logic Failed: " + e.getMessage(), null);
+            } catch (Exception cancelEx) {
+                log.error("CRITICAL: 결제 취소 실패! (수동 환불 필요) paymentKey={}, error={}", paymentKey, cancelEx.getMessage());
+                publishPaymentFailed(orderId, userId, "P311", "결제 취소 실패(관리자 문의)", pgAmount, 0L);
+                throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
+            }
 
-                if(!"PENDING".equals(orderDto.getOrderStatus())){
-                        throw new BusinessException(ErrorCode.PAYMENT_ORDER_NOT_PENDING);
-                }
-
-                if (!orderDto.getPrice().equals(pgAmount)) { // 가격 불일치
-                        throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
-                }
-
-                // 2-2. 지갑 충전 및 시스템 이동 (기존 로직 재사용)
-                // 이 안에서 예외가 터지면 위쪽 catch 블록으로 이동 -> Toss Cancel 호출됨
-                paymentCashCompleteUseCase.cashComplete(orderDto, pgAmount, paymentKey);
+            publishPaymentFailed(orderId, userId, "500", "내부 시스템 오류로 결제가 취소되었습니다.", pgAmount, 0L);
+            throw e;
         }
+        return result;
+    }
+
+    private void publishPaymentFailed(String orderId, Long userId, String code, String message, Long pgAmount, Long shortfall) {
+        OrderDto orderDto = OrderDto.builder().orderId(orderId).userId(userId).items(null).build();
+        PaymentFailedEvent event = new PaymentFailedEvent(code, message, orderDto, pgAmount, shortfall);
+        if (eventPublishingConfig.isKafkaEnabled()) {
+            outboxService.append(AGGREGATE_TYPE_PAYMENT, 0L, PaymentEventMapper.EventType.PAYMENT_FAILED.name(),
+                    Map.of("eventType", PaymentEventMapper.EventType.PAYMENT_FAILED.name(), "aggregateId", orderId, "data", event));
+        }
+        eventPublisher.publish(event);
+    }
 }

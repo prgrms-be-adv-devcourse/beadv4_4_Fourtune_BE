@@ -9,6 +9,7 @@ import com.fourtune.api.infrastructure.kafka.watchList.WatchListEventType;
 import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +41,7 @@ public class WatchListRedisSetUseCase {
     private final EventPublisher eventPublisher;
     private final EventPublishingConfig eventPublishingConfig;
     private final ObjectMapper objectMapper;
-    private final WatchListKafkaProducer watchListKafkaProducer;
+    private final ObjectProvider<WatchListKafkaProducer> watchListKafkaProducerProvider;
 
     private static final String AUCTION_USERS_KEY = "watchlist:auction:";
     private static final String ALERT_START_SENT_KEY = "watchlist:alert:start:";
@@ -137,8 +138,10 @@ public class WatchListRedisSetUseCase {
     private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {
         if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
             try {
-                String payload = objectMapper.writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
-                watchListKafkaProducer.send(String.valueOf(auctionItemId), payload, type.name());
+                String payload = objectMapper
+                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
+                watchListKafkaProducerProvider
+                        .ifAvailable(producer -> producer.send(String.valueOf(auctionItemId), payload, type.name()));
             } catch (Exception e) {
                 log.error("[REDIS] WatchList Kafka 이벤트 발행 실패: auctionItemId={}", auctionItemId, e);
             }

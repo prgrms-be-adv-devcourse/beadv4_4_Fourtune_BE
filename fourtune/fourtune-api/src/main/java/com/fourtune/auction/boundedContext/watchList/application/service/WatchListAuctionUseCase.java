@@ -10,6 +10,7 @@ import com.fourtune.api.infrastructure.kafka.watchList.WatchListEventType;
 import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,9 +27,9 @@ public class WatchListAuctionUseCase {
     private final EventPublisher eventPublisher;
     private final EventPublishingConfig eventPublishingConfig;
     private final ObjectMapper objectMapper;
-    private final WatchListKafkaProducer watchListKafkaProducer;
+    private final ObjectProvider<WatchListKafkaProducer> watchListKafkaProducerProvider;
 
-    public void findAllByAuctionStartItemId(Long auctionItemId){
+    public void findAllByAuctionStartItemId(Long auctionItemId) {
         List<Long> watchListUsers = watchListSupport.findAllByAuctionItemId(auctionItemId);
 
         List<Long> targetUsers = watchListUsers.stream()
@@ -38,15 +39,17 @@ public class WatchListAuctionUseCase {
                 })
                 .toList();
 
-        if (targetUsers.isEmpty()) return;
+        if (targetUsers.isEmpty())
+            return;
 
         publishWatchListEvent(targetUsers, auctionItemId, WatchListEventType.WATCHLIST_AUCTION_STARTED);
         markEndAlertSent(targetUsers, auctionItemId);
     }
 
-    public void findAllByAuctionEndItemId(Long auctionItemId){
+    public void findAllByAuctionEndItemId(Long auctionItemId) {
         List<Long> watchListUsers = watchListSupport.findAllByAuctionItemId(auctionItemId);
-        if(watchListUsers.isEmpty()) return;
+        if (watchListUsers.isEmpty())
+            return;
 
         publishWatchListEvent(watchListUsers, auctionItemId, WatchListEventType.WATCHLIST_AUCTION_ENDED);
         markStartAlertSent(watchListUsers, auctionItemId);
@@ -55,8 +58,10 @@ public class WatchListAuctionUseCase {
     private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {
         if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
             try {
-                String payload = objectMapper.writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
-                watchListKafkaProducer.send(String.valueOf(auctionItemId), payload, type.name());
+                String payload = objectMapper
+                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
+                watchListKafkaProducerProvider
+                        .ifAvailable(producer -> producer.send(String.valueOf(auctionItemId), payload, type.name()));
             } catch (Exception e) {
                 log.error("WatchList Kafka 이벤트 발행 실패: auctionItemId={}", auctionItemId, e);
             }
@@ -69,14 +74,14 @@ public class WatchListAuctionUseCase {
         }
     }
 
-    private void markStartAlertSent(List<Long> watchListUsers, Long auctionItemId){
+    private void markStartAlertSent(List<Long> watchListUsers, Long auctionItemId) {
         for (Long userId : watchListUsers) {
             WatchList watchList = watchListSupport.findWatchListByUserIdAndAuctionItemId(userId, auctionItemId);
             watchList.markStartAlertSent();
         }
     }
 
-    private void markEndAlertSent(List<Long> watchListUsers, Long auctionItemId){
+    private void markEndAlertSent(List<Long> watchListUsers, Long auctionItemId) {
         for (Long userId : watchListUsers) {
             WatchList watchList = watchListSupport.findWatchListByUserIdAndAuctionItemId(userId, auctionItemId);
             watchList.markEndAlertSent();

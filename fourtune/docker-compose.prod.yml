@@ -168,7 +168,7 @@ services:
       - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - DB_URL=jdbc:postgresql://postgres:5432/${DB_NAME:-fourtune_db}
+      - DB_URL=jdbc:postgresql://postgres:5432/payment_db
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis

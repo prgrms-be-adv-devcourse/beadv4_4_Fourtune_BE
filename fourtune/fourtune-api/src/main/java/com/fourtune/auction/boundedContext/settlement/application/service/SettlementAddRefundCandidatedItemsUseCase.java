@@ -15,73 +15,69 @@ import org.springframework.stereotype.Service;
 @Service
 public class SettlementAddRefundCandidatedItemsUseCase {
 
-    private final SettlementCandidatedItemRepository settlementCandidatedItemRepository;
-    private final SettlementSupport settlementSupport;
+        private final SettlementCandidatedItemRepository settlementCandidatedItemRepository;
+        private final SettlementSupport settlementSupport;
 
-    /**
-     * 환불 시 정산 후보 생성
-     * - 판매자가 구매자에게 판매 대금 반환
-     * - 플랫폼이 구매자에게 수수료 반환
-     */
-    public void addRefundSettlementCandidatedItems(RefundDto dto) {
-        log.info("[Settlement] 환불 정산 후보 생성 시작: refundId={}, orderId={}",
-                dto.getRefundId(), dto.getOrderId());
+        /**
+         * 환불 시 정산 후보 생성 (이중 환불 방지)
+         * - 판매자 → 구매자: 환불금 전체 반환
+         * - 플랫폼 → 판매자: 수수료 환급
+         */
+        public void addRefundSettlementCandidatedItems(RefundDto dto) {
+                log.info("[Settlement] 환불 정산 후보 생성 시작: refundId={}, orderId={}",
+                                dto.getRefundId(), dto.getOrderId());
 
-        for (RefundDto.RefundItem item : dto.getItems()) {
-            makeRefundSettlementCandidatedItemPair(dto, item);
+                for (RefundDto.RefundItem item : dto.getItems()) {
+                        makeRefundSettlementCandidatedItemPair(dto, item);
+                }
+
+                log.info("[Settlement] 환불 정산 후보 생성 완료: refundId={}", dto.getRefundId());
         }
 
-        log.info("[Settlement] 환불 정산 후보 생성 완료: refundId={}", dto.getRefundId());
-    }
+        void makeRefundSettlementCandidatedItemPair(RefundDto refund, RefundDto.RefundItem item) {
+                SettlementUser buyer = settlementSupport.findUserById(refund.getUserId())
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "구매자를 찾을 수 없습니다: " + refund.getUserId()));
+                SettlementUser platform = settlementSupport.findPlatformRevenueUser()
+                                .orElseThrow(() -> new IllegalStateException("플랫폼 정산 계정을 찾을 수 없습니다"));
+                SettlementUser seller = settlementSupport.findUserById(item.getSellerId())
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "판매자를 찾을 수 없습니다: " + item.getSellerId()));
 
-    void makeRefundSettlementCandidatedItemPair(RefundDto refund, RefundDto.RefundItem item) {
-        SettlementUser buyer = settlementSupport.findUserById(refund.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("구매자를 찾을 수 없습니다: " + refund.getUserId()));
-        SettlementUser platform = settlementSupport.findPlatformRevenueUser()
-                .orElseThrow(() -> new IllegalStateException("플랫폼 정산 계정을 찾을 수 없습니다"));
-        SettlementUser seller = settlementSupport.findUserById(item.getSellerId())
-                .orElseThrow(() -> new IllegalArgumentException("판매자를 찾을 수 없습니다: " + item.getSellerId()));
+                // 1. 판매자 → 구매자: 환불금 전체 반환
+                settlementCandidatedItemRepository.save(
+                                SettlementCandidatedItem.builder()
+                                                .settlementEventType(SettlementEventType.환불__상품판매_대금)
+                                                .relTypeCode("RefundItem")
+                                                .relId(refund.getAuctionOrderId())
+                                                .relNo(refund.getOrderId())
+                                                .paymentDate(refund.getRefundDate())
+                                                .payee(buyer)
+                                                .payer(seller)
+                                                .amount(item.getRefundPrice()) // 환불금 전체
+                                                .build());
 
-        // 1. 판매자 → 구매자 (판매 대금 반환)
-        settlementCandidatedItemRepository.save(
-                SettlementCandidatedItem.builder()
-                        .settlementEventType(SettlementEventType.환불__상품판매_대금)
-                        .relTypeCode("RefundItem")
-                        .relId(refund.getAuctionOrderId())  // 경매 주문 ID
-                        .relNo(refund.getOrderId())         // 주문 번호 (UUID)
-                        .paymentDate(refund.getRefundDate())
-                        .payee(buyer)                       // 받는 사람: 구매자
-                        .payer(seller)                      // 내는 사람: 판매자
-                        .amount(getPriceWithoutCommission(item.getRefundPrice()))  // 환불금 - 수수료
-                        .build()
-        );
+                log.debug("[Settlement] 판매자→구매자 환불금 전체 정산 후보: seller={} -> buyer={}, amount={}",
+                                seller.getId(), buyer.getId(), item.getRefundPrice());
 
-        log.debug("[Settlement] 판매 대금 반환 정산 후보 생성: seller={} -> buyer={}, amount={}",
-                seller.getId(), buyer.getId(), getPriceWithoutCommission(item.getRefundPrice()));
+                // 2. 플랫폼 → 판매자: 수수료 환급
+                settlementCandidatedItemRepository.save(
+                                SettlementCandidatedItem.builder()
+                                                .settlementEventType(SettlementEventType.환불__상품판매_수수료)
+                                                .relTypeCode("RefundItem")
+                                                .relId(refund.getAuctionOrderId())
+                                                .relNo(refund.getOrderId())
+                                                .paymentDate(refund.getRefundDate())
+                                                .payee(seller) // 받는 사람: 판매자 (수수료 환급)
+                                                .payer(platform)
+                                                .amount(getCommissionAmount(item.getRefundPrice()))
+                                                .build());
 
-        // 2. 플랫폼 → 구매자 (수수료 반환)
-        settlementCandidatedItemRepository.save(
-                SettlementCandidatedItem.builder()
-                        .settlementEventType(SettlementEventType.환불__상품판매_수수료)
-                        .relTypeCode("RefundItem")
-                        .relId(refund.getAuctionOrderId())
-                        .relNo(refund.getOrderId())
-                        .paymentDate(refund.getRefundDate())
-                        .payee(buyer)                       // 받는 사람: 구매자
-                        .payer(platform)                    // 내는 사람: 플랫폼
-                        .amount(getCommissionAmount(item.getRefundPrice()))  // 수수료
-                        .build()
-        );
+                log.debug("[Settlement] 플랫폼→판매자 수수료 환급 정산 후보: platform -> seller={}, amount={}",
+                                seller.getId(), getCommissionAmount(item.getRefundPrice()));
+        }
 
-        log.debug("[Settlement] 수수료 반환 정산 후보 생성: platform -> buyer={}, amount={}",
-                buyer.getId(), getCommissionAmount(item.getRefundPrice()));
-    }
-
-    Long getCommissionAmount(Long refundPrice) {
-        return (refundPrice * SettlementPolicy.COMMISSION_RATE.getValue()) / 100L;
-    }
-
-    Long getPriceWithoutCommission(Long refundPrice) {
-        return refundPrice - getCommissionAmount(refundPrice);
-    }
+        Long getCommissionAmount(Long refundPrice) {
+                return (refundPrice * SettlementPolicy.COMMISSION_RATE.getValue()) / 100L;
+        }
 }
