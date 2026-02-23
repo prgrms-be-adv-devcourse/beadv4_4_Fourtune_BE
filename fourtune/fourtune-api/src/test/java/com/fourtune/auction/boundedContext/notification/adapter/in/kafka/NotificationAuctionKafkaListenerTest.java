@@ -40,7 +40,7 @@ class NotificationAuctionKafkaListenerTest {
         String payload = "{}";
         BidPlacedEvent event = new BidPlacedEvent(
                 1L, 100L, "경매상품", 10L, 20L, 15L,
-                BigDecimal.valueOf(5000), LocalDateTime.now());
+                BigDecimal.valueOf(5000), LocalDateTime.now(), "ELECTRONICS");
 
         when(objectMapper.readValue(payload, BidPlacedEvent.class)).thenReturn(event);
 
@@ -56,7 +56,7 @@ class NotificationAuctionKafkaListenerTest {
         String payload = "{}";
         BidPlacedEvent event = new BidPlacedEvent(
                 1L, 100L, "경매상품", 10L, 20L, null,
-                BigDecimal.valueOf(5000), LocalDateTime.now());
+                BigDecimal.valueOf(5000), LocalDateTime.now(), null);
 
         when(objectMapper.readValue(payload, BidPlacedEvent.class)).thenReturn(event);
 
