@@ -203,6 +203,7 @@ services:
       # PG사 정보 (api에서 payment로 옮겨왔다면 여기서 관리해야 함)
       - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY}
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
+      - JWT_SECRET=${JWT_SECRET}
       # 만약 결제 서비스에서 암호화가 필요하다면
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     ports:
@@ -242,6 +243,7 @@ services:
       - FIREBASE_ENABLED=false
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+      - JWT_SECRET=${JWT_SECRET}
     ports:
       - "9081:8083"
     depends_on:
