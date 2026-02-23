@@ -3,6 +3,7 @@ package com.fourtune.auction.boundedContext.payment.application.service;
 import com.fourtune.auction.boundedContext.payment.domain.entity.*;
 import com.fourtune.auction.boundedContext.payment.domain.vo.PaymentExecutionResult;
 import com.fourtune.auction.boundedContext.payment.port.out.CashLogRepository;
+import com.fourtune.shared.payment.dto.OrderDto;
 import com.fourtune.shared.payment.dto.PaymentUserDto;
 import com.fourtune.shared.settlement.dto.SettlementDto;
 import com.fourtune.shared.user.dto.UserResponse;
@@ -103,5 +104,13 @@ public class PaymentFacade {
     @Transactional
     public void deleteUser(UserResponse user) {
         paymentSupport.deleteUser(user);
+    }
+
+    /**
+     * 결제 취소(환불). 외부(주문/경매)에서 OrderDto 확보 후 호출.
+     */
+    @Transactional
+    public Refund cancelPayment(String cancelReason, Long cancelAmount, OrderDto orderDto) {
+        return paymentCancelUseCase.cancelPayment(cancelReason, cancelAmount, orderDto);
     }
 }
