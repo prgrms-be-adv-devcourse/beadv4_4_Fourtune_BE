@@ -18,12 +18,12 @@ public class WatchListAuctionItem extends ReplicaAuctionItem {
 
     @Builder
     public WatchListAuctionItem(Long id, String title, BigDecimal currentPrice,
-                                BigDecimal buyNowPrice, String thumbnailImageUrl) {
-        super(id, title, currentPrice, buyNowPrice, thumbnailImageUrl);
+                                BigDecimal buyNowPrice, String thumbnailImageUrl, String category) {
+        super(id, title, currentPrice, buyNowPrice, thumbnailImageUrl, category);
     }
 
-    public void updateSync(String title, BigDecimal currentPrice, String thumbnailImageUrl) {
-        super.updateInfo(title, currentPrice, thumbnailImageUrl);
+    public void updateSync(String title, BigDecimal currentPrice, String thumbnailImageUrl, String category) {
+        super.updateInfo(title, currentPrice, thumbnailImageUrl, category);
     }
 
 }
