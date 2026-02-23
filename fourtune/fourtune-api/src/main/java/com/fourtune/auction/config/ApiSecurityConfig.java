@@ -24,9 +24,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApiSecurityConfig {
 
-    private final JwtTokenProvider jwtTokenProvider;
-    private final DefaultOAuth2UserService customOAuth2UserService;
-    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+        private final JwtTokenProvider jwtTokenProvider;
+        private final DefaultOAuth2UserService customOAuth2UserService;
+        private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -42,6 +42,8 @@ public class ApiSecurityConfig {
                                 "/api/auth/reissue", "/token.html", "/firebase-messaging-sw.js")
                         .permitAll()
                         .requestMatchers("/api/auth/**", "/api/users/signup").permitAll()
+                        .requestMatchers("/api/v1/search/auction-items").permitAll()
+                        .requestMatchers("/api/v1/search/recent").permitAll()
                         .requestMatchers("/tosspay.html").permitAll()
                         .requestMatchers("/", "/index.html", "/oauth2/**", "/login-success").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
@@ -59,22 +61,22 @@ public class ApiSecurityConfig {
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
                         UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:5173", "http://localhost:3000",
-                "https://fourtune.store", "https://www.fourtune.store", "https://*.vercel.app"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("ETag", "Authorization"));
-        configuration.setAllowCredentials(true);
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
+                configuration.setAllowedOriginPatterns(List.of(
+                                "http://localhost:5173", "http://localhost:3000",
+                                "https://fourtune.store", "https://www.fourtune.store", "https://*.vercel.app"));
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+                configuration.setAllowedHeaders(List.of("*"));
+                configuration.setExposedHeaders(List.of("ETag", "Authorization"));
+                configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+                return source;
+        }
 }
