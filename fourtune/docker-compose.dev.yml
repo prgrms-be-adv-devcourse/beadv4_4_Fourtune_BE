@@ -170,7 +170,7 @@ services:
     container_name: payment-service-dev
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - DB_URL=jdbc:postgresql://postgres:5432/${DB_NAME:-fourtune_db}
+      - DB_URL=jdbc:postgresql://postgres:5432/payment_db
       - DB_USERNAME=${DB_USERNAME:-fourtune_user}
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
