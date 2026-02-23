@@ -1,6 +1,5 @@
 package com.fourtune.outbox.service;
 
-import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.outbox.domain.OutboxEvent;
 import com.fourtune.outbox.domain.OutboxEventStatus;
 import com.fourtune.outbox.handler.OutboxEventHandler;
@@ -27,7 +26,6 @@ import java.util.stream.Collectors;
 public class OutboxPublisher {
 
     private final OutboxEventRepository outboxEventRepository;
-    private final EventPublishingConfig eventPublishingConfig;
     private final Map<String, OutboxEventHandler> handlers;
 
     @Value("${outbox.publisher.batch-size:100}")
@@ -38,10 +36,8 @@ public class OutboxPublisher {
 
     public OutboxPublisher(
             OutboxEventRepository outboxEventRepository,
-            EventPublishingConfig eventPublishingConfig,
             List<OutboxEventHandler> handlerList) {
         this.outboxEventRepository = outboxEventRepository;
-        this.eventPublishingConfig = eventPublishingConfig;
         this.handlers = handlerList.stream()
                 .collect(Collectors.toMap(OutboxEventHandler::getAggregateType, h -> h));
         log.info("OutboxPublisher 초기화 완료: 등록된 핸들러={}", handlers.keySet());
@@ -53,10 +49,6 @@ public class OutboxPublisher {
     @Scheduled(fixedDelayString = "${outbox.publisher.poll-interval-ms:1000}")
     @Transactional
     public void publishPendingEvents() {
-        if (!eventPublishingConfig.isUserEventsKafkaEnabled() && !eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
-            return;
-        }
-
         List<OutboxEvent> pendingEvents = outboxEventRepository.findPendingEvents(
                 OutboxEventStatus.PENDING, batchSize);
 
@@ -87,10 +79,6 @@ public class OutboxPublisher {
     @Scheduled(fixedRate = 30000)
     @Transactional
     public void retryFailedEvents() {
-        if (!eventPublishingConfig.isUserEventsKafkaEnabled() && !eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
-            return;
-        }
-
         List<OutboxEvent> failedEvents = outboxEventRepository.findRetryableEvents(
                 OutboxEventStatus.FAILED, maxRetryCount);
 
