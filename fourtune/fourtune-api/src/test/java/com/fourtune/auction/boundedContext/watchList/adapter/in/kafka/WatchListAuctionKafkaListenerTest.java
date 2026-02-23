@@ -33,7 +33,7 @@ class WatchListAuctionKafkaListenerTest {
     // ──────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("AUCTION_ITEM_CREATED: syncAuctionItem(id, title, price, thumbnail) 호출")
+    @DisplayName("AUCTION_ITEM_CREATED: syncAuctionItem(id, title, price, thumbnail, category) 호출")
     void consume_AuctionItemCreated() throws Exception {
         // Given
         String payload = "{}";
@@ -51,14 +51,14 @@ class WatchListAuctionKafkaListenerTest {
         listener.consume(payload, AuctionEventType.AUCTION_ITEM_CREATED.name());
 
         // Then
-        verify(watchListService).syncAuctionItem(1L, "경매상품", BigDecimal.valueOf(1000), "https://thumbnail.url");
+        verify(watchListService).syncAuctionItem(1L, "경매상품", BigDecimal.valueOf(1000), "https://thumbnail.url", "ELECTRONICS");
     }
 
     // ── AUCTION_ITEM_UPDATED
     // ──────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("AUCTION_ITEM_UPDATED: syncAuctionItem(id, title, price, thumbnail) 호출")
+    @DisplayName("AUCTION_ITEM_UPDATED: syncAuctionItem(id, title, price, thumbnail, category) 호출")
     void consume_AuctionItemUpdated() throws Exception {
         // Given
         String payload = "{}";
@@ -69,12 +69,13 @@ class WatchListAuctionKafkaListenerTest {
         when(event.title()).thenReturn("수정된상품");
         when(event.currentPrice()).thenReturn(BigDecimal.valueOf(2000));
         when(event.thumbnailUrl()).thenReturn("https://updated.url");
+        when(event.category()).thenReturn("POTTERY");
 
         // When
         listener.consume(payload, AuctionEventType.AUCTION_ITEM_UPDATED.name());
 
         // Then
-        verify(watchListService).syncAuctionItem(2L, "수정된상품", BigDecimal.valueOf(2000), "https://updated.url");
+        verify(watchListService).syncAuctionItem(2L, "수정된상품", BigDecimal.valueOf(2000), "https://updated.url", "POTTERY");
     }
 
     // ── AUCTION_STARTING_SOON
