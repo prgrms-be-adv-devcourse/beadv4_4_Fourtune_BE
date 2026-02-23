@@ -27,6 +27,6 @@ public class PaymentRefundRetryRecorder {
     public void recordRefundPgRetry(String paymentKey, String orderId, Long amount, String cancelReason) {
         log.warn("환불 PG 재시도 이벤트 기록: paymentKey={}, orderId={}, amount={}", paymentKey, orderId, amount);
         outboxService.append(AGGREGATE_TYPE_PAYMENT, 0L, EVENT_TYPE_REFUND_PG_RETRY,
-                Map.of("eventType", EVENT_TYPE_REFUND_PG_RETRY, "paymentKey", paymentKey, "orderId", orderId, "amount", amount, "cancelReason", cancelReason != null ? cancelReason : ""));
+                Map.of("eventType", EVENT_TYPE_REFUND_PG_RETRY, "aggregateId", 0L, "data", Map.of("paymentKey", paymentKey, "orderId", orderId, "amount", amount, "cancelReason", cancelReason != null ? cancelReason : "")));
     }
 }
