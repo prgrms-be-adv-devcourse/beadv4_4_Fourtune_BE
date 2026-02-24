@@ -15,6 +15,7 @@ payment:
     secret-key: ${TOSS_SECRET_KEY}
 
 
+
 spring:
   application:
     name: payment-service
