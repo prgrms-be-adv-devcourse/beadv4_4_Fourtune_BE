@@ -59,7 +59,7 @@ class InternalUserAuctionControllerIntegrationTest {
         mockMvc.perform(get("/internal/users/{userId}/active-auctions", userIdNoAuctions))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.has_active_auctions").value(false))
+                .andExpect(jsonPath("$.hasActiveAuctions").value(false))
                 .andExpect(jsonPath("$.count").value(0));
     }
 
@@ -84,7 +84,7 @@ class InternalUserAuctionControllerIntegrationTest {
         mockMvc.perform(get("/internal/users/{userId}/active-auctions", sellerId))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.has_active_auctions").value(true))
+                .andExpect(jsonPath("$.hasActiveAuctions").value(true))
                 .andExpect(jsonPath("$.count").value(1));
     }
 }
