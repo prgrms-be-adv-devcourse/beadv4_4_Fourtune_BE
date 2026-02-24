@@ -33,8 +33,7 @@ dependencies {
 
 	// Feign (payment-service 등 내부 서비스 호출, 루트 ext 버전 사용)
 	implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
-	// Resilience4j (Circuit Breaker, Retry)
-	implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
+
 	// web client
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
