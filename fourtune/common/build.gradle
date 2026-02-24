@@ -1,0 +1,5 @@
+// :common은 common:* 하위 모듈들의 부모 컨테이너 프로젝트
+// Gradle이 'include common:core' 등으로 인해 자동 생성하므로
+// bootJar/jar 생성을 명시적으로 비활성화해야 함
+bootJar { enabled = false }
+jar { enabled = false }
