@@ -113,7 +113,7 @@ resilience4j:
         retryExceptions:
           - java.net.ConnectException
           - java.io.IOException
-          - org.springframework.cloud.openfeign.FeignException
+          - feign.FeignException
 
 # application.yml
 settlement:
