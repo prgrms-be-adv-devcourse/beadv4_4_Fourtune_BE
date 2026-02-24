@@ -1,16 +1,15 @@
 package com.fourtune.oauth.handler;
 
 import com.fourtune.jwt.JwtTokenProvider;
-import com.fourtune.shared.auth.dto.UserContext;
-import com.fourtune.shared.user.dto.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -27,11 +26,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException {
-        UserContext userContext = (UserContext) authentication.getPrincipal();
+        OAuth2User principal = (OAuth2User) authentication.getPrincipal();
+        Long userId = Long.parseLong(principal.getName());
+        String role = principal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse("ROLE_USER");
 
-        UserResponse userResponse = UserResponse.from(userContext);
-
-        String accessToken = jwtTokenProvider.createAccessToken(userResponse);
+        String accessToken = jwtTokenProvider.createAccessToken(userId, role);
 
         String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
                 .queryParam("accessToken", accessToken)
