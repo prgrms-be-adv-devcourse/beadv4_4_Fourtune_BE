@@ -10,8 +10,8 @@ spring:
     open-in-view: false
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/auction}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    username: ${DB_USERNAME:fourtune_user}
+    password: ${DB_PASSWORD:fourtune}
     driver-class-name: org.postgresql.Driver
   data:
     redis:

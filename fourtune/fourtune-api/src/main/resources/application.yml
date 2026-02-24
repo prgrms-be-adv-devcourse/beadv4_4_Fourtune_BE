@@ -5,6 +5,9 @@ spring:
   batch:
     job:
       enabled: false
+      
+  config:
+    import: classpath:application-common.yml
 
   jackson:
     time-zone: Asia/Seoul # 한국 시간으로 변환
