@@ -160,7 +160,8 @@ services:
       - OAUTH_FRONTEND_URI=${OAUTH_FRONTEND_URI:-http://localhost:3000}
       - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID:-docker-client-id}
       - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET:-docker-client-secret}
-      # PAYMENT 분리
+      # PAYMENT 분리 (Feign PaymentServiceClient용)
+      - PAYMENT_SERVICE_BASE_URL=http://payment-service:8081
       - PAYOUT_URL=http://payment-service:8081
       - CASH_URL=http://payment-service:8081
       - FIREBASE_ENABLED=false
@@ -200,6 +201,8 @@ services:
       - REDIS_PORT=6379
       # Kafka (결제 완료 이벤트를 api에 보낼 때 필요)
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      # 경매(주문) 조회 Feign용 (auction-service 내부 포트 8083)
+      - API_AUCTION_BASE_URL=http://auction-service:8083
       # PG사 정보 (api에서 payment로 옮겨왔다면 여기서 관리해야 함)
       - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY}
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}

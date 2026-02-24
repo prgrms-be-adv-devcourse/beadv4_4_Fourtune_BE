@@ -17,7 +17,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 
 	//feign client
-	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
 	// Resilience4j (Circuit Breaker, Retry) — annotations 모듈 명시로 IDE/컴파일 해상도 보장
 	implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
 	implementation 'io.github.resilience4j:resilience4j-annotations:2.3.0'
@@ -41,11 +41,4 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'com.h2database:h2'
-}
-
-// 루트 build.gradle의 dependencyManagement에 추가
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:2024.0.0"
-	}
 }
