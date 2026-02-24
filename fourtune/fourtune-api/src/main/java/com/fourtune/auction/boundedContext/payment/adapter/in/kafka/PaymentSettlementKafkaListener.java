@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.payment.adapter.in.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fourtune.auction.boundedContext.payment.application.service.PaymentFacade;
+import com.fourtune.auction.boundedContext.payment.adapter.out.external.PaymentServiceClient;
 import com.fourtune.kafka.KafkaTopicConfig;
 import com.fourtune.shared.settlement.event.SettlementCompletedEvent;
 import com.fourtune.shared.kafka.settlement.SettlementEventMapper;
@@ -26,7 +26,7 @@ public class PaymentSettlementKafkaListener {
     private static final String HEADER_EVENT_TYPE = "X-Event-Type";
 
     private final ObjectMapper objectMapper;
-    private final PaymentFacade paymentFacade;
+    private final PaymentServiceClient paymentServiceClient;
 
     @KafkaListener(
             topics = KafkaTopicConfig.SETTLEMENT_EVENTS_TOPIC,
@@ -61,16 +61,11 @@ public class PaymentSettlementKafkaListener {
     }
 
     /**
-     * 정산 완료 → 지급
+     * 정산 완료 → payment-service에 지급 요청 (Phase 2: 로컬 Wallet 제거)
      */
     private void handleSettlementCompleted(SettlementCompletedEvent event) {
-        log.info("정산 완료 이벤트 처리 시작: settlementId={}, userId={}, amount={}");
-
-        try {
-            paymentFacade.completeSettlement(event.getSettlementDto());
-        } catch (Exception e) {
-            throw e;
-        }
+        log.info("정산 완료 이벤트 처리: payeeId={}, amount={}", event.getSettlementDto().getPayeeId(), event.getSettlementDto().getAmount());
+        paymentServiceClient.completeSettlement(event.getSettlementDto());
     }
 
 

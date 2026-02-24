@@ -70,6 +70,8 @@ payment:
   toss:
     client-key: "test_toss_client_key"
     secret-key: "test_toss_secret_key"
+  service:
+    base-url: "http://localhost:8081"
 
 api:
   auction:

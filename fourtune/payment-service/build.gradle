@@ -18,6 +18,9 @@ dependencies {
 
 	//feign client
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	// Resilience4j (Circuit Breaker, Retry) — annotations 모듈 명시로 IDE/컴파일 해상도 보장
+	implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
+	implementation 'io.github.resilience4j:resilience4j-annotations:2.3.0'
 	// web client
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 

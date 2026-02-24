@@ -1,16 +1,13 @@
 package com.fourtune.payment.application.service;
 
-import com.fourtune.payment.domain.constant.CashEventType;
-import com.fourtune.payment.domain.constant.PaymentStatus;
-import com.fourtune.payment.domain.entity.*;
-import com.fourtune.payment.domain.entity.PaymentUser;
-import com.fourtune.payment.domain.entity.Wallet;
 import com.fourtune.core.error.ErrorCode;
 import com.fourtune.core.error.exception.BusinessException;
+import com.fourtune.payment.domain.constant.PaymentStatus;
+import com.fourtune.payment.domain.entity.Payment;
 import com.fourtune.payment.domain.entity.Refund;
+import com.fourtune.payment.domain.vo.PaymentExecutionResult;
 import com.fourtune.payment.port.out.PaymentGatewayPort;
 import com.fourtune.payment.port.out.PaymentRepository;
-import com.fourtune.payment.port.out.RefundRepository;
 import com.fourtune.shared.payment.dto.OrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,20 +19,17 @@ import org.springframework.stereotype.Service;
 public class PaymentCancelUseCase {
 
     private final PaymentRepository paymentRepository;
-    private final RefundRepository refundRepository;
     private final PaymentGatewayPort paymentGatewayPort;
-    private final PaymentSupport paymentSupport;
     private final PaymentRefundRetryRecorder paymentRefundRetryRecorder;
+    private final PaymentCancelCompletion paymentCancelCompletion;
 
     /**
-     * 결제 취소 (환불) 요청
-     * @param cancelReason 취소 사유
-     * @param cancelAmount 취소 요청 금액 (null이면 전액 취소)
-     * @param orderDto 취소할 주문 데이터
+     * 결제 취소 (환불) — PG 호출을 먼저 수행하고, 성공 시 DB 처리는 별도 트랜잭션에서 락·저장·이벤트 처리.
+     * 락 유지 중 외부(PG) 호출을 하지 않아 지연 시 결제/정산 전반 블로킹을 방지한다.
      */
-    public com.fourtune.payment.domain.entity.Refund cancelPayment(String cancelReason, Long cancelAmount, OrderDto orderDto) {
+    public Refund cancelPayment(String cancelReason, Long cancelAmount, OrderDto orderDto) {
         // 1. [조회] 주문에 해당하는 결제 내역 조회
-        com.fourtune.payment.domain.entity.Payment payment = paymentRepository.findPaymentByOrderId(orderDto.getOrderId())
+        Payment payment = paymentRepository.findPaymentByOrderId(orderDto.getOrderId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
 
         // 2. [검증] 이미 취소된 건인지 확인
@@ -51,22 +45,8 @@ public class PaymentCancelUseCase {
             throw new BusinessException(ErrorCode.PAYMENT_CANCEL_AMOUNT_EXCEEDS_BALANCE);
         }
 
-        PaymentUser paymentUser = payment.getPaymentUser();
-        Wallet payerWallet = paymentSupport.findWalletByUserIdForUpdate(paymentUser.getId()).orElseThrow(
-                () -> new BusinessException(ErrorCode.PAYMENT_WALLET_NOT_FOUND)
-        );
-        Wallet systemWallet = paymentSupport.findSystemWalletForUpdate().orElseThrow(
-                () -> new BusinessException(ErrorCode.PAYMENT_SYSTEM_WALLET_NOT_FOUND)
-        );
-
-        if (systemWallet.getBalance() < requestAmount) {
-            log.warn("결제 취소 실패 - 시스템 지갑 잔액 부족. user={}, amount={}", payment.getPaymentUser().getId(), requestAmount);
-            throw new BusinessException(ErrorCode.PAYMENT_WALLET_INSUFFICIENT_BALANCE);
-        }
-        systemWallet.debit(requestAmount, CashEventType.환불__주문취소__결제금액, "Order", orderDto.getAuctionOrderId());
-        payerWallet.credit(requestAmount, CashEventType.환불__주문취소__결제금액, "Order", orderDto.getAuctionOrderId());
-
-        com.fourtune.payment.domain.vo.PaymentExecutionResult result;
+        // 5. [PG 취소 선행] 락 없이 PG만 먼저 호출 (지연 시 DB 락 유지 방지)
+        PaymentExecutionResult result;
         try {
             result = paymentGatewayPort.cancel(payment.getPaymentKey(), cancelReason, requestAmount);
         } catch (Exception e) {
@@ -74,16 +54,11 @@ public class PaymentCancelUseCase {
             throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
         }
 
-        // 7. [상태 변경] DB 업데이트
-        if (result.isSuccess()) {
-            payment.decreaseBalance(requestAmount); // 내부적으로 balance 차감 및 status 변경(전액/부분환불)
+        if (!result.isSuccess()) {
+            throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
         }
 
-        Refund refund = Refund.create(payment, requestAmount, cancelReason, null);
-
-        refundRepository.save(refund);
-        paymentRepository.save(payment);
-
-        return refund;
+        // 6. [DB 처리] 별도 트랜잭션: 락 획득 → 지갑 입출금 → 상태/Refund 저장 → 이벤트 발행
+        return paymentCancelCompletion.completeCancelInDb(payment, orderDto, requestAmount, cancelReason);
     }
 }

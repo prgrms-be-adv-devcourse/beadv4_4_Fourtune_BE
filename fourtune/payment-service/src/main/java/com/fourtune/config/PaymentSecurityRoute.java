@@ -11,6 +11,7 @@ public class PaymentSecurityRoute implements SecurityRouteCustomizer {
     @Override
     public void customize(
             AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth.requestMatchers("/internal/**").permitAll(); // 서비스 간 호출 (X-Internal-Token으로 검증)
         auth.requestMatchers("/api/v1/orders/*/complete").permitAll();
         auth.requestMatchers("/api/v1/orders/public/**").permitAll();
     }
