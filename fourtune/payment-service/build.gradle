@@ -42,10 +42,3 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'com.h2database:h2'
 }
-
-// 루트 build.gradle의 dependencyManagement에 추가
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:2024.0.0"
-	}
-}
