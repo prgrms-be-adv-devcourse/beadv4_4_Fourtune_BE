@@ -97,6 +97,13 @@ public class AuctionSupport {
     }
 
     /**
+     * 판매자의 진행 중(ACTIVE) 경매 개수 (탈퇴 시 확인용)
+     */
+    public long countActiveBySellerId(Long sellerId) {
+        return auctionItemRepository.countBySellerIdAndStatus(sellerId, AuctionStatus.ACTIVE);
+    }
+
+    /**
      * 진행중인 경매 목록 조회
      */
     public List<AuctionItem> findActiveAuctions() {
