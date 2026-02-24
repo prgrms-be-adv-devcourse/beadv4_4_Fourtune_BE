@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -55,9 +54,6 @@ class AuctionJwtSecurityTest {
     private MockMvc mockMvc;
 
     // ── 인프라 Mock ──────────────────────────────────────────────────────────
-    @MockitoBean
-    private DefaultOAuth2UserService defaultOAuth2UserService;
-
     @MockitoBean
     private UserClient userClient;
 

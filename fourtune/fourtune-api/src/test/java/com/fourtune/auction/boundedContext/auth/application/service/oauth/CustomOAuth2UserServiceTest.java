@@ -3,9 +3,9 @@ package com.fourtune.auction.boundedContext.auth.application.service.oauth;
 import com.fourtune.auction.boundedContext.user.application.service.UserSupport;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
-import com.fourtune.core.eventPublisher.EventPublisher; // 추가됨
-import com.fourtune.shared.auth.dto.UserContext;
-import com.fourtune.shared.user.event.UserJoinedEvent; // 추가됨
+import com.fourtune.auction.boundedContext.auth.dto.OAuth2UserAdapter;
+import com.fourtune.core.eventPublisher.EventPublisher;
+import com.fourtune.shared.user.event.UserJoinedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,9 +75,9 @@ class CustomOAuth2UserServiceTest {
         OAuth2User result = customOAuth2UserService.processUser(fakeOAuth2User, provider);
 
         // Then
-        assertThat(result).isInstanceOf(UserContext.class);
-        UserContext userContext = (UserContext) result;
-        assertThat(userContext.id()).isEqualTo(1L);
+        assertThat(result).isInstanceOf(OAuth2UserAdapter.class);
+        OAuth2UserAdapter adapter = (OAuth2UserAdapter) result;
+        assertThat(adapter.getUserContext().id()).isEqualTo(1L);
 
         // 3. 검증: findByEmail과 save가 호출되었는지 확인
         verify(userSupport).findByEmail(email);

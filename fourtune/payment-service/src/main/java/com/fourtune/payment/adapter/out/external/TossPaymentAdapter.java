@@ -4,8 +4,6 @@ import com.fourtune.payment.domain.vo.PaymentExecutionResult;
 import com.fourtune.payment.port.out.PaymentGatewayPort;
 import com.fourtune.core.error.ErrorCode;
 import com.fourtune.core.error.exception.BusinessException;
-import com.fourtune.payment.domain.vo.PaymentExecutionResult;
-import com.fourtune.payment.port.out.PaymentGatewayPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

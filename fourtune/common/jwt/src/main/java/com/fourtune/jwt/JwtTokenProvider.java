@@ -51,6 +51,20 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public String createAccessToken(Long userId, String role) {
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + accessTokenValidityInMilliseconds);
+
+        return Jwts.builder()
+                .header().type("JWT").and()
+                .subject(String.valueOf(userId))
+                .claim("role", role)
+                .issuedAt(now)
+                .expiration(validity)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
     public String createRefreshToken(Long userId) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + refreshTokenValidityInMilliseconds);

@@ -4,44 +4,21 @@ server:
 # 경매(주문) 조회 Feign용
 api:
   auction:
-    base-url: ${API_AUCTION_BASE_URL:http://localhost:9081}
+    base-url: ${API_AUCTION_BASE_URL:http://localhost:8083}
 
 # 내부 API 호출 시 X-Internal-Token 헤더 검사. 비어 있으면 검사 생략(로컬용)
 payment:
   internal:
     token: ${PAYMENT_INTERNAL_TOKEN:}
+  toss:
+    client-key: ${TOSS_CLIENT_KEY}
+    secret-key: ${TOSS_SECRET_KEY}
 
-# Resilience4j: auction-service 호출 회복성 (Circuit Breaker + Retry)
-resilience4j:
-  circuitbreaker:
-    instances:
-      auction:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        permittedNumberOfCallsInHalfOpenState: 3
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
-  retry:
-    instances:
-      auction:
-        maxAttempts: 3
-        waitDuration: 500ms
-        retryExceptions:
-          - java.net.ConnectException
-          - java.io.IOException
-          - feign.FeignException
+
 
 spring:
-  profiles:
-    active: local
-
----
-
-spring:
-  config:
-    activate:
-      on-profile: local
+  application:
+    name: payment-service
 
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/payment_db}
@@ -55,3 +32,22 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: payment-consumer-group
+      auto-offset-reset: earliest
+    producer:
+      acks: all
+
+
+custom:
+  services:
+    payout_url: ${PAYOUT_SERVICE_URL:http://payment-service:8081}
+    cash_url: ${CASH_SERVICE_URL:http://payment-service:8081}

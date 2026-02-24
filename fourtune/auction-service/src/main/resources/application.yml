@@ -37,6 +37,10 @@ server:
 app:
   oauth2:
     redirect-uri: ${OAUTH_FRONTEND_URI:http://localhost:3000/login-success}
+  view-count:
+    use-redis: ${VIEW_COUNT_USE_REDIS:true}
+    key-prefix: "auction:view:"
+    sync-interval-ms: 60000  # 1분마다 Redis → DB 동기화
 
 # common FirebaseConfig 비활성 (경매 서비스는 FCM 미사용)
 firebase:
@@ -52,6 +56,30 @@ jwt:
 api:
   user:
     base-url: ${API_USER_BASE_URL:http://localhost:8080}
+
+auction:
+  bid-unit: 1000 # 입찰 단위 (원)
+  auto-extend-minutes: 3 # 자동 연장 시간
+  auto-extend-threshold-minutes: 5 # 연장 발동 시간
+  payment-deadline-days: 1 # 결제 기한 (낙찰 기준)
+  seller-shipping-deadline-days: 7 # 발송 기한
+  settlement-fee-rate: 0.1 # 정산 수수료 (10%)
+
+order:
+  buy-now-pending-timeout-minutes: ${ORDER_BUYNOW_PENDING_TIMEOUT_MINUTES:10} # 즉시구매 결제 유예 (분)
+  bid-pending-timeout-hours: ${ORDER_BID_PENDING_TIMEOUT_HOURS:24} # 낙찰 결제 유예 (시간)
+
+settlement:
+  scheduler:
+    collect-cron: ${SETTLEMENT_SCHEDULER_COLLECT_CRON:0 */5 * * * *} # (시연용) 5분마다
+    complete-cron: ${SETTLEMENT_SCHEDULER_COMPLETE_CRON:0 */5 * * * *} # (시연용) 5분마다
+  policy:
+    waiting-days: ${SETTLEMENT_POLICY_WAITING_DAYS:0} # 구매 확정 후 정산 대기 일수
+
+search:
+  page-size: 20 # 검색 결과 페이지 크기
+  max-from: 10000 # Deep paging 최대 from 값
+  max-keyword-length: 100 # 검색 키워드 최대 길이
 
 feature:
   kafka:

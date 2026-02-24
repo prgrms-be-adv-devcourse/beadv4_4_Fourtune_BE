@@ -7,7 +7,6 @@ jar { enabled = true }
 
 dependencies {
     api project(':common:core')
-    api 'org.springframework.boot:spring-boot-starter'
 
     // HttpServletRequest (jakarta.servlet) 사용을 위해 필요
     compileOnly 'jakarta.servlet:jakarta.servlet-api'
@@ -16,9 +15,6 @@ dependencies {
 
     // Feign 관련
     api "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
-    // JWT (루트 ext)
-    implementation "io.jsonwebtoken:jjwt-api:${jwtVersion}"
-    runtimeOnly "io.jsonwebtoken:jjwt-impl:${jwtVersion}"
-    runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jwtVersion}"
+
 
 }
