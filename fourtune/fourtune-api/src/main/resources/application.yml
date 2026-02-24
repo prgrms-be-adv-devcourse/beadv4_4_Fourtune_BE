@@ -1,6 +1,4 @@
 spring:
-  config:
-    import: classpath:application-common.yml
 
   application:
     name: fourtune
@@ -60,11 +58,12 @@ management:
       exposure:
         include: health,info,metrics,prometheus
   metrics:
-    export:
-      prometheus:
-        enabled: true
     tags:
       application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 logging:
   level:
