@@ -1,6 +1,7 @@
 spring:
   jackson:
-    property-naming-strategy: SNAKE_CASE
+#    # 프론트가 깨질 수 있기에 SNAKE_CASE 사용 엄금 (default는 카멜케이스)
+#    property-naming-strategy: SNAKE_CASE
     default-property-inclusion: non_null
   
   data:
