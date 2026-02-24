@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication(scanBasePackages = "com.fourtune")
 @EnableJpaRepositories(basePackages = "com.fourtune")
 @EntityScan(basePackages = "com.fourtune")
-@EnableFeignClients(basePackages = "com.fourtune")
 public class PaymentApplication {
 
     public static void main(String[] args) {
