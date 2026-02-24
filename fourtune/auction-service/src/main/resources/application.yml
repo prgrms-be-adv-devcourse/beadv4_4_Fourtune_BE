@@ -4,6 +4,8 @@
 spring:
   application:
     name: auction-service
+  config:
+    import: "classpath:application-common.yml"
   jpa:
     hibernate:
       ddl-auto: validate
@@ -13,12 +15,15 @@ spring:
     username: ${DB_USERNAME:fourtune_user}
     password: ${DB_PASSWORD:fourtune}
     driver-class-name: org.postgresql.Driver
+  # redis, kafka bootstrap-servers, jwt 기본값 → application-common.yml
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    # bootstrap-servers from application-common.yml
+    consumer:
+      group-id: auction-consumer-group
   cloud:
     aws:
       credentials:
@@ -46,10 +51,8 @@ app:
 firebase:
   enabled: false
 
-# JWT (common JwtTokenProvider 필수)
-# - 로컬: JWT_SECRET 미설정 시 아래 기본값 사용 (프로덕션에서는 반드시 JWT_SECRET 환경변수로 설정)
+# JWT: secret 등 기본값은 application-common.yml, 경매만 만료 시간 override
 jwt:
-  secret: ${JWT_SECRET:dGVzdC1zZWNyZXQta2V5LWZvci10ZXN0aW5nLW9ubHktbWluLTI1Ni1iaXRzLXJlcXVpcmVkLWZvci1obWFjLXNoYTI1Ni1hbGdvcml0aG0tdGVzdC1rZXktMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTA=}
   access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:1800000}
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:1209600000}
 

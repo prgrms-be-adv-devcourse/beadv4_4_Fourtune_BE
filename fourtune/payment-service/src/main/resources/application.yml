@@ -19,6 +19,8 @@ payment:
 spring:
   application:
     name: payment-service
+  config:
+    import: "classpath:application-common.yml"
 
   batch:
     job:
@@ -37,13 +39,14 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  # redis, kafka bootstrap-servers, jwt → application-common.yml
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    # bootstrap-servers from application-common.yml
     consumer:
       group-id: payment-consumer-group
       auto-offset-reset: earliest
