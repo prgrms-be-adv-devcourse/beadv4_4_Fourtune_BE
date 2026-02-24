@@ -225,8 +225,9 @@ jobs:
             cd /home/fourtune/fourtune || exit 1
             git fetch origin || exit 1
             git reset --hard origin/develop || exit 1
-            docker-compose -f docker-compose.dev.yml build app || exit 1
-            docker-compose -f docker-compose.dev.yml up -d || exit 1
+            docker compose -f docker-compose.dev.yml down --remove-orphans || true
+            docker compose -f docker-compose.dev.yml build --no-cache app payment-service auction-service recommendation-service || exit 1
+            docker compose -f docker-compose.dev.yml up -d || exit 1
             docker system prune -af
 
   deploy-prod:
