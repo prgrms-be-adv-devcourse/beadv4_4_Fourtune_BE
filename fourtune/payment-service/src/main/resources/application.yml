@@ -14,26 +14,6 @@ payment:
     client-key: ${TOSS_CLIENT_KEY}
     secret-key: ${TOSS_SECRET_KEY}
 
-# Resilience4j: auction-service 호출 회복성 (Circuit Breaker + Retry)
-resilience4j:
-  circuitbreaker:
-    instances:
-      auction:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        permittedNumberOfCallsInHalfOpenState: 3
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
-  retry:
-    instances:
-      auction:
-        maxAttempts: 3
-        waitDuration: 500ms
-        retryExceptions:
-          - java.net.ConnectException
-          - java.io.IOException
-          - org.springframework.cloud.openfeign.FeignException
 
 spring:
   application:
