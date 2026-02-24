@@ -12,7 +12,7 @@ services:
       POSTGRES_USER: fourtune_user
       POSTGRES_PASSWORD: fourtune
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
@@ -185,12 +185,12 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - MODULE_NAME=payment-service  # 1번 주문: api 모듈로 빌드해!
+        - MODULE_NAME=payment-service
     image: payment-service:latest
 
-    # ... (기존 build, image 설정)
     environment:
       - SPRING_PROFILES_ACTIVE=local
+      - SERVER_PORT=8081
       # 결제 서비스 전용 DB (서비스별 DB 분리)
       - DB_URL=jdbc:postgresql://postgres:5432/payment_db
       - DB_USERNAME=fourtune_user
@@ -203,6 +203,7 @@ services:
       # PG사 정보 (api에서 payment로 옮겨왔다면 여기서 관리해야 함)
       - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY}
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
+      - JWT_SECRET=${JWT_SECRET}
       # 만약 결제 서비스에서 암호화가 필요하다면
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     ports:
@@ -242,6 +243,7 @@ services:
       - FIREBASE_ENABLED=false
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+      - JWT_SECRET=${JWT_SECRET}
     ports:
       - "9081:8083"
     depends_on:
@@ -355,8 +357,21 @@ services:
     networks:
       - fourtune-network
 
-  # Nginx는 로컬 개발에서 불필요
-  # 필요 시 docker-compose.dev.yml 사용
+  # Nginx (로컬 MSA 라우팅 — dev/prod와 동일한 경로별 분리)
+  # 접속: http://localhost/ (API 직접 접속은 기존대로 http://localhost:9080)
+  nginx:
+    image: nginx:alpine
+    container_name: fourtune-nginx-local
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.local.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      fourtune-api:
+        condition: service_started
+    networks:
+      - fourtune-network
+    restart: "no"
 
 volumes:
   postgres_data:

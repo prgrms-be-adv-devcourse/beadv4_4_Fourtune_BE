@@ -88,6 +88,32 @@ outbox:
     max-retry-count: 3
     poll-interval-ms: 1000
 
+# Payment 서비스 (정산 지급 등 내부 호출, 1번 B안 적용 시 사용)
+payment:
+  service:
+    base-url: ${PAYMENT_SERVICE_BASE_URL:http://localhost:8081}
+
+# Resilience4j: payment-service 호출 회복성 (Phase 2에서 PaymentServiceClient 사용 시 적용)
+resilience4j:
+  circuitbreaker:
+    instances:
+      payment:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  retry:
+    instances:
+      payment:
+        maxAttempts: 3
+        waitDuration: 500ms
+        retryExceptions:
+          - java.net.ConnectException
+          - java.io.IOException
+          - org.springframework.cloud.openfeign.FeignException
+
 # application.yml
 settlement:
   scheduler:
@@ -183,6 +209,8 @@ order:
   bid-pending-timeout-hours: ${ORDER_BID_PENDING_TIMEOUT_HOURS:24} # 낙찰 결제 유예 (시간)
 
 payment:
+  service:
+    base-url: ${PAYMENT_SERVICE_BASE_URL:http://localhost:8081}
   toss:
     client-key: ${TOSS_CLIENT_KEY}
     secret-key: ${TOSS_SECRET_KEY}
@@ -360,6 +388,8 @@ order:
   bid-pending-timeout-hours: ${ORDER_BID_PENDING_TIMEOUT_HOURS:24}
 
 payment:
+  service:
+    base-url: ${PAYMENT_SERVICE_BASE_URL:http://localhost:8081}
   toss:
     client-key: ${TOSS_CLIENT_KEY}
     secret-key: ${TOSS_SECRET_KEY}
@@ -460,6 +490,8 @@ order:
   bid-pending-timeout-hours: ${ORDER_BID_PENDING_TIMEOUT_HOURS:24}
 
 payment:
+  service:
+    base-url: ${PAYMENT_SERVICE_BASE_URL:http://localhost:8081}
   toss:
     client-key: ${TOSS_CLIENT_KEY}
     secret-key: ${TOSS_SECRET_KEY}

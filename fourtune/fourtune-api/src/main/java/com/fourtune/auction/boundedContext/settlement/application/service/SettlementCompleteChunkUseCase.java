@@ -39,7 +39,8 @@ public class SettlementCompleteChunkUseCase {
         return successCount;
     }
 
-    private List<Settlement> findActiveSettlements(int size) {
+    public List<Settlement> findActiveSettlements(int size) {
+        // 정산 일시(SettledAt)가 아직 Null이고(정산 안 됐고), 금액이 0보다 큰 것 조회
         return settlementRepository.findBySettledAtIsNullAndAmountGreaterThanOrderByIdAsc(
                 0L, PageRequest.of(0, size));
     }

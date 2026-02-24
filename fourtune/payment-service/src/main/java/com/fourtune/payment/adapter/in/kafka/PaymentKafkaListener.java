@@ -53,6 +53,8 @@ public class PaymentKafkaListener {
                 case PAYMENT_USER_CREATED -> handlePaymentUserCreated((PaymentUserCreatedEvent) event);
                 case PAYMENT_SUCCEEDED -> log.debug("PAYMENT_SUCCEEDED 이벤트 무시 (내부 처리 불필요)");
                 case PAYMENT_FAILED -> log.debug("PAYMENT_FAILED 이벤트 무시 (내부 처리 불필요)");
+                case PAYMENT_CANCELED -> log.debug("PAYMENT_CANCELED 이벤트 무시 (내부 처리 불필요)");
+                case AUCTION_REFUND_COMPLETED -> log.debug("AUCTION_REFUND_COMPLETED 이벤트 무시 (내부 처리 불필요)");
             }
 
         } catch (Exception e) {

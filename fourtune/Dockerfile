@@ -14,11 +14,11 @@ COPY settings.gradle .
 # Grant execute permission to gradlew
 RUN chmod +x gradlew
 
-# Download dependencies (cache layer)
-RUN ./gradlew dependencies --no-daemon || true
-
-# Copy source code
+# Copy full source so Gradle can configure all subprojects (e.g. common:core)
 COPY . .
+
+# Download dependencies (cache layer) — run after COPY so :common:core etc. exist
+RUN ./gradlew dependencies --no-daemon || true
 
 # Build application
 RUN ./gradlew :${MODULE_NAME}:bootjar -x test --no-daemon

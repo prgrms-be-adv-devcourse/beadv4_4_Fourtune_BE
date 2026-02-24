@@ -7,6 +7,7 @@ dependencies {
 	implementation project(':common:fcm')
 	implementation project(':common:shared')
 	implementation project(':common:redis')
+	implementation project(':common:feign')
 	
 	// Testcontainers BOM
 	testImplementation platform('org.testcontainers:testcontainers-bom:1.20.4')
@@ -30,12 +31,15 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	// Feign (payment-service 등 내부 서비스 호출, 루트 ext 버전 사용)
+	implementation "org.springframework.cloud:spring-cloud-starter-openfeign:${openFeignVersion}"
+	// Resilience4j (Circuit Breaker, Retry)
+	implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
 	// web client
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	// batch
 	implementation 'org.springframework.boot:spring-boot-starter-batch'
-	testImplementation 'org.springframework.batch:spring-batch-test'
 
 	// Test Dependencies
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -45,6 +49,7 @@ dependencies {
 	testImplementation 'org.testcontainers:elasticsearch'
 	runtimeOnly 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.springframework.batch:spring-batch-test'
 }
 
 tasks.named('test') {
