@@ -1,6 +1,12 @@
 server:
   port: 8081
 
+# JWT (common/jwt JwtTokenProvider용 — 내부 API 검증 등)
+jwt:
+  secret: ${JWT_SECRET:lWnCnf4CTKgMltzLfUlcxbrSi36LlEfLPBz3zDy3YnE=}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:1800000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:1209600000}
+
 # 경매(주문) 조회 Feign용
 api:
   auction:

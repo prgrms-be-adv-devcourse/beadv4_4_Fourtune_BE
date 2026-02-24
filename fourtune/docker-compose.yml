@@ -204,11 +204,12 @@ services:
       # 경매(주문) 조회 Feign용 (auction-service 내부 포트 8083)
       - API_AUCTION_BASE_URL=http://auction-service:8083
       # PG사 정보 (api에서 payment로 옮겨왔다면 여기서 관리해야 함)
-      - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY}
-      - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
-      - JWT_SECRET=${JWT_SECRET}
+      - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY:-test_ck_YZ1aOwX7K8m5POogaBGV3yQxzvNP}
+      - TOSS_SECRET_KEY=${TOSS_SECRET_KEY:-test_sk_yL0qZ4G1VO512el4x29B8oWb2MQY}
+      # JWT: .env 없을 때도 도커만으로 기동 가능 (Base64, 32바이트 디코딩)
+      - JWT_SECRET=${JWT_SECRET:-lWnCnf4CTKgMltzLfUlcxbrSi36LlEfLPBz3zDy3YnE=}
       # 만약 결제 서비스에서 암호화가 필요하다면
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-fourtune-dev-aes256-encrypt!!}
     ports:
       - "8082:8081"
     depends_on:
