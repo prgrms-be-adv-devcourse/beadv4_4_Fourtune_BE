@@ -9,6 +9,7 @@ dependencies {    // Common 모듈
 	implementation project(':common:redis')
 	implementation project(':common:kafka')
 	implementation project(':common:shared')
+	implementation project(':common:feign')
 	
     // Note: infra (S3) and outbox are intentionally excluded to avoid unnecessary AWS/JPA dependencies
 
