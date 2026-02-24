@@ -130,6 +130,8 @@ services:
       - OAUTH_FRONTEND_URI
       - OAUTH_CLIENT_ID
       - OAUTH_CLIENT_SECRET
+      # Firebase FCM 서비스 계정 JSON (환경 변수로 주입)
+      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
 
     ports:
       - "8080:8080"
