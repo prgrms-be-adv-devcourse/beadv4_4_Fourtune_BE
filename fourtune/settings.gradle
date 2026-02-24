@@ -17,5 +17,3 @@ include 'common:shared'
 include 'common:redis'
 include 'common:feign'
 
-// 레거시 common module (추후 삭제 예정)
-include 'common'
