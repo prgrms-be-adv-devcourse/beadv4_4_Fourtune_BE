@@ -1,8 +1,12 @@
 package com.fourtune.payment.application.service;
 
+import com.fourtune.core.error.ErrorCode;
+import com.fourtune.core.error.exception.BusinessException;
 import com.fourtune.payment.domain.entity.*;
 import com.fourtune.payment.domain.vo.PaymentExecutionResult;
+import com.fourtune.payment.port.out.AuctionPort;
 import com.fourtune.payment.port.out.CashLogRepository;
+import com.fourtune.shared.payment.dto.OrderDto;
 import com.fourtune.shared.payment.dto.PaymentUserDto;
 import com.fourtune.shared.settlement.dto.SettlementDto;
 import com.fourtune.shared.user.dto.UserResponse;
@@ -24,6 +28,7 @@ public class PaymentFacade {
     private final PaymentCreateWalletUseCase paymentCreateWalletUseCase;
     private final PaymentCancelUseCase paymentCancelUseCase;
     private final CashLogRepository cashLogRepository;
+    private final AuctionPort auctionPort;
 
 
     @Transactional(readOnly = true)
@@ -103,5 +108,16 @@ public class PaymentFacade {
     @Transactional
     public void deleteUser(UserResponse user) {
         paymentSupport.deleteUser(user);
+    }
+
+    /**
+     * 결제 취소 (내부 API용). orderId로 주문 정보를 조회한 뒤 취소 처리.
+     */
+    public Refund cancelPayment(String orderId, String cancelReason, Long cancelAmount) {
+        OrderDto orderDto = auctionPort.getOrder(orderId);
+        if (orderDto == null) {
+            throw new BusinessException(ErrorCode.PAYMENT_AUCTION_ORDER_NOT_FOUND);
+        }
+        return paymentCancelUseCase.cancelPayment(cancelReason, cancelAmount, orderDto);
     }
 }

@@ -3,6 +3,7 @@ package com.fourtune.auction.boundedContext.auction.adapter.in.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.auction.application.service.OrderCompleteUseCase;
 import com.fourtune.kafka.KafkaTopicConfig;
+import com.fourtune.shared.payment.event.PaymentCanceledEvent;
 import com.fourtune.shared.payment.event.PaymentFailedEvent;
 import com.fourtune.shared.payment.event.PaymentSucceededEvent;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class PaymentResultKafkaListener {
             @Header(HEADER_EVENT_TYPE) String eventType,
             @Header(KafkaHeaders.RECEIVED_KEY) String key
     ) {
-        if (!"PAYMENT_SUCCEEDED".equals(eventType) && !"PAYMENT_FAILED".equals(eventType)) {
+        if (!"PAYMENT_SUCCEEDED".equals(eventType) && !"PAYMENT_FAILED".equals(eventType) && !"PAYMENT_CANCELED".equals(eventType)) {
             log.debug("Auction에서 무시하는 결제 이벤트: eventType={}", eventType);
             return;
         }
@@ -53,6 +54,14 @@ public class PaymentResultKafkaListener {
                     log.info("주문 완료 처리 완료: orderId={}", event.getOrder().getOrderId());
                 } else {
                     log.warn("PAYMENT_SUCCEEDED 수신했으나 order 정보 없음: key={}", key);
+                }
+            } else if ("PAYMENT_CANCELED".equals(eventType)) {
+                PaymentCanceledEvent event = objectMapper.readValue(payload, PaymentCanceledEvent.class);
+                if (event.getOrder() != null && event.getOrder().getOrderId() != null) {
+                    orderCompleteUseCase.cancelOrder(event.getOrder().getOrderId());
+                    log.info("주문 취소 처리 완료(결제 취소 반영): orderId={}", event.getOrder().getOrderId());
+                } else {
+                    log.warn("PAYMENT_CANCELED 수신했으나 order 정보 없음: key={}", key);
                 }
             } else {
                 PaymentFailedEvent event = objectMapper.readValue(payload, PaymentFailedEvent.class);
