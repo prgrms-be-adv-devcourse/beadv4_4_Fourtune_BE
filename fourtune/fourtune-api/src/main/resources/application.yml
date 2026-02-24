@@ -162,6 +162,10 @@ jwt:
 encryption:
   key: your-local-encryption-key-32-chars # 32자 (256비트)
 
+api:
+  auction:
+    base-url: "http://localhost:8083"
+
 ---
 # Test Profile (CI/CD용)
 spring:
@@ -301,6 +305,10 @@ jwt:
 encryption:
   key: ${ENCRYPTION_KEY}
 
+api:
+  auction:
+    base-url: ${API_AUCTION_BASE_URL:http://localhost:8083}
+
 logging:
   level:
     root: INFO
@@ -380,6 +388,10 @@ jwt:
 
 encryption:
   key: ${ENCRYPTION_KEY}
+
+api:
+  auction:
+    base-url: ${API_AUCTION_BASE_URL:http://localhost:8083}
 
 # Production에서는 Swagger 비활성화 (보안)
 springdoc:
