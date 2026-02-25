@@ -160,8 +160,7 @@ services:
       - OAUTH_FRONTEND_URI=${OAUTH_FRONTEND_URI:-http://localhost:3000}
       - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID:-docker-client-id}
       - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET:-docker-client-secret}
-      # PAYMENT 분리 (Feign PaymentServiceClient용)
-      - PAYMENT_SERVICE_BASE_URL=http://payment-service:8081
+      # PAYMENT 분리 (필요 시 PAYOUT_URL, CASH_URL 등)
       - PAYOUT_URL=http://payment-service:8081
       - CASH_URL=http://payment-service:8081
       - FIREBASE_ENABLED=false
@@ -222,6 +221,7 @@ services:
       - fourtune-network
 
   # auction-service (경매 MSA — 8083, 호스트 9081)
+  # 경매 시작/종료 시각 비교를 한국 시간 기준으로 통일 (프론트 KST 전송과 맞춤)
   auction-service:
     build:
       context: .
@@ -230,6 +230,7 @@ services:
         - MODULE_NAME=auction-service
     image: auction-service:latest
     environment:
+      - TZ=Asia/Seoul
       - DB_URL=jdbc:postgresql://postgres:5432/auction
       - DB_USERNAME=fourtune_user
       - DB_PASSWORD=fourtune
