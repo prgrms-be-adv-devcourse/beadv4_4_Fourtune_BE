@@ -14,12 +14,9 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 /**
- * 입찰 이벤트 Consumer (골격)
+ * 입찰 이벤트 Consumer
  * auction-events 토픽에서 BID_PLACED 이벤트를 필터링하여
  * 입찰한 카테고리를 프로파일에 반영 (가중치 +5)
- *
- * TODO: BidPlacedEvent에 category 필드가 추가된 후 활성화
- * (현재는 category 정보가 없어 프로파일링 불가함)
  */
 @Slf4j
 @Component
