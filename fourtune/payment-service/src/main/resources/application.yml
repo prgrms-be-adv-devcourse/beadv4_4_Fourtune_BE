@@ -1,16 +1,30 @@
 server:
   port: 8081
 
-spring:
-  profiles:
-    active: local
+# 경매(주문) 조회 Feign용
+api:
+  auction:
+    base-url: ${API_AUCTION_BASE_URL:http://localhost:8083}
 
----
+# 내부 API 호출 시 X-Internal-Token 헤더 검사. 비어 있으면 검사 생략(로컬용)
+payment:
+  internal:
+    token: ${PAYMENT_INTERNAL_TOKEN:}
+  toss:
+    client-key: ${TOSS_CLIENT_KEY}
+    secret-key: ${TOSS_SECRET_KEY}
+
+
 
 spring:
+  application:
+    name: payment-service
   config:
-    activate:
-      on-profile: local
+    import: "classpath:application-common.yml"
+
+  batch:
+    job:
+      enabled: false
 
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/payment_db}
@@ -24,3 +38,36 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  # redis, kafka bootstrap-servers, jwt → application-common.yml
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  kafka:
+    # bootstrap-servers from application-common.yml
+    consumer:
+      group-id: payment-consumer-group
+      auto-offset-reset: earliest
+    producer:
+      acks: all
+
+feature:
+  kafka:
+    enabled: true
+
+custom:
+  services:
+    payout_url: ${PAYOUT_SERVICE_URL:http://payment-service:8081}
+    cash_url: ${CASH_SERVICE_URL:http://payment-service:8081}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    enabled: false          # 각 서비스 자체 UI는 비활성 (aggregation용 엔드포인트만 노출)
+  paths-to-exclude:
+    - /actuator/**
+    - /error

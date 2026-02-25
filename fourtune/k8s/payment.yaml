@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-config
+  namespace: fourtune
+data:
+  DB_URL: "jdbc:postgresql://postgres-postgresql:5432/payment_db"
+  REDIS_HOST: "redis-master"
+  REDIS_PORT: "6379"
+  KAFKA_BOOTSTRAP_SERVERS: "redpanda:9092"
+  API_AUCTION_BASE_URL: "http://auction-service:8083"
+  PAYOUT_SERVICE_URL: "http://payment-service:8081"
+  CASH_SERVICE_URL: "http://payment-service:8081"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: fourtune
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+    spec:
+      containers:
+        - name: payment-container
+          image: payment-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - secretRef:
+                name: fourtune-secrets   # 민감한 값: TOSS_CLIENT_KEY, TOSS_SECRET_KEY 등
+            - configMapRef:
+                name: payment-config     # 비민감한 인프라 주소
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: fourtune
+spec:
+  selector:
+    app: payment
+  ports:
+    - protocol: TCP
+      port: 8081      # 외부/다른 서비스가 접근하는 포트
+      targetPort: 8081 # 컨테이너 내부 포트

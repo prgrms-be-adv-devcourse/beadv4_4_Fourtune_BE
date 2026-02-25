@@ -23,6 +23,7 @@ public enum ErrorCode {
     PASSWORD_NOT_MATCH(400, "U006", "비밀번호가 일치하지 않습니다."),
     PASSWORD_SAME_AS_OLD(400, "U007", "비밀번호가 이전과 동일합니다."),
     ALREADY_WITHDRAWN(400, "U008", "이미 탈퇴한 사용자입니다."),
+    WITHDRAW_BLOCKED_BY_ACTIVE_AUCTION(409, "U009", "진행 중인 경매가 있어 탈퇴할 수 없습니다."),
 
     //Lock(락 관련)
     CHANGE_CONFLICT(409, "U008", "다른 사용자에 의해 정보가 변경되었습니다. 다시 시도해주세요"),

@@ -1,6 +1,7 @@
 # 개발 서버 환경용 Docker Compose
-# 사용법: docker-compose -f docker-compose.dev.yml up -d
-version: '3.8'
+# 사용법: docker compose -f docker-compose.dev.yml up -d
+# (version 필드는 Compose V2에서 무시되므로 제거)
+name: fourtune
 
 services:
   # PostgreSQL Database
@@ -15,11 +16,16 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
     networks:
       - fourtune-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-fourtune_user} -d ${DB_NAME:-fourtune_db}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USERNAME:-fourtune_user} -d ${DB_NAME:-fourtune_db}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -59,7 +65,8 @@ services:
       - fourtune-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -125,7 +132,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - ELASTICSEARCH_URIS=http://elasticsearch:9200
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
       - JWT_SECRET=${JWT_SECRET}
@@ -140,6 +147,10 @@ services:
       - OAUTH_FRONTEND_URI
       - OAUTH_CLIENT_ID
       - OAUTH_CLIENT_SECRET
+      # payment-service Feign 호출 (내부 포트 8080)
+      - PAYMENT_SERVICE_BASE_URL=http://payment-service:8080
+      # Firebase FCM 서비스 계정 JSON (환경 변수로 주입)
+      - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
     ports:
       - "8080:8080"
     depends_on:
@@ -155,7 +166,15 @@ services:
       - fourtune-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/actuator/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -170,16 +189,20 @@ services:
     container_name: payment-service-dev
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - SERVER_PORT=8080
       - DB_URL=jdbc:postgresql://postgres:5432/payment_db
       - DB_USERNAME=${DB_USERNAME:-fourtune_user}
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - JWT_SECRET=${JWT_SECRET}
       # 결제 전용 키
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY:-test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      # auction-service Feign 호출 (auction 서비스 추가 시 사용)
+      - API_AUCTION_BASE_URL=http://auction-service:8083
     ports:
       - "8081:8080" # 외부 포트는 8081로 차별화
     depends_on:
@@ -190,7 +213,65 @@ services:
       - fourtune-network
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  auction-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - MODULE_NAME=auction-service
+    container_name: auction-service-dev
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/auction
+      - DB_USERNAME=${DB_USERNAME:-fourtune_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - SERVER_PORT=8083
+      - API_USER_BASE_URL=http://app:8080
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+      app:
+        condition: service_started
+    networks:
+      - fourtune-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8083/actuator/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -210,7 +291,7 @@ services:
       - REDIS_PORT=6379
       - AI_PROVIDER=${AI_PROVIDER:-ollama}
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - SERVER_PORT=8084
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
       # JWT
@@ -241,7 +322,15 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8084/actuator/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8084/actuator/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -257,11 +346,22 @@ services:
       - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - app
+      - payment-service
+      - auction-service
+      - recommendation-service
     networks:
       - fourtune-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/actuator/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost/actuator/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3

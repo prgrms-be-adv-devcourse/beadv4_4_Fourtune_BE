@@ -41,6 +41,11 @@ public interface AuctionItemRepository extends JpaRepository<AuctionItem, Long> 
     
     List<AuctionItem> findBySellerId(Long sellerId);
     
+    /**
+     * 판매자별·상태별 경매 개수 (탈퇴 시 진행 중 경매 확인용)
+     */
+    long countBySellerIdAndStatus(Long sellerId, AuctionStatus status);
+    
     List<AuctionItem> findByStatus(AuctionStatus status);
     
     /**

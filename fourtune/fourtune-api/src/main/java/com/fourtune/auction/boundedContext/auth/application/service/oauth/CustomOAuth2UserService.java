@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.auth.application.service.oauth;
 
+import com.fourtune.auction.boundedContext.auth.dto.OAuth2UserAdapter;
 import com.fourtune.auction.boundedContext.user.application.service.UserSupport;
 import com.fourtune.auction.boundedContext.user.domain.constant.Role;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
@@ -66,11 +67,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             eventPublisher.publish(new UserJoinedEvent(user.toDto()));
         }
 
-        return new UserContext(
+        UserContext userContext = new UserContext(
                 user.getId(),
                 null,
-                List.of(new SimpleGrantedAuthority(user.getRole().name())),
-                oAuth2User.getAttributes()
+                List.of(new SimpleGrantedAuthority(user.getRole().name()))
         );
+        return new OAuth2UserAdapter(userContext, oAuth2User.getAttributes());
     }
 }

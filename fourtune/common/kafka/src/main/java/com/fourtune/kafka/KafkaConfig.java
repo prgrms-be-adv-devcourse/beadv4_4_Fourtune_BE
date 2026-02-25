@@ -1,22 +1,28 @@
 package com.fourtune.kafka;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 
+@EnableKafka
 @Configuration
 @ConditionalOnProperty(name = "feature.kafka.enabled", havingValue = "true", matchIfMissing = false)
 public class KafkaConfig {
@@ -44,6 +50,21 @@ public class KafkaConfig {
         return new KafkaTemplate<>(producerFactory());
     }
 
+    /**
+     * 재시도 소진 시 실패 메시지를 원본 토픽명 + "-dlq" 토픽으로 전달 (메시지 유실 방지)
+     */
+    @Bean
+    public DeadLetterPublishingRecoverer deadLetterPublishingRecoverer(KafkaTemplate<String, String> kafkaTemplate) {
+        BiFunction<ConsumerRecord<?, ?>, Exception, TopicPartition> resolver =
+                (record, ex) -> new TopicPartition(record.topic() + "-dlq", record.partition());
+        return new DeadLetterPublishingRecoverer(kafkaTemplate, resolver);
+    }
+
+    @Bean
+    public DefaultErrorHandler kafkaCommonErrorHandler(DeadLetterPublishingRecoverer deadLetterPublishingRecoverer) {
+        return new DefaultErrorHandler(deadLetterPublishingRecoverer, new FixedBackOff(1000L, 3));
+    }
+
     // --- User Event Consumer 설정 (String 기반) ---
 
     @Bean
@@ -58,13 +79,14 @@ public class KafkaConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> userEventKafkaListenerContainerFactory(
-            ConsumerFactory<String, String> userEventConsumerFactory) {
+            ConsumerFactory<String, String> userEventConsumerFactory,
+            DefaultErrorHandler kafkaCommonErrorHandler) {
 
         ConcurrentKafkaListenerContainerFactory<String, String> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(userEventConsumerFactory);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
+        factory.setCommonErrorHandler(kafkaCommonErrorHandler);
         return factory;
     }
 
@@ -81,11 +103,12 @@ public class KafkaConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> auctionEventKafkaListenerContainerFactory(
-            ConsumerFactory<String, String> auctionEventConsumerFactory) {
+            ConsumerFactory<String, String> auctionEventConsumerFactory,
+            DefaultErrorHandler kafkaCommonErrorHandler) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(auctionEventConsumerFactory);
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
+        factory.setCommonErrorHandler(kafkaCommonErrorHandler);
         return factory;
     }
 
@@ -102,11 +125,12 @@ public class KafkaConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> watchlistEventKafkaListenerContainerFactory(
-            ConsumerFactory<String, String> watchlistEventConsumerFactory) {
+            ConsumerFactory<String, String> watchlistEventConsumerFactory,
+            DefaultErrorHandler kafkaCommonErrorHandler) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(watchlistEventConsumerFactory);
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
+        factory.setCommonErrorHandler(kafkaCommonErrorHandler);
         return factory;
     }
 
@@ -123,11 +147,12 @@ public class KafkaConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> paymentEventKafkaListenerContainerFactory(
-            ConsumerFactory<String, String> paymentEventConsumerFactory) {
+            ConsumerFactory<String, String> paymentEventConsumerFactory,
+            DefaultErrorHandler kafkaCommonErrorHandler) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(paymentEventConsumerFactory);
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
+        factory.setCommonErrorHandler(kafkaCommonErrorHandler);
         return factory;
     }
 
@@ -144,11 +169,12 @@ public class KafkaConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> settlementEventKafkaListenerContainerFactory(
-            ConsumerFactory<String, String> settlementEventConsumerFactory) {
+            ConsumerFactory<String, String> settlementEventConsumerFactory,
+            DefaultErrorHandler kafkaCommonErrorHandler) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(settlementEventConsumerFactory);
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
+        factory.setCommonErrorHandler(kafkaCommonErrorHandler);
         return factory;
     }
 
@@ -165,11 +191,12 @@ public class KafkaConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> notificationEventKafkaListenerContainerFactory(
-            ConsumerFactory<String, String> notificationEventConsumerFactory) {
+            ConsumerFactory<String, String> notificationEventConsumerFactory,
+            DefaultErrorHandler kafkaCommonErrorHandler) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(notificationEventConsumerFactory);
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 3)));
+        factory.setCommonErrorHandler(kafkaCommonErrorHandler);
         return factory;
     }
 }

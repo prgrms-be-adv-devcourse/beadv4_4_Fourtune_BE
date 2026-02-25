@@ -4,6 +4,11 @@ spring:
 ---
 # 테스트 전용 설정 (application-common.yml 보다 높은 우선순위)
 spring:
+  batch:
+    job:
+      enabled: false          # 테스트 시 배치 자동 실행 방지
+    jdbc:
+      initialize-schema: always  # 인메모리 DB에 Batch 메타 테이블 생성
   datasource:
     # H2 DB 설정
     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
@@ -65,6 +70,8 @@ payment:
   toss:
     client-key: "test_toss_client_key"
     secret-key: "test_toss_secret_key"
+  service:
+    base-url: "http://localhost:8081"
 
 api:
   auction:

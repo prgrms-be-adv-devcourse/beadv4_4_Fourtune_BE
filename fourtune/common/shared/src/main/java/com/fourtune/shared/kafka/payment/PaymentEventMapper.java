@@ -17,6 +17,7 @@ public final class PaymentEventMapper {
     static {
         TYPE_TO_CLASS.put(EventType.PAYMENT_SUCCEEDED.name(), PaymentSucceededEvent.class);
         TYPE_TO_CLASS.put(EventType.PAYMENT_FAILED.name(), PaymentFailedEvent.class);
+        TYPE_TO_CLASS.put(EventType.PAYMENT_CANCELED.name(), PaymentCanceledEvent.class);
         TYPE_TO_CLASS.put(EventType.PAYMENT_USER_CREATED.name(), PaymentUserCreatedEvent.class);
         TYPE_TO_CLASS.put(EventType.AUCTION_REFUND_COMPLETED.name(), AuctionRefundCompletedEvent.class);
     }
@@ -42,6 +43,7 @@ public final class PaymentEventMapper {
     public enum EventType {
         PAYMENT_SUCCEEDED,
         PAYMENT_FAILED,
+        PAYMENT_CANCELED,
         PAYMENT_USER_CREATED,
         AUCTION_REFUND_COMPLETED
     }

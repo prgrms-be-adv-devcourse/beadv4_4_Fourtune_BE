@@ -9,12 +9,8 @@ dependencies {
     // 1. 공통 의존성
     api project(':common:core')
 
-    // 2. JSON
-    api 'com.fasterxml.jackson.core:jackson-databind'
-
-    // 3. Security (오직 인터페이스를 위한 코어 라이브러리만 제공, 필터망 전파 차단)
+    // 3. Security (UserDetails 인터페이스 컴파일용)
     compileOnly 'org.springframework.security:spring-security-core'
-    compileOnly 'org.springframework.security:spring-security-oauth2-core'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

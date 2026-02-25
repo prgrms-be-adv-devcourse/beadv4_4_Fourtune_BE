@@ -1,5 +1,7 @@
 package com.fourtune.auction.boundedContext.user.application.service;
 
+import com.fourtune.auction.boundedContext.user.adapter.out.external.AuctionServiceClient;
+import com.fourtune.auction.boundedContext.user.adapter.out.external.dto.ActiveAuctionsResponse;
 import com.fourtune.auction.boundedContext.user.domain.constant.Status;
 import com.fourtune.shared.user.event.UserEventType;
 import com.fourtune.auction.boundedContext.user.domain.entity.User;
@@ -28,6 +30,7 @@ public class UserDeletedUseCase {
     private final EventPublisher eventPublisher;
     private final EventPublishingConfig eventPublishingConfig;
     private final OutboxService outboxService;
+    private final AuctionServiceClient auctionServiceClient;
 
     @Transactional
     public void userDelete(Long userId, UserWithdrawRequest request) {
@@ -62,10 +65,10 @@ public class UserDeletedUseCase {
     }
 
     private void validateCanWithdraw(User user) {
-        // 예시: 진행 중인 경매나 거래가 있다면 탈퇴 막기
-        // if (auctionRepository.existsBySellerAndStatus(user, "ONGOING")) {
-        //     throw new BusinessException(ErrorCode.CANNOT_WITHDRAW_ON_AUCTION);
-        // }
+        ActiveAuctionsResponse response = auctionServiceClient.getActiveAuctionsByUser(user.getId());
+        if (response.hasActiveAuctions()) {
+            throw new BusinessException(ErrorCode.WITHDRAW_BLOCKED_BY_ACTIVE_AUCTION);
+        }
     }
 
 }

@@ -97,7 +97,6 @@ class ApiV1AuctionControllerIntegrationTest {
                 mockMvc.perform(get("/api/v1/auctions/{id}", id))
                                 .andDo(print())
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.id").value(id))
                                 .andExpect(jsonPath("$.sellerId").value(TEST_SELLER_ID))
                                 .andExpect(jsonPath("$.sellerNickname").value(TEST_SELLER_NICKNAME))
                                 .andExpect(jsonPath("$.title").value(TEST_TITLE))

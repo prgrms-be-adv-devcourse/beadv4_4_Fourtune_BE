@@ -1,9 +1,14 @@
 spring:
+  application:
+    name: fourtune
+
+  batch:
+    job:
+      enabled: false
+      
   config:
     import: classpath:application-common.yml
 
-  application:
-    name: fourtune
   jackson:
     time-zone: Asia/Seoul # 한국 시간으로 변환
     locale: ko_KR
@@ -33,10 +38,6 @@ security:
 app:
   oauth2:
     redirect-uri: ${OAUTH_FRONTEND_URI}/login-success
-  view-count:
-    use-redis: ${VIEW_COUNT_USE_REDIS:true}
-    key-prefix: "auction:view:"
-    sync-interval-ms: 60000  # 1분마다 Redis → DB 동기화
 
 # SpringDoc OpenAPI (Swagger) 설정
 springdoc:
@@ -49,9 +50,19 @@ springdoc:
     operations-sorter: method
     tags-sorter: alpha
     try-it-out-enabled: true
+    urls:
+      - name: fourtune-api
+        url: /v3/api-docs
+      - name: auction-service
+        url: /v3/api-docs/auction
+      - name: payment-service
+        url: /v3/api-docs/payment
+      - name: recommendation-service
+        url: /v3/api-docs/recommendation
   paths-to-exclude:
     - /actuator/**
     - /error
+    - /api/internal/**
 
 # Actuator & Prometheus 설정
 management:
@@ -60,11 +71,12 @@ management:
       exposure:
         include: health,info,metrics,prometheus
   metrics:
-    export:
-      prometheus:
-        enabled: true
     tags:
       application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 logging:
   level:
@@ -88,15 +100,6 @@ outbox:
     batch-size: 100
     max-retry-count: 3
     poll-interval-ms: 1000
-
-# application.yml
-settlement:
-  scheduler:
-    collect-cron: ${SETTLEMENT_SCHEDULER_COLLECT_CRON:0 */5 * * * *} # (시연용) 5분 마다
-    complete-cron: ${SETTLEMENT_SCHEDULER_COMPLETE_CRON:0 */5 * * * *} # (시연용) 5분 마다
-    # cron: "0 0 0/1 * * *" # 예: 1시간마다 실행 (운영용)
-  policy:
-    waiting-days: ${SETTLEMENT_POLICY_WAITING_DAYS:0} # 구매 확정 후 정산 대기 일수 (0일이면 즉시 정산)
 
 ---
 # Local Profile
@@ -169,35 +172,9 @@ jwt:
 encryption:
   key: your-local-encryption-key-32-chars # 32자 (256비트)
 
-# 경매 설정
-auction:
-  bid-unit: 1000 # 입찰 단위 (원)
-  auto-extend-minutes: 3 # 자동 연장 시간
-  auto-extend-threshold-minutes: 5 # 연장 발동 시간
-  payment-deadline-days: 1 # 결제 기한 (낙찰 기준)
-  seller-shipping-deadline-days: 7 # 발송 기한
-  settlement-fee-rate: 0.1 # 정산 수수료 (10%)
-
-# 주문/결제 대기 설정 (ORDER_PAYMENT_POLICY: 즉시구매 10분 / 낙찰 24시간)
-order:
-  buy-now-pending-timeout-minutes: ${ORDER_BUYNOW_PENDING_TIMEOUT_MINUTES:10} # 즉시구매 결제 유예 (분)
-  bid-pending-timeout-hours: ${ORDER_BID_PENDING_TIMEOUT_HOURS:24} # 낙찰 결제 유예 (시간)
-
-payment:
-  toss:
-    client-key: ${TOSS_CLIENT_KEY}
-    secret-key: ${TOSS_SECRET_KEY}
-
-# 검색 설정
-search:
-  page-size: 20 # 검색 결과 페이지 크기
-  max-from: 10000 # Deep paging 최대 from 값
-  max-keyword-length: 100 # 검색 키워드 최대 길이
-
-# 결제 모듈에서 주문 데이터 조회
 api:
   auction:
-    base-url: http://localhost:8080
+    base-url: "http://localhost:8083"
 
 ---
 # Test Profile (CI/CD용)
@@ -266,16 +243,6 @@ logging:
   level:
     root: WARN
     com.fourtune: INFO
-
-# 주문/결제 대기 설정 (ORDER_PAYMENT_POLICY)
-order:
-  buy-now-pending-timeout-minutes: ${ORDER_BUYNOW_PENDING_TIMEOUT_MINUTES:10}
-  bid-pending-timeout-hours: ${ORDER_BID_PENDING_TIMEOUT_HOURS:24}
-
-# 결제 모듈에서 주문 데이터 조회
-api:
-  auction:
-    base-url: http://localhost:8080
 
 ---
 # Development Profile
@@ -348,38 +315,14 @@ jwt:
 encryption:
   key: ${ENCRYPTION_KEY}
 
-auction:
-  bid-unit: 1000
-  auto-extend-minutes: 3
-  auto-extend-threshold-minutes: 5
-  payment-deadline-days: 1
-  seller-shipping-deadline-days: 7
-  settlement-fee-rate: 0.1
-
-order:
-  buy-now-pending-timeout-minutes: ${ORDER_BUYNOW_PENDING_TIMEOUT_MINUTES:10}
-  bid-pending-timeout-hours: ${ORDER_BID_PENDING_TIMEOUT_HOURS:24}
-
-payment:
-  toss:
-    client-key: ${TOSS_CLIENT_KEY}
-    secret-key: ${TOSS_SECRET_KEY}
-
-# 검색 설정
-search:
-  page-size: 20
-  max-from: 10000
-  max-keyword-length: 100
+api:
+  auction:
+    base-url: ${API_AUCTION_BASE_URL:http://localhost:8083}
 
 logging:
   level:
     root: INFO
     com.fourtune: DEBUG
-
-# 결제 모듈에서 주문 데이터 조회
-api:
-  auction:
-    base-url: http://localhost:8080
 
 ---
 # Production Profile
@@ -416,14 +359,14 @@ spring:
   elasticsearch:
     uris: ${ELASTICSEARCH_URIS}
 
-  #  kafka:
-  #    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-  #    consumer:
-  #      group-id: fourtune-consumer-group
-  #      auto-offset-reset: earliest
-  #    producer:
-  #      acks: all
-  #      retries: 3
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: fourtune-consumer-group
+      auto-offset-reset: earliest
+    producer:
+      acks: all
+      retries: 3
 
   cloud:
     aws:
@@ -438,7 +381,15 @@ spring:
 
 feature:
   kafka:
-    enabled: false
+    enabled: true
+    user-events:
+      enabled: true
+    auction-events:
+      enabled: true
+    watchlist-events:
+      enabled: true
+    notification-events:
+      enabled: true
 
 jwt:
   secret: ${JWT_SECRET}
@@ -448,27 +399,9 @@ jwt:
 encryption:
   key: ${ENCRYPTION_KEY}
 
-auction:
-  bid-unit: 1000
-  auto-extend-minutes: 3
-  auto-extend-threshold-minutes: 5
-  payment-deadline-days: 1
-  seller-shipping-deadline-days: 7
-  settlement-fee-rate: 0.1
-
-order:
-  buy-now-pending-timeout-minutes: ${ORDER_BUYNOW_PENDING_TIMEOUT_MINUTES:10}
-  bid-pending-timeout-hours: ${ORDER_BID_PENDING_TIMEOUT_HOURS:24}
-
-payment:
-  toss:
-    client-key: ${TOSS_CLIENT_KEY}
-    secret-key: ${TOSS_SECRET_KEY}
-
-search:
-  page-size: 20
-  max-from: 10000
-  max-keyword-length: 100
+api:
+  auction:
+    base-url: ${API_AUCTION_BASE_URL:http://localhost:8083}
 
 # Production에서는 Swagger 비활성화 (보안)
 springdoc:
@@ -482,12 +415,3 @@ logging:
     root: WARN
     com.fourtune: INFO
 
-# 결제 모듈에서 주문 데이터 조회
-api:
-  auction:
-    base-url: http://localhost:8080
-
-custom:
-  services:
-    payout_url: http://payment-service:8081
-    cash_url: http://payment-service:8081
