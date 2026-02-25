@@ -73,14 +73,15 @@ class RecentSearchControllerTest {
         List<String> mockKeywords = List.of("keyword1", "keyword2");
         given(recentSearchService.getKeywords(1L)).willReturn(mockKeywords);
 
-        // when & then: GET 요청 시 200 OK와 함께 리스트 내용 검증
+        // when & then: GET 요청 시 200 OK와 함께 ApiResponse 형식으로 리스트 내용 검증
         mockMvc.perform(get("/api/v1/search/recent"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray()) // 배열인지 확인
-                .andExpect(jsonPath("$.length()").value(2)) // 개수 확인
-                .andExpect(jsonPath("$[0]").value("keyword1")) // 첫 번째 값 확인
-                .andExpect(jsonPath("$[1]").value("keyword2")); // 두 번째 값 확인
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0]").value("keyword1"))
+                .andExpect(jsonPath("$.data[1]").value("keyword2"));
     }
 
     @Test
@@ -95,8 +96,9 @@ class RecentSearchControllerTest {
         noAuthMockMvc.perform(get("/api/v1/search/recent"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(0));
     }
 
     @Test
