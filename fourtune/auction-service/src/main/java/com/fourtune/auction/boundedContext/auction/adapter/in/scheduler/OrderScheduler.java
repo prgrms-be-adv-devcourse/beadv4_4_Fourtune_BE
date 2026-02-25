@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -50,7 +51,7 @@ public class OrderScheduler {
                 buyNowPendingTimeoutMinutes, bidPendingTimeoutHours);
 
         try {
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
             LocalDateTime buyNowCutoff = now.minusMinutes(buyNowPendingTimeoutMinutes);
             LocalDateTime bidCutoff = now.minusHours(bidPendingTimeoutHours);
 

@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -222,5 +223,101 @@ class AuctionItemTest {
         );
         item.cancel();
         assertThat(item.getStatus()).isEqualTo(AuctionStatus.CANCELLED);
+    }
+
+    // ==================== recoverFromBuyNowFailure 테스트 ====================
+
+    @Test
+    @DisplayName("recoverFromBuyNowFailure — SOLD_BY_BUY_NOW → ACTIVE로 전환된다")
+    void recoverFromBuyNowFailure_statusBecomesActive() {
+        AuctionItem item = AuctionItem.create(
+                1L, "제목", null, "ETC",
+                BigDecimal.valueOf(10_000), 1000, BigDecimal.valueOf(50_000), true,
+                LocalDateTime.now().minusHours(1), END
+        );
+        item.start();
+        item.executeBuyNow();
+        assertThat(item.getStatus()).isEqualTo(AuctionStatus.SOLD_BY_BUY_NOW);
+
+        item.recoverFromBuyNowFailure(10, 3);
+
+        assertThat(item.getStatus()).isEqualTo(AuctionStatus.ACTIVE);
+    }
+
+    @Test
+    @DisplayName("recoverFromBuyNowFailure — 종료 시각이 이미 지났으면 KST 기준으로 N분 연장된다")
+    void recoverFromBuyNowFailure_expiredEndTime_extendsInKst() {
+        LocalDateTime pastEnd = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusMinutes(5);
+        AuctionItem item = AuctionItem.create(
+                1L, "제목", null, "ETC",
+                BigDecimal.valueOf(10_000), 1000, BigDecimal.valueOf(50_000), true,
+                LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusHours(2), pastEnd
+        );
+        item.start();
+        item.executeBuyNow();
+
+        LocalDateTime beforeRecover = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        item.recoverFromBuyNowFailure(10, 3);
+
+        assertThat(item.getStatus()).isEqualTo(AuctionStatus.ACTIVE);
+        assertThat(item.getAuctionEndTime()).isAfter(beforeRecover);
+        assertThat(item.getAuctionEndTime()).isAfterOrEqualTo(
+                beforeRecover.plusMinutes(9)
+        );
+        assertThat(item.getBuyNowRecoveryCount()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("recoverFromBuyNowFailure — 종료 시각이 아직 남았으면 연장하지 않는다")
+    void recoverFromBuyNowFailure_futureEndTime_noExtension() {
+        LocalDateTime futureEnd = LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusHours(1);
+        AuctionItem item = AuctionItem.create(
+                1L, "제목", null, "ETC",
+                BigDecimal.valueOf(10_000), 1000, BigDecimal.valueOf(50_000), true,
+                LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusHours(1), futureEnd
+        );
+        item.start();
+        item.executeBuyNow();
+        int countBefore = item.getBuyNowRecoveryCount();
+
+        item.recoverFromBuyNowFailure(10, 3);
+
+        assertThat(item.getStatus()).isEqualTo(AuctionStatus.ACTIVE);
+        assertThat(item.getAuctionEndTime()).isEqualTo(futureEnd);
+        assertThat(item.getBuyNowRecoveryCount()).isEqualTo(countBefore);
+    }
+
+    @Test
+    @DisplayName("recoverFromBuyNowFailure — 복구 횟수가 maxRecoveryCount(1) 도달 시 즉시구매 영구 비활성화")
+    void recoverFromBuyNowFailure_reachesMaxCount_disablesBuyNow() {
+        // auctionEndTime을 과거로 설정하여 연장 조건이 충족되도록 한다
+        LocalDateTime pastEnd = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusMinutes(5);
+        AuctionItem item = AuctionItem.create(
+                1L, "제목", null, "ETC",
+                BigDecimal.valueOf(10_000), 1000, BigDecimal.valueOf(50_000), true,
+                LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusHours(2), pastEnd
+        );
+        item.start();
+
+        // maxRecoveryCount=1 → 1회 연장으로 즉시 Circuit Breaker 발동
+        item.executeBuyNow();
+        item.recoverFromBuyNowFailure(10, 1);
+
+        assertThat(item.getBuyNowRecoveryCount()).isEqualTo(1);
+        assertThat(item.getBuyNowDisabledByPolicy()).isTrue();
+    }
+
+    @Test
+    @DisplayName("recoverFromBuyNowFailure — SOLD_BY_BUY_NOW 상태가 아니면 예외")
+    void recoverFromBuyNowFailure_notSoldByBuyNow_throws() {
+        AuctionItem item = AuctionItem.create(
+                1L, "제목", null, "ETC",
+                BigDecimal.valueOf(10_000), 1000, null, false,
+                LocalDateTime.now().minusHours(1), END
+        );
+        item.start();
+
+        assertThatThrownBy(() -> item.recoverFromBuyNowFailure(10, 3))
+                .isInstanceOf(BusinessException.class);
     }
 }

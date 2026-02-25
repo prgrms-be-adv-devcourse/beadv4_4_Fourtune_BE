@@ -49,6 +49,7 @@ ENTRYPOINT ["java", \
   "-XX:+UseContainerSupport", \
   "-XX:MaxRAMPercentage=75.0", \
   "-Djava.security.egd=file:/dev/./urandom", \
+  "-Duser.timezone=Asia/Seoul", \
   "-jar", \
   "app.jar"]
 

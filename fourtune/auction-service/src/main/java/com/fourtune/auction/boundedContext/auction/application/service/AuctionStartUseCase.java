@@ -44,14 +44,17 @@ public class AuctionStartUseCase {
                 auction.getStartPrice(),
                 auction.getAuctionEndTime());
         if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
-            outboxService.append(AGGREGATE_TYPE_AUCTION, aggregateId, AuctionEventType.AUCTION_STARTED.name(), Map.of("eventType", AuctionEventType.AUCTION_STARTED.name(), "aggregateId", aggregateId, "data", startedEvent));
+            outboxService.append(AGGREGATE_TYPE_AUCTION, aggregateId, AuctionEventType.AUCTION_STARTED.name(),
+                    Map.of("eventType", AuctionEventType.AUCTION_STARTED.name(), "aggregateId", aggregateId, "data",
+                            startedEvent));
         } else {
             eventPublisher.publish(startedEvent);
         }
 
         // Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(auction);
-        String sellerName = userPort.getNicknamesByIds(Set.of(auction.getSellerId())).getOrDefault(auction.getSellerId(), null);
+        String sellerName = userPort.getNicknamesByIds(Set.of(auction.getSellerId()))
+                .getOrDefault(auction.getSellerId(), null);
         AuctionItemUpdatedEvent itemUpdatedEvent = new AuctionItemUpdatedEvent(
                 auction.getId(),
                 auction.getSellerId(),
@@ -73,7 +76,9 @@ public class AuctionStartUseCase {
                 auction.getBidCount(),
                 auction.getWatchlistCount());
         if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
-            outboxService.append(AGGREGATE_TYPE_AUCTION, aggregateId, AuctionEventType.AUCTION_ITEM_UPDATED.name(), Map.of("eventType", AuctionEventType.AUCTION_ITEM_UPDATED.name(), "aggregateId", aggregateId, "data", itemUpdatedEvent));
+            outboxService.append(AGGREGATE_TYPE_AUCTION, aggregateId, AuctionEventType.AUCTION_ITEM_UPDATED.name(),
+                    Map.of("eventType", AuctionEventType.AUCTION_ITEM_UPDATED.name(), "aggregateId", aggregateId,
+                            "data", itemUpdatedEvent));
         } else {
             eventPublisher.publish(itemUpdatedEvent);
         }
