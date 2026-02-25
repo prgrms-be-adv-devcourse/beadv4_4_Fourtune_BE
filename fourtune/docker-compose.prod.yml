@@ -270,6 +270,7 @@ services:
     env_file:
       - .env
     environment:
+      - TZ=Asia/Seoul
       - SPRING_PROFILES_ACTIVE=prod
       - DB_URL=jdbc:postgresql://postgres:5432/auction
       - DB_USERNAME=${DB_USERNAME}
