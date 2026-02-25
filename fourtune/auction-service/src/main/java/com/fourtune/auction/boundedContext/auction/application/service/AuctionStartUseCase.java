@@ -1,6 +1,5 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
-import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.port.out.UserPort;
@@ -15,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,24 +28,6 @@ public class AuctionStartUseCase {
     private final UserPort userPort;
     private final EventPublishingConfig eventPublishingConfig;
     private final OutboxService outboxService;
-
-    /**
-     * 시작 시각이 지났는데 아직 SCHEDULED인 경매를 ACTIVE로 전환.
-     * 상세 조회 시 호출해 스케줄러 대기 없이 바로 진행 중으로 표시.
-     * (호출자 트랜잭션에 참여해 통합 테스트에서 저장 데이터가 보이도록 함)
-     */
-    @Transactional(readOnly = true)
-    public void tryStartIfScheduledTimePassed(Long auctionId) {
-        AuctionItem auction = auctionSupport.findByIdOrThrow(auctionId);
-        if (auction.getStatus() != AuctionStatus.SCHEDULED || auction.getAuctionStartTime() == null) {
-            return;
-        }
-        LocalDateTime nowKst = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-        if (nowKst.isBefore(auction.getAuctionStartTime())) {
-            return;
-        }
-        startAuctionInTransaction(auctionId);
-    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void startAuctionInTransaction(Long auctionId) {

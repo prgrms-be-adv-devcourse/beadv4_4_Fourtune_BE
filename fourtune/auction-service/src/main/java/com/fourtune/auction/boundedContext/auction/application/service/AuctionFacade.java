@@ -110,11 +110,9 @@ public class AuctionFacade {
 
     /**
      * 경매 상세 조회
-     * 시작 시각이 지났으면 조회 시점에 ACTIVE로 전환(lazy start).
      */
     @Transactional(readOnly = true)
     public AuctionItemDetailResponse getAuctionDetail(Long auctionId) {
-        auctionStartUseCase.tryStartIfScheduledTimePassed(auctionId);
         AuctionItemDetailResponse response = auctionQueryUseCase.getAuctionDetail(auctionId);
         if (viewCountUseRedis) {
             long combined = redisViewCountService.getViewCount(auctionId, response.viewCount());
