@@ -53,6 +53,9 @@ spring:
     producer:
       acks: all
 
+feature:
+  kafka:
+    enabled: true
 
 custom:
   services:

@@ -28,10 +28,10 @@ services:
           memory: 512M
     healthcheck:
       test:
-        ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME:-fourtune_db}"]
+        ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME:-fourtune_db} && psql -U ${DB_USERNAME} -d postgres -c 'SELECT 1 FROM pg_database WHERE datname=$$auction$$' | grep -q 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     logging:
       driver: "json-file"
       options:
@@ -207,6 +207,65 @@ services:
         limits:
           cpus: "0.5"
           memory: 1G
+
+  auction-service:
+    image: ghcr.io/prgrms-be-adv-devcourse/auction-service:latest
+    container_name: auction-service-prod
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_URL=jdbc:postgresql://postgres:5432/auction
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - SERVER_PORT=8083
+      - API_USER_BASE_URL=http://app:8080
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_started
+    networks:
+      - fourtune-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1G
+        reservations:
+          cpus: "0.25"
+          memory: 512M
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8083/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   recommendation-service:
     image: ghcr.io/prgrms-be-adv-devcourse/recommendation-service:latest
