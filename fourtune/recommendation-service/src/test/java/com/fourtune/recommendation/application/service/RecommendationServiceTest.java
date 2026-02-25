@@ -165,19 +165,19 @@ class RecommendationServiceTest {
 
     private Map<String, Object> createItemMap(Long id, String title, String category) {
         Map<String, Object> item = new HashMap<>();
-        item.put("auction_item_id", id);
+        item.put("auctionItemId", id);
         item.put("title", title);
         item.put("category", category);
         item.put("status", "ACTIVE");
-        item.put("current_price", 10000);
-        item.put("buy_now_price", 50000);
-        item.put("buy_now_enabled", true);
-        item.put("thumbnail_url", "thumb.jpg");
-        item.put("start_at", LocalDateTime.now().toString());
-        item.put("end_at", LocalDateTime.now().plusDays(7).toString());
-        item.put("view_count", 100);
-        item.put("watchlist_count", 10);
-        item.put("bid_count", 5);
+        item.put("currentPrice", 10000);
+        item.put("buyNowPrice", 50000);
+        item.put("buyNowEnabled", true);
+        item.put("thumbnailUrl", "thumb.jpg");
+        item.put("startAt", LocalDateTime.now().toString());
+        item.put("endAt", LocalDateTime.now().plusDays(7).toString());
+        item.put("viewCount", 100);
+        item.put("watchlistCount", 10);
+        item.put("bidCount", 5);
         return item;
     }
 }
