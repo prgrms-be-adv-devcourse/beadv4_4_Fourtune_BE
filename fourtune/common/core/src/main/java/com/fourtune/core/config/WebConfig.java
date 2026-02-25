@@ -11,6 +11,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOriginPatterns(
+                        "http://localhost",
                         "http://localhost:5173",
                         "http://localhost:3000",
                         "https://fourtune.store",
