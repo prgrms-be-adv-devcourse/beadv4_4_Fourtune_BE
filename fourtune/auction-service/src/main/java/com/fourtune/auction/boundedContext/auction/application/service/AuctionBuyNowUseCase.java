@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,9 +56,10 @@ public class AuctionBuyNowUseCase {
         AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
         
         // 1.5 시작 시각이 지났는데 아직 SCHEDULED인 경우 ACTIVE로 전환 (스케줄러 대기 없이 즉시구매 가능)
+        LocalDateTime nowKst = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         if (auctionItem.getStatus() == AuctionStatus.SCHEDULED
                 && auctionItem.getAuctionStartTime() != null
-                && !LocalDateTime.now().isBefore(auctionItem.getAuctionStartTime())) {
+                && !nowKst.isBefore(auctionItem.getAuctionStartTime())) {
             auctionItem.start();
             auctionSupport.save(auctionItem);
             log.debug("즉시구매: 경매 시작 시각 경과로 SCHEDULED → ACTIVE 전환, auctionId={}", auctionId);

@@ -12,6 +12,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -190,17 +191,16 @@ public class AuctionItem extends BaseTimeEntity {
     
     /**
      * 경매 시작 (SCHEDULED → ACTIVE)
+     * 서버 타임존과 무관하게 한국 시간(KST) 기준으로 비교.
      */
     public void start() {
         if (this.status != AuctionStatus.SCHEDULED) {
             throw new BusinessException(ErrorCode.AUCTION_NOT_MODIFIABLE);
         }
-        
-        LocalDateTime now = LocalDateTime.now();
-        if (now.isBefore(this.auctionStartTime)) {
+        LocalDateTime nowKst = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        if (nowKst.isBefore(this.auctionStartTime)) {
             throw new BusinessException(ErrorCode.AUCTION_NOT_MODIFIABLE);
         }
-        
         this.status = AuctionStatus.ACTIVE;
     }
     

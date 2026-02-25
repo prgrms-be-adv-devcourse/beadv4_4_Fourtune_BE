@@ -147,8 +147,6 @@ services:
       - OAUTH_FRONTEND_URI
       - OAUTH_CLIENT_ID
       - OAUTH_CLIENT_SECRET
-      # payment-service Feign 호출 (내부 포트 8080)
-      - PAYMENT_SERVICE_BASE_URL=http://payment-service:8080
       # Firebase FCM 서비스 계정 JSON (환경 변수로 주입)
       - FIREBASE_SERVICE_ACCOUNT_JSON=${FIREBASE_SERVICE_ACCOUNT_JSON}
     ports:
@@ -235,6 +233,7 @@ services:
         - MODULE_NAME=auction-service
     container_name: auction-service-dev
     environment:
+      - TZ=Asia/Seoul
       - DB_URL=jdbc:postgresql://postgres:5432/auction
       - DB_USERNAME=${DB_USERNAME:-fourtune_user}
       - DB_PASSWORD=${DB_PASSWORD}
