@@ -163,7 +163,7 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
         // 최종 점수 = 활동 점수 (Base) / 신선도 감가 (Decay)
         String scriptCode = """
                 long now = params.now;
-                long createdAt = doc['createdAt'].value.toInstant().toEpochMilli();
+                long createdAt = (doc['createdAt'].size() > 0) ? doc['createdAt'].value.toInstant().toEpochMilli() : now;
                 double hoursOld = (now - createdAt) / 3600000.0;
                 if (hoursOld < 0) {
                     hoursOld = 0;
