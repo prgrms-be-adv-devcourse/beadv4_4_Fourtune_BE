@@ -30,7 +30,7 @@ public class AuctionBidKafkaListener {
     private final ObjectMapper objectMapper;
     private final UserPreferenceService userPreferenceService;
 
-    @KafkaListener(topics = KafkaTopicConfig.AUCTION_EVENTS_TOPIC, groupId = "recommendation-auction-group")
+    @KafkaListener(topics = KafkaTopicConfig.AUCTION_EVENTS_TOPIC, groupId = "recommendation-auction-group", containerFactory = "auctionEventKafkaListenerContainerFactory")
     public void consume(String payload, @Header(value = "X-Event-Type", required = false) String eventType) {
         if (eventType == null) {
             return;

@@ -27,7 +27,7 @@ public class SearchLogKafkaListener {
     private final ObjectMapper objectMapper;
     private final UserPreferenceService userPreferenceService;
 
-    @KafkaListener(topics = KafkaTopicConfig.SEARCH_LOG_EVENTS_TOPIC, groupId = "recommendation-search-group")
+    @KafkaListener(topics = KafkaTopicConfig.SEARCH_LOG_EVENTS_TOPIC, groupId = "recommendation-search-group", containerFactory = "auctionEventKafkaListenerContainerFactory")
     public void consume(String payload) {
         try {
             SearchAuctionItemEvent event = objectMapper.readValue(payload, SearchAuctionItemEvent.class);
