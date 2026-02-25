@@ -44,15 +44,15 @@ public class AuctionBidKafkaListener {
 
             BidPlacedEvent event = objectMapper.readValue(payload, BidPlacedEvent.class);
 
-            // TODO: BidPlacedEvent에 category 필드 추가 후 아래 코드 활성화
-            // String category = event.category();
-            // if (category != null && !category.isBlank()) {
-            // userPreferenceService.incrementCategoryScore(event.bidderId(), category,
-            // RecommendationConstants.BID_WEIGHT);
-            // }
+            // BidPlacedEvent에 category 필드 추가됨 -> 프로파일링 활성화
+            String category = event.category();
+            if (category != null && !category.isBlank()) {
+                userPreferenceService.incrementCategoryScore(event.bidderId(), category,
+                        RecommendationConstants.BID_WEIGHT);
+            }
 
-            log.info("[REC][BID] 입찰 이벤트 수신: auctionId={}, bidderId={} (category 미지원 — 프로파일링 대기 중)",
-                    event.auctionId(), event.bidderId());
+            log.info("[REC][BID] 입찰 이벤트 수신: auctionId={}, bidderId={}, category={}",
+                    event.auctionId(), event.bidderId(), category);
 
         } catch (Exception e) {
             log.error("[REC][BID] 이벤트 처리 실패: eventType={}, error={}", eventType, e.getMessage(), e);
