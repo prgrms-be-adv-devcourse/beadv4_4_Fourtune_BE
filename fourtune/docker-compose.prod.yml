@@ -28,10 +28,10 @@ services:
           memory: 512M
     healthcheck:
       test:
-        ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME:-fourtune_db}"]
+        ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME:-fourtune_db} && psql -U ${DB_USERNAME} -d postgres -c 'SELECT 1 FROM pg_database WHERE datname=$$auction$$' | grep -q 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     logging:
       driver: "json-file"
       options:
