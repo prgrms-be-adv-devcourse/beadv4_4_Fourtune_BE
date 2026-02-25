@@ -50,9 +50,19 @@ springdoc:
     operations-sorter: method
     tags-sorter: alpha
     try-it-out-enabled: true
+    urls:
+      - name: fourtune-api
+        url: /v3/api-docs
+      - name: auction-service
+        url: /v3/api-docs/auction
+      - name: payment-service
+        url: /v3/api-docs/payment
+      - name: recommendation-service
+        url: /v3/api-docs/recommendation
   paths-to-exclude:
     - /actuator/**
     - /error
+    - /api/internal/**
 
 # Actuator & Prometheus 설정
 management:
