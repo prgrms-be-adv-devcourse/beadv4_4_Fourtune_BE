@@ -26,9 +26,6 @@ public class FeignErrorDecoder implements ErrorDecoder {
 
     @Override
     public Exception decode(String methodKey, Response response) {
-        if (response.status() < 400) {
-            return null;
-        }
         ErrorCode errorCode = parseErrorCode(response);
         log.warn("[Feign] {} -> status={}, errorCode={}", methodKey, response.status(), errorCode.getCode());
         return new BusinessException(errorCode);
