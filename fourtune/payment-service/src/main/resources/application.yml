@@ -37,7 +37,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
 
   # redis, kafka bootstrap-servers, jwt → application-common.yml
   data:
