@@ -292,6 +292,8 @@ services:
       - AI_PROVIDER=${AI_PROVIDER:-ollama}
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SEARCH_BASE_URL=http://fourtune-api:8080
+      - API_SEARCH_BASE_URL=http://fourtune-api:8080
       - SERVER_PORT=8084
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
       # JWT & 암호화 (로컬 개발용)
