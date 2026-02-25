@@ -1,4 +1,4 @@
-package com.fourtune.api.infrastructure.kafka.settlement;
+package com.fourtune.payment.infrastructure.kafka.payment;
 
 import com.fourtune.kafka.KafkaTopicConfig;
 import lombok.RequiredArgsConstructor;
@@ -13,37 +13,37 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 정산 이벤트 Kafka Producer
- * 파티션 키로 settlementId(aggregateId)를 사용하여 같은 정산 내 이벤트 순서 보장
+ * 결제 이벤트 Kafka Producer
+ * 파티션 키로 orderId(aggregateId)를 사용하여 같은 주문 내 이벤트 순서 보장
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "feature.kafka.enabled", havingValue = "true", matchIfMissing = false)
-public class SettlementKafkaProducer {
+public class PaymentKafkaProducer {
 
     private static final String HEADER_EVENT_TYPE = "X-Event-Type";
 
-    private final KafkaTemplate<String, String> settlementKafkaTemplate;
+    private final KafkaTemplate<String, String> paymentKafkaTemplate;
 
     /**
-     * 정산 이벤트 발행 (payload = JSON 문자열, Header에 X-Event-Type 포함)
+     * 결제 이벤트 발행 (payload = JSON 문자열, Header에 X-Event-Type 포함)
      */
     public CompletableFuture<?> send(String key, String payload, String eventType) {
         Message<String> message = MessageBuilder
                 .withPayload(payload)
-                .setHeader(KafkaHeaders.TOPIC, KafkaTopicConfig.SETTLEMENT_EVENTS_TOPIC)
+                .setHeader(KafkaHeaders.TOPIC, KafkaTopicConfig.PAYMENT_EVENTS_TOPIC)
                 .setHeader(KafkaHeaders.KEY, key)
                 .setHeader(HEADER_EVENT_TYPE, eventType)
                 .build();
-        return settlementKafkaTemplate.send(message)
+        return paymentKafkaTemplate.send(message)
                 .whenComplete((result, ex) -> {
                     if (ex == null) {
-                        log.debug("Settlement 이벤트 발행 성공: topic={}, key={}, eventType={}",
-                                KafkaTopicConfig.SETTLEMENT_EVENTS_TOPIC, key, eventType);
+                        log.debug("Payment 이벤트 발행 성공: topic={}, key={}, eventType={}",
+                                KafkaTopicConfig.PAYMENT_EVENTS_TOPIC, key, eventType);
                     } else {
-                        log.error("Settlement 이벤트 발행 실패: topic={}, key={}, eventType={}, error={}",
-                                KafkaTopicConfig.SETTLEMENT_EVENTS_TOPIC, key, eventType, ex.getMessage(), ex);
+                        log.error("Payment 이벤트 발행 실패: topic={}, key={}, eventType={}, error={}",
+                                KafkaTopicConfig.PAYMENT_EVENTS_TOPIC, key, eventType, ex.getMessage(), ex);
                     }
                 });
     }
@@ -55,8 +55,8 @@ public class SettlementKafkaProducer {
         try {
             send(key, payload, eventType).get();
         } catch (Exception e) {
-            log.error("Settlement 이벤트 동기 발행 실패: key={}, eventType={}", key, eventType, e);
-            throw new RuntimeException("Settlement Kafka 메시지 발행 실패", e);
+            log.error("Payment 이벤트 동기 발행 실패: key={}, eventType={}", key, eventType, e);
+            throw new RuntimeException("Payment Kafka 메시지 발행 실패", e);
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.fourtune.api.infrastructure.kafka.settlement;
+package com.fourtune.payment.infrastructure.kafka.payment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.outbox.handler.OutboxEventHandler;
@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
- * 정산 도메인 Outbox 이벤트 핸들러
+ * 결제 도메인 Outbox 이벤트 핸들러
  * payload = {"eventType":"...","aggregateId":123,"data":{...}} 형태로 저장된 JSON을 파싱
  * 후 Kafka 발행
  */
@@ -16,11 +16,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "feature.kafka.enabled", havingValue = "true", matchIfMissing = false)
-public class SettlementOutboxEventHandler implements OutboxEventHandler {
+public class PaymentOutboxEventHandler implements OutboxEventHandler {
 
-    private static final String AGGREGATE_TYPE = "Settlement";
+    private static final String AGGREGATE_TYPE = "Payment";
 
-    private final SettlementKafkaProducer settlementKafkaProducer;
+    private final PaymentKafkaProducer paymentKafkaProducer;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -30,10 +30,10 @@ public class SettlementOutboxEventHandler implements OutboxEventHandler {
 
     @Override
     public void handle(String payload) throws Exception {
-        SettlementEventPayload wrapper = objectMapper.readValue(payload, SettlementEventPayload.class);
+        PaymentEventPayload wrapper = objectMapper.readValue(payload, PaymentEventPayload.class);
         String key = String.valueOf(wrapper.getAggregateId());
         String eventType = wrapper.getEventType();
         String value = objectMapper.writeValueAsString(wrapper.getData());
-        settlementKafkaProducer.sendSync(key, value, eventType);
+        paymentKafkaProducer.sendSync(key, value, eventType);
     }
 }

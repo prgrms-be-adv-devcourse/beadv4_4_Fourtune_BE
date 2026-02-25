@@ -1,4 +1,4 @@
-package com.fourtune.payment.infrastructure.kafka;
+package com.fourtune.payment.infrastructure.kafka.payment;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
