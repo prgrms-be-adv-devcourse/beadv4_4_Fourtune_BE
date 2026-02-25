@@ -61,3 +61,13 @@ custom:
   services:
     payout_url: ${PAYOUT_SERVICE_URL:http://payment-service:8081}
     cash_url: ${CASH_SERVICE_URL:http://payment-service:8081}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    enabled: false          # 각 서비스 자체 UI는 비활성 (aggregation용 엔드포인트만 노출)
+  paths-to-exclude:
+    - /actuator/**
+    - /error

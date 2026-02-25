@@ -372,6 +372,12 @@ services:
     depends_on:
       fourtune-api:
         condition: service_started
+      auction-service:
+        condition: service_started
+      payment-service:
+        condition: service_started
+      recommendation-service:
+        condition: service_started
     networks:
       - fourtune-network
     restart: "no"

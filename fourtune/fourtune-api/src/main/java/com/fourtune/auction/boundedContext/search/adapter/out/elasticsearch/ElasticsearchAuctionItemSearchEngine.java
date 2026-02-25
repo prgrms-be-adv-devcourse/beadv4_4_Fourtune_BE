@@ -48,7 +48,7 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
     @Override
     public SearchResultPage<SearchAuctionItemView> search(SearchCondition condition) {
 
-        int size = props.getPageSize();
+        int size = condition.size() != null ? condition.size() : props.getPageSize();
         int page = condition.safePage();
         int from = (page - 1) * size;
 
@@ -162,47 +162,44 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
         // [신선도 가중 인기순 정렬 공식]
         // 최종 점수 = 활동 점수 (Base) / 신선도 감가 (Decay)
         String scriptCode = """
-            long now = params.now;
-            long createdAt = doc['createdAt'].value.toInstant().toEpochMilli();
-            double hoursOld = (now - createdAt) / 3600000.0;
-            if (hoursOld < 0) {
-                hoursOld = 0;
-            }
-            double viewVal = (doc['viewCount'].size() > 0) ? doc['viewCount'].value : 0;
-            double viewScore = Math.log10(viewVal + 1);
-            double watchVal = (doc['watchlistCount'].size() > 0) ? doc['watchlistCount'].value : 0;
-            double bidVal = (doc['bidCount'].size() > 0) ? doc['bidCount'].value : 0;
-            double baseScore = (viewScore * 1.0) + (watchVal * 3.0) + (bidVal * 5.0);
-            double decay = Math.pow(hoursOld + 2, 0.5);
-            return baseScore / decay;
-            """;
-            
+                long now = params.now;
+                long createdAt = doc['createdAt'].value.toInstant().toEpochMilli();
+                double hoursOld = (now - createdAt) / 3600000.0;
+                if (hoursOld < 0) {
+                    hoursOld = 0;
+                }
+                double viewVal = (doc['viewCount'].size() > 0) ? doc['viewCount'].value : 0;
+                double viewScore = Math.log10(viewVal + 1);
+                double watchVal = (doc['watchlistCount'].size() > 0) ? doc['watchlistCount'].value : 0;
+                double bidVal = (doc['bidCount'].size() > 0) ? doc['bidCount'].value : 0;
+                double baseScore = (viewScore * 1.0) + (watchVal * 3.0) + (bidVal * 5.0);
+                double decay = Math.pow(hoursOld + 2, 0.5);
+                return baseScore / decay;
+                """;
+
         // Escape script for JSON
         String escapedScript = scriptCode.replace("\n", " ").replace("\"", "\\\"");
         long nowParam = System.currentTimeMillis();
 
         String json = String.format("""
-            {
-                "_script": {
-                    "type": "number",
-                    "script": {
-                        "source": "%s",
-                        "lang": "painless",
-                        "params": {
-                            "now": %d
-                        }
-                    },
-                    "order": "desc"
+                {
+                    "_script": {
+                        "type": "number",
+                        "script": {
+                            "source": "%s",
+                            "lang": "painless",
+                            "params": {
+                                "now": %d
+                            }
+                        },
+                        "order": "desc"
+                    }
                 }
-            }
-            """, escapedScript, nowParam);
+                """, escapedScript, nowParam);
 
         return co.elastic.clients.elasticsearch._types.SortOptions.of(s -> s
-                .withJson(new StringReader(json))
-        );
+                .withJson(new StringReader(json)));
     }
-
-
 
     private SearchAuctionItemView toView(SearchAuctionItemDocument d) {
         return new SearchAuctionItemView(
@@ -215,11 +212,17 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
                 d.getCurrentPrice(),
                 d.getBuyNowPrice(),
                 d.getBuyNowEnabled(),
-                d.getStartAt() != null ? d.getStartAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime() : null,
-                d.getEndAt() != null ? d.getEndAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime() : null,
+                d.getStartAt() != null ? d.getStartAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
+                        : null,
+                d.getEndAt() != null ? d.getEndAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
+                        : null,
                 d.getThumbnailUrl(),
-                d.getCreatedAt() != null ? d.getCreatedAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime() : null,
-                d.getUpdatedAt() != null ? d.getUpdatedAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime() : null,
+                d.getCreatedAt() != null
+                        ? d.getCreatedAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
+                        : null,
+                d.getUpdatedAt() != null
+                        ? d.getUpdatedAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
+                        : null,
                 d.getViewCount(),
                 d.getWatchlistCount(),
                 d.getBidCount(),

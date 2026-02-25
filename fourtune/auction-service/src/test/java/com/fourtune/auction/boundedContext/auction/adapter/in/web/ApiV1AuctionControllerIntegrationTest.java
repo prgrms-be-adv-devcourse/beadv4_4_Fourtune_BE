@@ -97,12 +97,11 @@ class ApiV1AuctionControllerIntegrationTest {
                 mockMvc.perform(get("/api/v1/auctions/{id}", id))
                                 .andDo(print())
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.id").value(id))
-                                .andExpect(jsonPath("$.seller_id").value(TEST_SELLER_ID))
-                                .andExpect(jsonPath("$.seller_nickname").value(TEST_SELLER_NICKNAME))
+                                .andExpect(jsonPath("$.sellerId").value(TEST_SELLER_ID))
+                                .andExpect(jsonPath("$.sellerNickname").value(TEST_SELLER_NICKNAME))
                                 .andExpect(jsonPath("$.title").value(TEST_TITLE))
                                 .andExpect(jsonPath("$.status").value(AuctionStatus.ACTIVE.name()))
-                                .andExpect(jsonPath("$.current_price").value(10000));
+                                .andExpect(jsonPath("$.currentPrice").value(10000));
         }
 
         @Test
@@ -123,7 +122,7 @@ class ApiV1AuctionControllerIntegrationTest {
                                 .andExpect(jsonPath("$.content").isArray())
                                 .andExpect(jsonPath("$.content.length()").value(1))
                                 .andExpect(jsonPath("$.content[0].title").value(TEST_TITLE))
-                                .andExpect(jsonPath("$.content[0].seller_id").value(TEST_SELLER_ID))
+                                .andExpect(jsonPath("$.content[0].sellerId").value(TEST_SELLER_ID))
                                 .andExpect(jsonPath("$.content[0].status").value(AuctionStatus.ACTIVE.name()));
         }
 

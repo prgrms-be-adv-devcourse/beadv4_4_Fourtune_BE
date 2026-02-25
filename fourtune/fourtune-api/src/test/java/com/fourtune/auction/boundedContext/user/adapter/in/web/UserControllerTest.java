@@ -1,7 +1,7 @@
 package com.fourtune.auction.boundedContext.user.adapter.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
@@ -66,7 +66,6 @@ public class UserControllerTest {
         @BeforeEach
         void setUp() {
                 this.objectMapper = new ObjectMapper();
-                this.objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
                 this.objectMapper.registerModule(new JavaTimeModule());
 
                 this.mockMvc = MockMvcBuilders.webAppContextSetup(context)

@@ -50,9 +50,19 @@ springdoc:
     operations-sorter: method
     tags-sorter: alpha
     try-it-out-enabled: true
+    urls:
+      - name: fourtune-api
+        url: /v3/api-docs
+      - name: auction-service
+        url: /v3/api-docs/auction
+      - name: payment-service
+        url: /v3/api-docs/payment
+      - name: recommendation-service
+        url: /v3/api-docs/recommendation
   paths-to-exclude:
     - /actuator/**
     - /error
+    - /api/internal/**
 
 # Actuator & Prometheus 설정
 management:
@@ -161,6 +171,10 @@ jwt:
 # 암호화 키 (AES-256)
 encryption:
   key: your-local-encryption-key-32-chars # 32자 (256비트)
+
+api:
+  auction:
+    base-url: "http://localhost:8083"
 
 ---
 # Test Profile (CI/CD용)
@@ -301,6 +315,10 @@ jwt:
 encryption:
   key: ${ENCRYPTION_KEY}
 
+api:
+  auction:
+    base-url: ${API_AUCTION_BASE_URL:http://localhost:8083}
+
 logging:
   level:
     root: INFO
@@ -380,6 +398,10 @@ jwt:
 
 encryption:
   key: ${ENCRYPTION_KEY}
+
+api:
+  auction:
+    base-url: ${API_AUCTION_BASE_URL:http://localhost:8083}
 
 # Production에서는 Swagger 비활성화 (보안)
 springdoc:
