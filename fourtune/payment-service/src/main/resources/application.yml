@@ -56,6 +56,9 @@ spring:
 feature:
   kafka:
     enabled: true
+    # 유저 가입/수정/삭제 시 payment_db에 PaymentUser·Wallet 동기화 (필수)
+    user-events:
+      enabled: true
 
 custom:
   services:

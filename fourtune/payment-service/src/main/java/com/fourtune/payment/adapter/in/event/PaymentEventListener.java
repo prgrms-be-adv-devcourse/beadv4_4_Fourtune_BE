@@ -2,7 +2,6 @@ package com.fourtune.payment.adapter.in.event;
 
 import com.fourtune.payment.application.service.PaymentFacade;
 import com.fourtune.core.config.EventPublishingConfig;
-import com.fourtune.shared.payment.event.PaymentUserCreatedEvent;
 import com.fourtune.shared.settlement.event.SettlementCompletedEvent;
 import com.fourtune.shared.user.event.UserDeletedEvent;
 import com.fourtune.shared.user.event.UserJoinedEvent;
@@ -49,12 +48,6 @@ public class PaymentEventListener {
             return;
         }
         paymentFacade.deleteUser(event.getUser());
-    }
-
-    @TransactionalEventListener(phase = AFTER_COMMIT)
-    @Transactional(propagation = REQUIRES_NEW)
-    public void handle(PaymentUserCreatedEvent event) {
-        paymentFacade.createWallet(event.getPaymentUserDto());
     }
 
     @TransactionalEventListener(phase = AFTER_COMMIT)
