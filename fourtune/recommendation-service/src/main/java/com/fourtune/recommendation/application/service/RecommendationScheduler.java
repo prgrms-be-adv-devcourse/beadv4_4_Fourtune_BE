@@ -120,19 +120,19 @@ public class RecommendationScheduler {
 
     private RecommendedItemResponse toResponse(Map<String, Object> item) {
         return new RecommendedItemResponse(
-                toLong(item.get("auction_item_id")),
+                toLong(item.get("auctionItemId")),
                 (String) item.get("title"),
                 (String) item.get("category"),
                 (String) item.get("status"),
-                toBigDecimal(item.get("current_price")),
-                toBigDecimal(item.get("buy_now_price")),
-                (Boolean) item.get("buy_now_enabled"),
-                (String) item.get("thumbnail_url"),
-                toLocalDateTime(item.get("start_at")),
-                toLocalDateTime(item.get("end_at")),
-                toLongValue(item.get("view_count")),
-                toInt(item.get("watchlist_count")),
-                toInt(item.get("bid_count")));
+                toBigDecimal(item.get("currentPrice")),
+                toBigDecimal(item.get("buyNowPrice")),
+                (Boolean) item.get("buyNowEnabled"),
+                (String) item.get("thumbnailUrl"),
+                toLocalDateTime(item.get("startAt")),
+                toLocalDateTime(item.get("endAt")),
+                toLongValue(item.get("viewCount")),
+                toInt(item.get("watchlistCount")),
+                toInt(item.get("bidCount")));
     }
 
     private Long toLong(Object v) {

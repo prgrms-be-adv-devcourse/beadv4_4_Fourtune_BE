@@ -178,6 +178,37 @@ public class KafkaConfig {
         return factory;
     }
 
+    // --- Search Log Event Consumer 설정 (유실 허용, DLQ 없음) ---
+
+    @Bean
+    public ConsumerFactory<String, String> searchLogEventConsumerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest"); // 추천은 신규 이벤트만 필요
+        configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        return new DefaultKafkaConsumerFactory<>(configProps, new StringDeserializer(), new StringDeserializer());
+    }
+
+    /**
+     * 검색 로그 전용 에러 핸들러 — DLQ 없이 재시도 1회 후 skip
+     * search-log-events-dlq 토픽이 존재하지 않으므로 공통 DLQ 핸들러 사용 불가
+     */
+    @Bean
+    public DefaultErrorHandler searchLogErrorHandler() {
+        return new DefaultErrorHandler(new FixedBackOff(500L, 1));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> searchLogEventKafkaListenerContainerFactory(
+            ConsumerFactory<String, String> searchLogEventConsumerFactory,
+            DefaultErrorHandler searchLogErrorHandler) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(searchLogEventConsumerFactory);
+        factory.setCommonErrorHandler(searchLogErrorHandler);
+        return factory;
+    }
+
     // --- Notification Event Consumer 설정 (String 기반) ---
 
     @Bean

@@ -49,7 +49,7 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -156,7 +156,7 @@ services:
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY:-test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R}
       - KAKAO_ADMIN_KEY=${KAKAO_ADMIN_KEY:-}
       # OAuth (기본값; 실제 Google 로그인 시 .env에 OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET 등 설정)
-      - OAUTH_BACKEND_URI=${OAUTH_BACKEND_URI:-http://localhost:9080}
+      - OAUTH_BACKEND_URI=${OAUTH_BACKEND_URI:-http://localhost}
       - OAUTH_FRONTEND_URI=${OAUTH_FRONTEND_URI:-http://localhost:3000}
       - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID:-docker-client-id}
       - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET:-docker-client-secret}
@@ -179,6 +179,12 @@ services:
       - fourtune-network
     # 개발 중 자동 재시작 방지
     restart: "no"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
 
   payment-service:
     build:
@@ -230,6 +236,7 @@ services:
         - MODULE_NAME=auction-service
     image: auction-service:latest
     environment:
+      - SPRING_PROFILES_ACTIVE=local
       - TZ=Asia/Seoul
       - DB_URL=jdbc:postgresql://postgres:5432/auction
       - DB_USERNAME=fourtune_user
@@ -256,9 +263,9 @@ services:
       redis:
         condition: service_healthy
       redpanda:
-        condition: service_started
+        condition: service_healthy
       fourtune-api:
-        condition: service_started
+        condition: service_healthy
     networks:
       - fourtune-network
     restart: "no"
@@ -309,9 +316,9 @@ services:
       redis:
         condition: service_healthy
       redpanda:
-        condition: service_started
+        condition: service_healthy
       fourtune-api:
-        condition: service_started
+        condition: service_healthy
     networks:
       - fourtune-network
     restart: "no"
@@ -349,7 +356,7 @@ services:
     image: grafana/grafana:latest
     container_name: fourtune-grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
