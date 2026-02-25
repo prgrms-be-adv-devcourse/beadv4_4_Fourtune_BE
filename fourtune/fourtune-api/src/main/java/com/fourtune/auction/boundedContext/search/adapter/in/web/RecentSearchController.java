@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.search.adapter.in.web;
 
 import com.fourtune.auction.boundedContext.search.application.service.RecentSearchService;
+import com.fourtune.core.dto.ApiResponse;
 import com.fourtune.shared.auth.dto.UserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +19,12 @@ public class RecentSearchController {
 
     // 최근 검색어 목록 조회
     @GetMapping
-    public ResponseEntity<List<String>> getRecentKeywords(@AuthenticationPrincipal UserContext user) {
+    public ResponseEntity<ApiResponse<List<String>>> getRecentKeywords(@AuthenticationPrincipal UserContext user) {
         if (user == null) {
-            return ResponseEntity.ok(List.of());
+            return ResponseEntity.ok(ApiResponse.success(List.of()));
         }
         List<String> keywords = recentSearchService.getKeywords(user.id());
-        return ResponseEntity.ok(keywords);
+        return ResponseEntity.ok(ApiResponse.success(keywords));
     }
 
     // 최근 검색어 삭제
