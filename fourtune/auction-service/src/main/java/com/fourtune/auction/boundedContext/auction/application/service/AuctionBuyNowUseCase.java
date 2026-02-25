@@ -89,7 +89,7 @@ public class AuctionBuyNowUseCase {
                 buyerId,
                 auctionItem.getBuyNowPrice(),
                 orderId,
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Seoul"))
         );
         if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
             outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_BUY_NOW.name(), Map.of("eventType", AuctionEventType.AUCTION_BUY_NOW.name(), "aggregateId", auctionId, "data", buyNowEvent));
@@ -99,7 +99,12 @@ public class AuctionBuyNowUseCase {
 
         // 7. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(auctionItem);
-        String sellerName = userPort.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
+        String sellerName = null;
+        try {
+            sellerName = userPort.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
+        } catch (Exception e) {
+            log.warn("판매자 닉네임 조회 실패, null로 fallback: sellerId={}", auctionItem.getSellerId(), e);
+        }
         AuctionItemUpdatedEvent itemUpdatedEvent = new AuctionItemUpdatedEvent(
                 auctionItem.getId(),
                 auctionItem.getSellerId(),

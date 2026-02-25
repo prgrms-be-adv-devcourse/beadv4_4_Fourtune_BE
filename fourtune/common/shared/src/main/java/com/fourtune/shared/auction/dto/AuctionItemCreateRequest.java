@@ -9,15 +9,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record AuctionItemCreateRequest(
-    @NotBlank String title,
-    String description,
-    @NotNull String category,
-    @NotNull @Min(1000) BigDecimal startPrice,
-    @Min(1000) Integer bidUnit,
-    BigDecimal buyNowPrice,
-    @NotNull LocalDateTime auctionStartTime,
-    @NotNull LocalDateTime auctionEndTime,
-    List<String> imageUrls
-) {
+        @NotBlank String title,
+        String description,
+        @NotNull String category,
+        @NotNull @Min(1000) BigDecimal startPrice,
+        @Min(1000) Integer bidUnit,
+        BigDecimal buyNowPrice,
+        @NotNull LocalDateTime auctionStartTime,
+        @NotNull LocalDateTime auctionEndTime,
+        List<String> imageUrls) {
     // TODO: sellerId 추가 메서드
 }

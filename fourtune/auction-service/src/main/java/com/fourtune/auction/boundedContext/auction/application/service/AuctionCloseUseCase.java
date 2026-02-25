@@ -11,10 +11,13 @@ import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.outbox.service.OutboxService;
 import com.fourtune.shared.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,6 +28,7 @@ import java.util.Set;
  * - Order 생성
  * - 실패한 입찰들 처리
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuctionCloseUseCase {
@@ -47,35 +51,34 @@ public class AuctionCloseUseCase {
     public void closeAuction(Long auctionId) {
         // 1. 경매 조회 (Pessimistic Lock 적용)
         AuctionItem auctionItem = auctionSupport.findByIdWithLockOrThrow(auctionId);
-        
+
         // 2. 종료 가능 여부 확인
         validateCloseable(auctionItem);
-        
+
         // 3. 최고가 입찰 조회
         java.util.Optional<Bid> highestBidOpt = bidSupport.findHighestBid(auctionId);
-        
+
         if (highestBidOpt.isPresent()) {
             // 4-1. 낙찰자가 있는 경우
             Bid winningBid = highestBidOpt.get();
-            
+
             // 경매 상태 변경 (ACTIVE -> ENDED -> SOLD)
-            auctionItem.close();  // ACTIVE -> ENDED
-            auctionItem.sell();   // ENDED -> SOLD
-            
+            auctionItem.close(); // ACTIVE -> ENDED
+            auctionItem.sell(); // ENDED -> SOLD
+
             // 낙찰 입찰 처리
             winningBid.win();
             bidSupport.save(winningBid);
-            
+
             // Order 생성 (엔티티 직접 전달하여 중복 Lock 방지)
             String orderId = orderCreateUseCase.createWinningOrder(
                     auctionItem,
                     winningBid.getBidderId(),
-                    winningBid.getBidAmount()
-            );
-            
+                    winningBid.getBidAmount());
+
             // 실패한 입찰들 처리
             bidSupport.failAllActiveBids(auctionId);
-            
+
             // 이벤트 발행
             AuctionClosedEvent closedEvent = new AuctionClosedEvent(
                     auctionId,
@@ -83,17 +86,24 @@ public class AuctionCloseUseCase {
                     auctionItem.getSellerId(),
                     winningBid.getBidderId(),
                     winningBid.getBidAmount(),
-                    orderId
-            );
+                    orderId);
             if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
-                outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_CLOSED.name(), Map.of("eventType", AuctionEventType.AUCTION_CLOSED.name(), "aggregateId", auctionId, "data", closedEvent));
+                outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_CLOSED.name(),
+                        Map.of("eventType", AuctionEventType.AUCTION_CLOSED.name(), "aggregateId", auctionId, "data",
+                                closedEvent));
             } else {
                 eventPublisher.publish(closedEvent);
             }
 
             // Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
             String thumbnailUrl = extractThumbnailUrl(auctionItem);
-            String sellerName = userPort.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
+            String sellerName = null;
+            try {
+                sellerName = userPort.getNicknamesByIds(Set.of(auctionItem.getSellerId()))
+                        .getOrDefault(auctionItem.getSellerId(), null);
+            } catch (Exception e) {
+                log.warn("판매자 닉네임 조회 실패, null로 fallback: sellerId={}", auctionItem.getSellerId(), e);
+            }
             AuctionItemUpdatedEvent itemUpdatedEvent = new AuctionItemUpdatedEvent(
                     auctionItem.getId(),
                     auctionItem.getSellerId(),
@@ -113,10 +123,11 @@ public class AuctionCloseUseCase {
                     auctionItem.getUpdatedAt(),
                     auctionItem.getViewCount(),
                     auctionItem.getBidCount(),
-                    auctionItem.getWatchlistCount()
-            );
+                    auctionItem.getWatchlistCount());
             if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
-                outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_ITEM_UPDATED.name(), Map.of("eventType", AuctionEventType.AUCTION_ITEM_UPDATED.name(), "aggregateId", auctionId, "data", itemUpdatedEvent));
+                outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_ITEM_UPDATED.name(),
+                        Map.of("eventType", AuctionEventType.AUCTION_ITEM_UPDATED.name(), "aggregateId", auctionId,
+                                "data", itemUpdatedEvent));
             } else {
                 eventPublisher.publish(itemUpdatedEvent);
             }
@@ -129,19 +140,27 @@ public class AuctionCloseUseCase {
                     auctionId,
                     auctionItem.getTitle(),
                     auctionItem.getSellerId(),
-                    null,  // 낙찰자 없음
-                    null,  // 낙찰가 없음
-                    null   // 주문번호 없음
+                    null, // 낙찰자 없음
+                    null, // 낙찰가 없음
+                    null // 주문번호 없음
             );
             if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
-                outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_CLOSED.name(), Map.of("eventType", AuctionEventType.AUCTION_CLOSED.name(), "aggregateId", auctionId, "data", closedEventNoWinner));
+                outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_CLOSED.name(),
+                        Map.of("eventType", AuctionEventType.AUCTION_CLOSED.name(), "aggregateId", auctionId, "data",
+                                closedEventNoWinner));
             } else {
                 eventPublisher.publish(closedEventNoWinner);
             }
 
             // Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
             String thumbnailUrl = extractThumbnailUrl(auctionItem);
-            String sellerName = userPort.getNicknamesByIds(java.util.Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
+            String sellerName = null;
+            try {
+                sellerName = userPort.getNicknamesByIds(Set.of(auctionItem.getSellerId()))
+                        .getOrDefault(auctionItem.getSellerId(), null);
+            } catch (Exception e) {
+                log.warn("판매자 닉네임 조회 실패, null로 fallback: sellerId={}", auctionItem.getSellerId(), e);
+            }
             AuctionItemUpdatedEvent itemUpdatedEventNoWinner = new AuctionItemUpdatedEvent(
                     auctionItem.getId(),
                     auctionItem.getSellerId(),
@@ -161,10 +180,11 @@ public class AuctionCloseUseCase {
                     auctionItem.getUpdatedAt(),
                     auctionItem.getViewCount(),
                     auctionItem.getBidCount(),
-                    auctionItem.getWatchlistCount()
-            );
+                    auctionItem.getWatchlistCount());
             if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
-                outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_ITEM_UPDATED.name(), Map.of("eventType", AuctionEventType.AUCTION_ITEM_UPDATED.name(), "aggregateId", auctionId, "data", itemUpdatedEventNoWinner));
+                outboxService.append(AGGREGATE_TYPE_AUCTION, auctionId, AuctionEventType.AUCTION_ITEM_UPDATED.name(),
+                        Map.of("eventType", AuctionEventType.AUCTION_ITEM_UPDATED.name(), "aggregateId", auctionId,
+                                "data", itemUpdatedEventNoWinner));
             } else {
                 eventPublisher.publish(itemUpdatedEventNoWinner);
             }
@@ -190,17 +210,17 @@ public class AuctionCloseUseCase {
      */
     private void validateCloseable(AuctionItem auctionItem) {
         // ACTIVE 상태인지 확인
-        if (auctionItem.getStatus() != com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.ACTIVE) {
+        if (auctionItem
+                .getStatus() != com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus.ACTIVE) {
             throw new com.fourtune.core.error.exception.BusinessException(
-                    com.fourtune.core.error.ErrorCode.AUCTION_NOT_ACTIVE
-            );
+                    com.fourtune.core.error.ErrorCode.AUCTION_NOT_ACTIVE);
         }
-        
-        // 종료 시간이 지났는지 확인
-        if (java.time.LocalDateTime.now().isBefore(auctionItem.getAuctionEndTime())) {
+
+        // 종료 시간이 지났는지 확인 (KST 기준)
+        LocalDateTime nowKst = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        if (nowKst.isBefore(auctionItem.getAuctionEndTime())) {
             throw new com.fourtune.core.error.exception.BusinessException(
-                    com.fourtune.core.error.ErrorCode.AUCTION_NOT_MODIFIABLE
-            );
+                    com.fourtune.core.error.ErrorCode.AUCTION_NOT_MODIFIABLE);
         }
     }
 
