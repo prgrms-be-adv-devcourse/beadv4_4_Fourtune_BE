@@ -1,5 +1,4 @@
 # 프로덕션 환경용 Docker Compose (Updated for t3.large)
-version: "3.8"
 
 services:
   # PostgreSQL Database
@@ -10,8 +9,6 @@ services:
       POSTGRES_DB: ${DB_NAME:-fourtune_db}
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
@@ -42,8 +39,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: fourtune-redis-prod
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data_prod:/data
     networks:
@@ -56,7 +51,7 @@ services:
           cpus: "0.25"
           memory: 512M
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping | grep PONG"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -75,9 +70,6 @@ services:
       - xpack.security.enabled=false
       # 중요: 8GB 램 환경에서는 힙메모리를 1GB로 줄여야 OOM 방지됨
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-    ports:
-      - "9200:9200"
-      - "9300:9300"
     volumes:
       - elasticsearch_data_prod:/usr/share/elasticsearch/data
     networks:
@@ -103,6 +95,43 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Redpanda (Kafka API 호환, Zookeeper 불필요)
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.2.2
+    container_name: fourtune-redpanda-prod
+    command:
+      - redpanda
+      - start
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda:9092,external://localhost:19092
+      - --smp 1
+      - --memory 512M
+      - --default-log-level=warn
+    volumes:
+      - redpanda_data_prod:/var/lib/redpanda/data
+    networks:
+      - fourtune-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 768M
+        reservations:
+          cpus: "0.25"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   # Spring Boot Application
   app:
     image: ghcr.io/prgrms-be-adv-devcourse/fourtune:latest
@@ -118,6 +147,8 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - ELASTICSEARCH_URIS=http://elasticsearch:9200
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - API_AUCTION_BASE_URL=http://auction-service:8083
       - JWT_SECRET=${JWT_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
@@ -141,6 +172,8 @@ services:
       redis:
         condition: service_healthy
       elasticsearch:
+        condition: service_healthy
+      redpanda:
         condition: service_healthy
     networks:
       - fourtune-network
@@ -175,7 +208,7 @@ services:
         max-file: "3"
 
   payment-service:
-    image: ghcr.io/prgrms-be-adv-devcourse/payment-service:latest # GHCR에 올린 결제 서비스 이미지
+    image: ghcr.io/prgrms-be-adv-devcourse/payment-service:latest
     container_name: payment-app-prod
     env_file:
       - .env
@@ -187,6 +220,9 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+      - API_AUCTION_BASE_URL=http://auction-service:8083
       - JWT_SECRET=${JWT_SECRET}
       # 결제 서비스에 필요한 키만 선별해서 추가
       - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
@@ -198,10 +234,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      redpanda:
+        condition: service_healthy
     networks:
       - fourtune-network
     restart: always
-    # 운영 환경이므로 리소스 제한도 걸어주는 것이 좋습니다
     deploy:
       resources:
         limits:
@@ -239,6 +276,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
       - SERVER_PORT=8083
       - API_USER_BASE_URL=http://app:8080
@@ -252,6 +290,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      redpanda:
         condition: service_healthy
       app:
         condition: service_started
@@ -296,8 +336,10 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - AI_PROVIDER=${AI_PROVIDER}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - API_SEARCH_BASE_URL=http://app:8080
       # JWT
       - JWT_SECRET=${JWT_SECRET}
       # AWS
@@ -317,6 +359,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      redpanda:
+        condition: service_healthy
+      app:
+        condition: service_started
     networks:
       - fourtune-network
     restart: always
@@ -354,6 +400,9 @@ services:
       - nginx_logs:/var/log/nginx
     depends_on:
       - app
+      - payment-service
+      - auction-service
+      - recommendation-service
     networks:
       - fourtune-network
     restart: always
@@ -398,13 +447,9 @@ volumes:
     driver: local
   elasticsearch_data_prod:
     driver: local
+  redpanda_data_prod:
+    driver: local
   nginx_logs:
-    driver: local
-  zookeeper_data_prod:
-    driver: local
-  zookeeper_log_prod:
-    driver: local
-  kafka_data_prod:
     driver: local
 
 networks:

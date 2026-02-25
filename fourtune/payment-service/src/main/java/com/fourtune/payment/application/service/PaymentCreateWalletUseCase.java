@@ -20,16 +20,16 @@ public class PaymentCreateWalletUseCase {
 
     @Transactional
     public Wallet createWallet(PaymentUserDto dto) {
-
         PaymentUser paymentUser = paymentUserRepository.findByEmail(dto.getEmail()).orElseThrow(
                 () -> new BusinessException(ErrorCode.PAYMENT_USER_NOT_FOUND)
         );
 
-        Wallet newWallet = Wallet.builder()
-                .paymentUser(paymentUser)
-                .balance(0L)
-                .build();
-
-        return walletRepository.save(newWallet);
+        // 이미 지갑이 있으면 생성하지 않음 (유저 생성 이벤트 중복/재처리 시 멱등)
+        return walletRepository.findWalletByPaymentUser(paymentUser)
+                .orElseGet(() -> walletRepository.save(
+                        Wallet.builder()
+                                .paymentUser(paymentUser)
+                                .balance(0L)
+                                .build()));
     }
 }
