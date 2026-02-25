@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -51,14 +52,14 @@ public class AuctionScheduler {
 
     /**
      * 예정된 경매 시작 처리
-     * 매 분마다 실행
+     * 매 분 0초에 실행 (시작 시각과 맞춰 DB에서 ACTIVE로 전환)
      */
-    @Scheduled(cron = "30 * * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
     public void startScheduledAuctions() {
         log.info("예정된 경매 시작 작업 시작");
 
         try {
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
             List<AuctionItem> scheduledAuctions = auctionSupport.findScheduledAuctionsToStart(now);
 
             int startedCount = 0;
@@ -85,7 +86,7 @@ public class AuctionScheduler {
      */
     @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
     public void sendStartingSoonAlerts() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         List<AuctionItem> auctions = auctionSupport.findAuctionsStartingInFiveMinutes(now);
 
         if (auctions.isEmpty()) {
@@ -111,7 +112,7 @@ public class AuctionScheduler {
      */
     @Scheduled(cron = "30 * * * * *", zone = "Asia/Seoul")
     public void sendEndingSoonAlerts() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         List<AuctionItem> auctions = auctionSupport.findAuctionsEndingInFiveMinutes(now);
 
         if (auctions.isEmpty()) {

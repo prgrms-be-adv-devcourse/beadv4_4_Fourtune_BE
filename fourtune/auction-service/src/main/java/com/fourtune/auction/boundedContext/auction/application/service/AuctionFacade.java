@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -95,7 +96,7 @@ public class AuctionFacade {
      * 만료된 경매 목록 조회 (읽기 전용 트랜잭션)
      */
     public List<com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem> findExpiredAuctionsInReadOnlyTransaction() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         return auctionQueryUseCase.findExpiredAuctions(now);
     }
 
@@ -109,9 +110,11 @@ public class AuctionFacade {
 
     /**
      * 경매 상세 조회
+     * 시작 시각이 지났으면 조회 시점에 ACTIVE로 전환(lazy start).
      */
     @Transactional(readOnly = true)
     public AuctionItemDetailResponse getAuctionDetail(Long auctionId) {
+        auctionStartUseCase.tryStartIfScheduledTimePassed(auctionId);
         AuctionItemDetailResponse response = auctionQueryUseCase.getAuctionDetail(auctionId);
         if (viewCountUseRedis) {
             long combined = redisViewCountService.getViewCount(auctionId, response.viewCount());
