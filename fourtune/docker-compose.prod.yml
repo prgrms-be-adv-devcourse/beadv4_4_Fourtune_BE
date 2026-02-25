@@ -337,7 +337,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - AI_PROVIDER=${AI_PROVIDER}
+      - AI_PROVIDER=${AI_PROVIDER:-ollama}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - API_SEARCH_BASE_URL=http://app:8080
       # JWT
