@@ -35,8 +35,9 @@ public class AuctionStartUseCase {
     /**
      * 시작 시각이 지났는데 아직 SCHEDULED인 경매를 ACTIVE로 전환.
      * 상세 조회 시 호출해 스케줄러 대기 없이 바로 진행 중으로 표시.
+     * (호출자 트랜잭션에 참여해 통합 테스트에서 저장 데이터가 보이도록 함)
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(readOnly = true)
     public void tryStartIfScheduledTimePassed(Long auctionId) {
         AuctionItem auction = auctionSupport.findByIdOrThrow(auctionId);
         if (auction.getStatus() != AuctionStatus.SCHEDULED || auction.getAuctionStartTime() == null) {
