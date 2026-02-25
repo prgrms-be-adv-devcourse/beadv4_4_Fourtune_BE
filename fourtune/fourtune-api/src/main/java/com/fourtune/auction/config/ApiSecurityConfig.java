@@ -57,6 +57,7 @@ public class ApiSecurityConfig {
                                                 .requestMatchers("/error").permitAll()
                                                 .requestMatchers("/actuator/prometheus").permitAll()
                                                 .requestMatchers("/api/test/**").permitAll() // 성능 테스트용
+                                                .requestMatchers("/api/users/nicknames").permitAll() // 서비스 간 Feign 호출
                                                 .requestMatchers("/api/internal/**").hasRole("INTERNAL")
                                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                                 .anyRequest().authenticated())
