@@ -72,6 +72,8 @@ services:
       - xpack.security.enabled=false
       # 중요: 8GB 램 환경에서는 힙메모리를 1GB로 줄여야 OOM 방지됨
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ports:
+      - 127.0.0.1:9200:9200
     volumes:
       - elasticsearch_data_prod:/usr/share/elasticsearch/data
     networks:
