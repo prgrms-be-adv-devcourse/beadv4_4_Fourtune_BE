@@ -85,6 +85,7 @@ public class AuctionBuyNowUseCase {
         // 6. 이벤트 발행 (AuctionBuyNowEvent)
         AuctionBuyNowEvent buyNowEvent = new AuctionBuyNowEvent(
                 auctionId,
+                auctionItem.getTitle(),
                 auctionItem.getSellerId(),
                 buyerId,
                 auctionItem.getBuyNowPrice(),

@@ -20,17 +20,13 @@ public class WatchListController {
     private final WatchListService watchListService;
 
     @PostMapping("toggle")
-    public ResponseEntity<String> toggleWatchList(
+    public ResponseEntity<Boolean> toggleWatchList(
             @AuthenticationPrincipal UserContext userContext,
             @Valid @RequestBody WatchListRequestDto request
     ) {
         boolean isAdded = watchListService.toggleWatchList(userContext.id(), request.auctionItemId());
 
-        if (isAdded) {
-            return ResponseEntity.ok("관심상품에 등록되었습니다.");
-        } else {
-            return ResponseEntity.ok("관심상품이 해제되었습니다.");
-        }
+        return ResponseEntity.ok(isAdded);
     }
 
     @GetMapping

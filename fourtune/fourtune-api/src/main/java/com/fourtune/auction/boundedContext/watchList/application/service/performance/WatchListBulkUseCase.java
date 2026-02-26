@@ -1,6 +1,7 @@
 package com.fourtune.auction.boundedContext.watchList.application.service.performance;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fourtune.auction.boundedContext.watchList.port.out.WatchListItemsRepository;
 import com.fourtune.auction.boundedContext.watchList.port.out.WatchListRepository;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.core.eventPublisher.EventPublisher;
@@ -31,6 +32,7 @@ import java.util.Map;
 public class WatchListBulkUseCase {
 
     private final WatchListRepository watchListRepository;
+    private final WatchListItemsRepository watchListItemsRepository;
     private final EventPublisher eventPublisher;
     private final EventPublishingConfig eventPublishingConfig;
     private final ObjectMapper objectMapper;
@@ -51,8 +53,12 @@ public class WatchListBulkUseCase {
             return new ProcessResult(0, 0, 0);
         }
 
+        String auctionTitle = watchListItemsRepository.findById(auctionItemId)
+                .map(item -> item.getTitle())
+                .orElse("");
+
         // 이벤트 발행
-        publishWatchListEvent(userIds, auctionItemId, WatchListEventType.WATCHLIST_AUCTION_STARTED);
+        publishWatchListEvent(userIds, auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_STARTED);
 
         // 1회 Bulk UPDATE: 알림 발송 완료 마킹
         int updatedCount = watchListRepository.bulkMarkStartAlertSent(auctionItemId);
@@ -76,7 +82,11 @@ public class WatchListBulkUseCase {
             return new ProcessResult(0, 0, 0);
         }
 
-        publishWatchListEvent(userIds, auctionItemId, WatchListEventType.WATCHLIST_AUCTION_ENDED);
+        String auctionTitle = watchListItemsRepository.findById(auctionItemId)
+                .map(item -> item.getTitle())
+                .orElse("");
+
+        publishWatchListEvent(userIds, auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_ENDED);
         int updatedCount = watchListRepository.bulkMarkEndAlertSent(auctionItemId);
 
         long duration = System.currentTimeMillis() - startTime;
@@ -85,11 +95,11 @@ public class WatchListBulkUseCase {
         return new ProcessResult(userIds.size(), 2, duration);
     }
 
-    private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {
+    private void publishWatchListEvent(List<Long> users, Long auctionItemId, String auctionTitle, WatchListEventType type) {
         if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
             try {
                 String payload = objectMapper
-                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
+                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId, "auctionTitle", auctionTitle));
                 watchListKafkaProducerProvider
                         .ifAvailable(producer -> producer.send(String.valueOf(auctionItemId), payload, type.name()));
             } catch (Exception e) {
@@ -97,9 +107,9 @@ public class WatchListBulkUseCase {
             }
         } else {
             if (type == WatchListEventType.WATCHLIST_AUCTION_STARTED) {
-                eventPublisher.publish(new WatchListAuctionStartedEvent(users, auctionItemId));
+                eventPublisher.publish(new WatchListAuctionStartedEvent(users, auctionItemId, auctionTitle));
             } else {
-                eventPublisher.publish(new WatchListAuctionEndedEvent(users, auctionItemId));
+                eventPublisher.publish(new WatchListAuctionEndedEvent(users, auctionItemId, auctionTitle));
             }
         }
     }

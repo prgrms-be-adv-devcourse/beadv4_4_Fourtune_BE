@@ -50,7 +50,7 @@ public class NotificationController {
     @DeleteMapping("/{notificationId}")
     public ResponseEntity<Void> deleteNotification(
             @AuthenticationPrincipal UserContext userContext,
-            @RequestBody Long notificationId
+            @PathVariable Long notificationId
     ) {
         log.info("DELETE /api/v1/notifications/{} - User: {}", notificationId, userContext.id());
 
