@@ -9,8 +9,16 @@ WORKDIR /app
 COPY gradlew .
 COPY gradle gradle
 
-# Download Gradle distribution (cached independently of source code)
-RUN chmod +x gradlew && ./gradlew --version --no-daemon
+# Download Gradle distribution via wget (more reliable than Java's HttpURLConnection)
+# then redirect wrapper to local file to avoid network issues in build env
+RUN apk add --no-cache wget && \
+    GRADLE_VERSION=$(grep distributionUrl gradle/wrapper/gradle-wrapper.properties | sed 's/.*gradle-\(.*\)-bin.*/\1/') && \
+    wget -q --tries=5 --retry-connrefused \
+        "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
+        -O /tmp/gradle.zip && \
+    sed -i "s|distributionUrl=.*|distributionUrl=file:///tmp/gradle.zip|" \
+        gradle/wrapper/gradle-wrapper.properties && \
+    chmod +x gradlew && ./gradlew --version --no-daemon
 
 # Copy build files and full source
 COPY build.gradle .

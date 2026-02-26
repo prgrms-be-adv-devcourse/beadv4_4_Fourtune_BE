@@ -40,6 +40,13 @@ public class NotificationWatchListKafkaListener {
 
         try {
             WatchListEventType type = WatchListEventType.valueOf(eventType);
+
+            // 알림 처리 대상 이벤트만 파싱
+            if (type != WatchListEventType.WATCHLIST_AUCTION_STARTED
+                    && type != WatchListEventType.WATCHLIST_AUCTION_ENDED) {
+                return;
+            }
+
             JsonNode node = objectMapper.readTree(payload);
             Long auctionItemId = node.get("auctionItemId").asLong();
             String auctionTitle = node.has("auctionTitle") ? node.get("auctionTitle").asText("") : "";
