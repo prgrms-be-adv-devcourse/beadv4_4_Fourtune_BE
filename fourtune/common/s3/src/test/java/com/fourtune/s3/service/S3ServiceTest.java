@@ -36,6 +36,7 @@ class S3ServiceTest {
         // @Value 주입 시뮬레이션
         ReflectionTestUtils.setField(s3Service, "bucket", "test-bucket");
         ReflectionTestUtils.setField(s3Service, "pathPrefix", "test/local/tester");
+        ReflectionTestUtils.setField(s3Service, "publicUrl", "https://test-bucket.s3.amazonaws.com");
     }
 
     @Test
@@ -88,10 +89,10 @@ class S3ServiceTest {
         S3PresignedUrlResponse response = s3Service.generatePresignedUrl(directory, fileName, contentType);
 
         // then
-        // [검증] 경로에 슬래시가 두 번 연속되지 않고, pathPrefix 바로 뒤에 파일명이 오는지 확인 (UUID 포함)
-        // 예: test/local/tester/[UUID].jpg
-        assertThat(response.imageUrl()).startsWith("test/local/tester/");
-        assertThat(response.imageUrl()).doesNotContain("//");
+        // [검증] publicUrl + "/" + key 형태의 완전한 URL이 반환되는지 확인
+        // 예: https://test-bucket.s3.amazonaws.com/test/local/tester/[UUID].jpg
+        assertThat(response.imageUrl()).startsWith("https://test-bucket.s3.amazonaws.com/");
+        assertThat(response.imageUrl()).contains("test/local/tester/");
 
         System.out.println("Generated Key: " + response.imageUrl());
     }

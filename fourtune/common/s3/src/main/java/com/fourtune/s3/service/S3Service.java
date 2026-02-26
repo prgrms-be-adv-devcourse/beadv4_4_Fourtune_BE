@@ -60,7 +60,7 @@ public class S3Service {
 
             s3Client.putObject(putRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
-            String fileUrl = publicUrl + "/" + bucket + "/" + key;
+            String fileUrl = publicUrl + "/" + key;
             log.info("파일 업로드 완료: {}", fileUrl);
             return fileUrl;
 
@@ -91,7 +91,7 @@ public class S3Service {
         String presignedUrl = presignedRequest.url().toString();
 
         log.info("Presigned PUT URL generated: {}", presignedUrl);
-        return new S3PresignedUrlResponse(presignedUrl, fileName);
+        return new S3PresignedUrlResponse(presignedUrl, publicUrl + "/" + fileName);
     }
 
     /**
