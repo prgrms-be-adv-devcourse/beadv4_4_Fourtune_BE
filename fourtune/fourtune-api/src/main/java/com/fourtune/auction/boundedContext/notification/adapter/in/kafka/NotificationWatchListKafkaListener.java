@@ -42,17 +42,18 @@ public class NotificationWatchListKafkaListener {
             WatchListEventType type = WatchListEventType.valueOf(eventType);
             JsonNode node = objectMapper.readTree(payload);
             Long auctionItemId = node.get("auctionItemId").asLong();
+            String auctionTitle = node.has("auctionTitle") ? node.get("auctionTitle").asText("") : "";
             List<Long> users = new ArrayList<>();
             node.get("users").forEach(u -> users.add(u.asLong()));
 
             switch (type) {
                 case WATCHLIST_AUCTION_STARTED -> {
-                    notificationFacade.createGroupNotification(users, auctionItemId, NotificationType.WATCHLIST_START);
+                    notificationFacade.createGroupNotification(users, auctionItemId, NotificationType.WATCHLIST_START, auctionTitle);
                     log.debug("[Notification] WatchList 경매시작 알림 처리 완료: auctionItemId={}, users={}",
                             auctionItemId, users.size());
                 }
                 case WATCHLIST_AUCTION_ENDED -> {
-                    notificationFacade.createGroupNotification(users, auctionItemId, NotificationType.WATCHLIST_END);
+                    notificationFacade.createGroupNotification(users, auctionItemId, NotificationType.WATCHLIST_END, auctionTitle);
                     log.debug("[Notification] WatchList 경매종료 알림 처리 완료: auctionItemId={}, users={}",
                             auctionItemId, users.size());
                 }

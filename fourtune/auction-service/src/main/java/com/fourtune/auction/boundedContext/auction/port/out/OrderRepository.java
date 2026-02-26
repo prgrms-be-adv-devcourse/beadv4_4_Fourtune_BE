@@ -20,8 +20,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByOrderId(String orderId);
     
     /**
-     * 경매 ID로 주문 조회
+     * 경매 ID로 주문 조회 (취소되지 않은 가장 최근 주문)
+     * CANCELLED 이후 재주문이 허용되므로 여러 주문이 존재할 수 있음 → 활성 주문 우선 반환
      */
+    Optional<Order> findFirstByAuctionIdAndStatusNotOrderByCreatedAtDesc(Long auctionId, OrderStatus status);
+
+    /**
+     * @deprecated 여러 주문 존재 시 NonUniqueResultException 발생 → findFirstByAuctionIdAndStatusNotOrderByCreatedAtDesc 사용
+     */
+    @Deprecated
     Optional<Order> findByAuctionId(Long auctionId);
     
     /**
@@ -92,9 +99,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     );
     
     /**
-     * 경매에 주문이 이미 존재하는지 확인
+     * 경매에 주문이 이미 존재하는지 확인 (모든 상태 포함)
      */
     boolean existsByAuctionId(Long auctionId);
+
+    /**
+     * 경매에 활성 주문(PENDING/COMPLETED)이 존재하는지 확인
+     * CANCELLED 주문은 제외 - 취소 후 재주문 허용을 위해
+     */
+    boolean existsByAuctionIdAndStatusNot(Long auctionId, OrderStatus status);
     
     /**
      * orderId 존재 여부 확인

@@ -56,8 +56,9 @@ public class AuctionUpdateUseCase {
                 request.buyNowPrice(),
                 request.buyNowPrice() != null  // buyNowEnabled
         );
-        
-        // 5. DB 저장 (dirty checking으로 자동 저장)
+
+        // 5. DB 저장 (AuctionSupport의 readOnly 트랜잭션 컨텍스트로 dirty checking이 동작하지 않을 수 있어 명시적 save 호출)
+        auctionSupport.save(auctionItem);
         
         // 6. 이벤트 발행
         Long aggregateId = auctionItem.getId();

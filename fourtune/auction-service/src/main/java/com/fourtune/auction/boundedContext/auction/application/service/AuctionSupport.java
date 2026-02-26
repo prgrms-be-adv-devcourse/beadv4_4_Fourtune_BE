@@ -13,7 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 경매 공통 조회/검증 기능
@@ -56,6 +59,14 @@ public class AuctionSupport {
      */
     public AuctionItem save(AuctionItem auctionItem) {
         return auctionItemRepository.save(auctionItem);
+    }
+
+    /**
+     * 여러 경매 ID로 경매 제목 맵 조회 (auctionId -> title)
+     */
+    public Map<Long, String> findTitlesByIds(Set<Long> auctionIds) {
+        return auctionItemRepository.findAllById(auctionIds).stream()
+                .collect(Collectors.toMap(AuctionItem::getId, AuctionItem::getTitle));
     }
 
     /**

@@ -70,7 +70,8 @@ public class NotificationAuctionKafkaListener {
         if (event.previousBidderId() != null) {
             log.info("[Notification] 상위 입찰 알림 발송 - target={}", event.previousBidderId());
             notificationFacade.createNotification(
-                    event.previousBidderId(), event.auctionId(), NotificationType.OUTBID);
+                    event.previousBidderId(), event.auctionId(), NotificationType.OUTBID,
+                    event.auctionTitle(), event.bidAmount());
         }
     }
 
@@ -80,12 +81,15 @@ public class NotificationAuctionKafkaListener {
 
         if (event.winnerId() == null) {
             notificationFacade.createNotification(
-                    event.sellerId(), event.auctionId(), NotificationType.AUCTION_FAILED);
+                    event.sellerId(), event.auctionId(), NotificationType.AUCTION_FAILED,
+                    event.auctionTitle());
         } else {
             notificationFacade.createNotification(
-                    event.winnerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
+                    event.winnerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS,
+                    event.auctionTitle(), event.finalPrice());
             notificationFacade.createNotification(
-                    event.sellerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
+                    event.sellerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS,
+                    event.auctionTitle(), event.finalPrice());
         }
     }
 
@@ -95,9 +99,11 @@ public class NotificationAuctionKafkaListener {
                 event.auctionId(), event.buyerId(), event.sellerId());
 
         notificationFacade.createNotification(
-                event.buyerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
+                event.buyerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS,
+                event.auctionTitle(), event.buyNowPrice());
         notificationFacade.createNotification(
-                event.sellerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
+                event.sellerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS,
+                event.auctionTitle(), event.buyNowPrice());
     }
 
     private void handleAuctionExtended(String payload) throws Exception {

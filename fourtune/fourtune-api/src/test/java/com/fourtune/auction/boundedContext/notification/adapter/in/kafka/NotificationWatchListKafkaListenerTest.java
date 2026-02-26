@@ -34,7 +34,7 @@ class NotificationWatchListKafkaListenerTest {
     @DisplayName("WATCHLIST_AUCTION_STARTED 이벤트 수신 시 WATCHLIST_START 그룹 알림 생성")
     void consume_WatchlistAuctionStarted() throws Exception {
         // Given
-        String payload = "{\"auctionItemId\":1,\"users\":[10,20,30]}";
+        String payload = "{\"auctionItemId\":1,\"users\":[10,20,30],\"auctionTitle\":\"테스트 상품\"}";
         String eventType = WatchListEventType.WATCHLIST_AUCTION_STARTED.name();
         ObjectMapper realMapper = new ObjectMapper();
         JsonNode node = realMapper.readTree(payload);
@@ -48,14 +48,15 @@ class NotificationWatchListKafkaListenerTest {
         verify(notificationFacade).createGroupNotification(
                 argThat(users -> users.containsAll(List.of(10L, 20L, 30L)) && users.size() == 3),
                 eq(1L),
-                eq(NotificationType.WATCHLIST_START));
+                eq(NotificationType.WATCHLIST_START),
+                eq("테스트 상품"));
     }
 
     @Test
     @DisplayName("WATCHLIST_AUCTION_ENDED 이벤트 수신 시 WATCHLIST_END 그룹 알림 생성")
     void consume_WatchlistAuctionEnded() throws Exception {
         // Given
-        String payload = "{\"auctionItemId\":2,\"users\":[11,22]}";
+        String payload = "{\"auctionItemId\":2,\"users\":[11,22],\"auctionTitle\":\"종료 상품\"}";
         String eventType = WatchListEventType.WATCHLIST_AUCTION_ENDED.name();
         ObjectMapper realMapper = new ObjectMapper();
         JsonNode node = realMapper.readTree(payload);
@@ -69,7 +70,8 @@ class NotificationWatchListKafkaListenerTest {
         verify(notificationFacade).createGroupNotification(
                 argThat(users -> users.containsAll(List.of(11L, 22L)) && users.size() == 2),
                 eq(2L),
-                eq(NotificationType.WATCHLIST_END));
+                eq(NotificationType.WATCHLIST_END),
+                eq("종료 상품"));
     }
 
     @Test

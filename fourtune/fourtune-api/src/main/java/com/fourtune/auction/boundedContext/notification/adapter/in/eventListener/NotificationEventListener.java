@@ -68,10 +68,16 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleSettlementCompletedEvent(SettlementCompletedEvent event) {
+        if (eventPublishingConfig.isKafkaEnabled()) {
+            log.debug("[Notification] Settlement 이벤트는 Kafka로 처리됨 - Spring Event 무시");
+            return;
+        }
         Long payeeId = event.getSettlementDto().getPayeeId();
         Long settlementId = event.getSettlementDto().getId();
+        String auctionTitle = event.getSettlementDto().getAuctionTitle() != null
+                ? event.getSettlementDto().getAuctionTitle() : "";
         log.info("정산 완료 알림 발송: payeeId={}, settlementId={}", payeeId, settlementId);
-        notificationFacade.createSettlementNotification(payeeId, settlementId, NotificationType.SETTLEMENT_SUCCESS);
+        notificationFacade.createSettlementNotification(payeeId, settlementId, NotificationType.SETTLEMENT_SUCCESS, auctionTitle);
     }
 
     // 경매 이벤트 (Kafka 활성화 시 비활성화)
@@ -87,7 +93,8 @@ public class NotificationEventListener {
 
         if (event.previousBidderId() != null) {
             log.info("상위 입찰 알림 발송 - Target: {}", event.previousBidderId());
-            notificationFacade.createNotification(event.previousBidderId(), event.auctionId(), NotificationType.OUTBID);
+            notificationFacade.createNotification(event.previousBidderId(), event.auctionId(), NotificationType.OUTBID,
+                    event.auctionTitle(), event.bidAmount());
         }
     }
 
@@ -101,10 +108,13 @@ public class NotificationEventListener {
         log.info("경매종료 이벤트 수신 - ReceiverId: {}", event.sellerId());
 
         if (event.winnerId() == null) {
-            notificationFacade.createNotification(event.sellerId(), event.auctionId(), NotificationType.AUCTION_FAILED);
+            notificationFacade.createNotification(event.sellerId(), event.auctionId(), NotificationType.AUCTION_FAILED,
+                    event.auctionTitle());
         } else {
-            notificationFacade.createNotification(event.winnerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
-            notificationFacade.createNotification(event.sellerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
+            notificationFacade.createNotification(event.winnerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS,
+                    event.auctionTitle(), event.finalPrice());
+            notificationFacade.createNotification(event.sellerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS,
+                    event.auctionTitle(), event.finalPrice());
         }
     }
 
@@ -117,8 +127,10 @@ public class NotificationEventListener {
         log.info("즉시구매 이벤트 수신 - auctionId={}, buyerId={}, sellerId={}",
                 event.auctionId(), event.buyerId(), event.sellerId());
 
-        notificationFacade.createNotification(event.buyerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
-        notificationFacade.createNotification(event.sellerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS);
+        notificationFacade.createNotification(event.buyerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS,
+                event.auctionTitle(), event.buyNowPrice());
+        notificationFacade.createNotification(event.sellerId(), event.auctionId(), NotificationType.AUCTION_SUCCESS,
+                event.auctionTitle(), event.buyNowPrice());
     }
 
     @Async
@@ -149,14 +161,19 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentSucceededEvent(PaymentSucceededEvent event) {
+        if (eventPublishingConfig.isKafkaEnabled()) {
+            log.debug("[Notification] Payment 이벤트는 Kafka로 처리됨 - Spring Event 무시");
+            return;
+        }
         log.info("결제 성공 이벤트 수신 - orderId={}, userId={}",
                 event.getOrder().getAuctionOrderId(), event.getOrder().getUserId());
 
-        // 결제 성공 알림 (OrderDto의 items에서 첫 번째 item의 itemId를 auctionId로 사용)
         Long userId = event.getOrder().getUserId();
         if (event.getOrder().getItems() != null && !event.getOrder().getItems().isEmpty()) {
             Long auctionId = event.getOrder().getItems().get(0).getItemId();
-            notificationFacade.createNotification(userId, auctionId, NotificationType.PAYMENT_SUCCESS);
+            String auctionTitle = event.getOrder().getItems().get(0).getItemName() != null
+                    ? event.getOrder().getItems().get(0).getItemName() : "";
+            notificationFacade.createNotification(userId, auctionId, NotificationType.PAYMENT_SUCCESS, auctionTitle);
         } else {
             log.warn("결제 성공 이벤트 처리 실패: Order에 items가 없음 - orderId={}", event.getOrder().getAuctionOrderId());
         }
@@ -165,15 +182,20 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentFailedEvent(PaymentFailedEvent event) {
+        if (eventPublishingConfig.isKafkaEnabled()) {
+            log.debug("[Notification] Payment 이벤트는 Kafka로 처리됨 - Spring Event 무시");
+            return;
+        }
         log.info("결제 실패 이벤트 수신 - orderId={}, msg={}",
                 event.getOrder() != null ? event.getOrder().getAuctionOrderId() : "null", event.getMsg());
 
-        // 결제 실패 알림
         if (event.getOrder() != null) {
             Long userId = event.getOrder().getUserId();
             if (event.getOrder().getItems() != null && !event.getOrder().getItems().isEmpty()) {
                 Long auctionId = event.getOrder().getItems().get(0).getItemId();
-                notificationFacade.createNotification(userId, auctionId, NotificationType.PAYMENT_FAILED);
+                String auctionTitle = event.getOrder().getItems().get(0).getItemName() != null
+                        ? event.getOrder().getItems().get(0).getItemName() : "";
+                notificationFacade.createNotification(userId, auctionId, NotificationType.PAYMENT_FAILED, auctionTitle);
             } else {
                 log.warn("결제 실패 이벤트 처리 실패: Order에 items가 없음 - orderId={}",
                         event.getOrder().getAuctionOrderId());
@@ -187,7 +209,8 @@ public class NotificationEventListener {
         if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
             return;
         }
-        notificationFacade.createGroupNotification(event.getUsers(), event.getAuctionItemId(), NotificationType.WATCHLIST_START);
+        notificationFacade.createGroupNotification(event.getUsers(), event.getAuctionItemId(), NotificationType.WATCHLIST_START,
+                event.getAuctionTitle());
     }
 
     @Async
@@ -196,6 +219,7 @@ public class NotificationEventListener {
         if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
             return;
         }
-        notificationFacade.createGroupNotification(event.getUsers(), event.getAuctionItemId(), NotificationType.WATCHLIST_END);
+        notificationFacade.createGroupNotification(event.getUsers(), event.getAuctionItemId(), NotificationType.WATCHLIST_END,
+                event.getAuctionTitle());
     }
 }

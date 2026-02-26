@@ -42,7 +42,11 @@ public class WatchListAuctionUseCase {
         if (targetUsers.isEmpty())
             return;
 
-        publishWatchListEvent(targetUsers, auctionItemId, WatchListEventType.WATCHLIST_AUCTION_STARTED);
+        String auctionTitle = watchListSupport.findOptionalByAuctionItemId(auctionItemId)
+                .map(item -> item.getTitle())
+                .orElse("");
+
+        publishWatchListEvent(targetUsers, auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_STARTED);
         markEndAlertSent(targetUsers, auctionItemId);
     }
 
@@ -51,15 +55,19 @@ public class WatchListAuctionUseCase {
         if (watchListUsers.isEmpty())
             return;
 
-        publishWatchListEvent(watchListUsers, auctionItemId, WatchListEventType.WATCHLIST_AUCTION_ENDED);
+        String auctionTitle = watchListSupport.findOptionalByAuctionItemId(auctionItemId)
+                .map(item -> item.getTitle())
+                .orElse("");
+
+        publishWatchListEvent(watchListUsers, auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_ENDED);
         markStartAlertSent(watchListUsers, auctionItemId);
     }
 
-    private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {
+    private void publishWatchListEvent(List<Long> users, Long auctionItemId, String auctionTitle, WatchListEventType type) {
         if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
             try {
                 String payload = objectMapper
-                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
+                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId, "auctionTitle", auctionTitle));
                 watchListKafkaProducerProvider
                         .ifAvailable(producer -> producer.send(String.valueOf(auctionItemId), payload, type.name()));
             } catch (Exception e) {
@@ -67,9 +75,9 @@ public class WatchListAuctionUseCase {
             }
         } else {
             if (type == WatchListEventType.WATCHLIST_AUCTION_STARTED) {
-                eventPublisher.publish(new WatchListAuctionStartedEvent(users, auctionItemId));
+                eventPublisher.publish(new WatchListAuctionStartedEvent(users, auctionItemId, auctionTitle));
             } else {
-                eventPublisher.publish(new WatchListAuctionEndedEvent(users, auctionItemId));
+                eventPublisher.publish(new WatchListAuctionEndedEvent(users, auctionItemId, auctionTitle));
             }
         }
     }

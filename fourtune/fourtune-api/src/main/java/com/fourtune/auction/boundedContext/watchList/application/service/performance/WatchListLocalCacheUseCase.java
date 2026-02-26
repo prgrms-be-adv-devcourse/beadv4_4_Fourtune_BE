@@ -114,7 +114,7 @@ public class WatchListLocalCacheUseCase {
      * 경매 시작 알림 처리 (Local Cache 방식)
      * DB/Redis 접근 없음, 메모리 연산만 수행
      */
-    public WatchListBulkUseCase.ProcessResult processAuctionStart(Long auctionItemId) {
+    public WatchListBulkUseCase.ProcessResult processAuctionStart(Long auctionItemId, String auctionTitle) {
         long startTime = System.currentTimeMillis();
 
         Set<Long> userIds = getInterestedUsers(auctionItemId);
@@ -124,7 +124,7 @@ public class WatchListLocalCacheUseCase {
         }
 
         // 이벤트 발행
-        publishWatchListEvent(userIds.stream().toList(), auctionItemId, WatchListEventType.WATCHLIST_AUCTION_STARTED);
+        publishWatchListEvent(userIds.stream().toList(), auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_STARTED);
 
         // 알림 발송 완료 마킹 (메모리)
         startAlertSentCache.asMap()
@@ -140,7 +140,7 @@ public class WatchListLocalCacheUseCase {
     /**
      * 경매 종료 알림 처리 (Local Cache 방식)
      */
-    public WatchListBulkUseCase.ProcessResult processAuctionEnd(Long auctionItemId) {
+    public WatchListBulkUseCase.ProcessResult processAuctionEnd(Long auctionItemId, String auctionTitle) {
         long startTime = System.currentTimeMillis();
 
         Set<Long> userIds = getInterestedUsers(auctionItemId);
@@ -149,7 +149,7 @@ public class WatchListLocalCacheUseCase {
             return new WatchListBulkUseCase.ProcessResult(0, 0, 0);
         }
 
-        publishWatchListEvent(userIds.stream().toList(), auctionItemId, WatchListEventType.WATCHLIST_AUCTION_ENDED);
+        publishWatchListEvent(userIds.stream().toList(), auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_ENDED);
 
         endAlertSentCache.asMap()
                 .computeIfAbsent(auctionItemId, k -> ConcurrentHashMap.newKeySet())
@@ -161,11 +161,11 @@ public class WatchListLocalCacheUseCase {
         return new WatchListBulkUseCase.ProcessResult(userIds.size(), 0, duration);
     }
 
-    private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {
+    private void publishWatchListEvent(List<Long> users, Long auctionItemId, String auctionTitle, WatchListEventType type) {
         if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
             try {
                 String payload = objectMapper
-                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
+                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId, "auctionTitle", auctionTitle));
                 watchListKafkaProducerProvider
                         .ifAvailable(producer -> producer.send(String.valueOf(auctionItemId), payload, type.name()));
             } catch (Exception e) {
@@ -173,9 +173,9 @@ public class WatchListLocalCacheUseCase {
             }
         } else {
             if (type == WatchListEventType.WATCHLIST_AUCTION_STARTED) {
-                eventPublisher.publish(new WatchListAuctionStartedEvent(users, auctionItemId));
+                eventPublisher.publish(new WatchListAuctionStartedEvent(users, auctionItemId, auctionTitle));
             } else {
-                eventPublisher.publish(new WatchListAuctionEndedEvent(users, auctionItemId));
+                eventPublisher.publish(new WatchListAuctionEndedEvent(users, auctionItemId, auctionTitle));
             }
         }
     }

@@ -17,4 +17,5 @@ public class SettlementDto {
     private String payeeEmail;
     private LocalDateTime settledAt;
     private Long amount;
+    private String auctionTitle;
 }

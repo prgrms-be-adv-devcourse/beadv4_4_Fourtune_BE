@@ -6,5 +6,6 @@ package com.fourtune.shared.auction.event;
  * - WatchList 도메인에서 소비하여 관심유저 알림 생성
  */
 public record AuctionEndingSoonEvent(
-                Long auctionId) {
+                Long auctionId,
+                String auctionTitle) {
 }

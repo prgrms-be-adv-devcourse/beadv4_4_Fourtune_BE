@@ -47,7 +47,7 @@ class NotificationAuctionKafkaListenerTest {
         listener.consume(payload, AuctionEventType.BID_PLACED.name());
 
         verify(notificationFacade).bidPlaceToSeller(10L, 20L, 100L, NotificationType.BID_RECEIVED);
-        verify(notificationFacade).createNotification(15L, 100L, NotificationType.OUTBID);
+        verify(notificationFacade).createNotification(15L, 100L, NotificationType.OUTBID, "경매상품", BigDecimal.valueOf(5000));
     }
 
     @Test
@@ -79,8 +79,8 @@ class NotificationAuctionKafkaListenerTest {
 
         listener.consume(payload, AuctionEventType.AUCTION_CLOSED.name());
 
-        verify(notificationFacade).createNotification(20L, 100L, NotificationType.AUCTION_SUCCESS);
-        verify(notificationFacade).createNotification(10L, 100L, NotificationType.AUCTION_SUCCESS);
+        verify(notificationFacade).createNotification(20L, 100L, NotificationType.AUCTION_SUCCESS, "경매상품", BigDecimal.valueOf(10000));
+        verify(notificationFacade).createNotification(10L, 100L, NotificationType.AUCTION_SUCCESS, "경매상품", BigDecimal.valueOf(10000));
     }
 
     @Test
@@ -94,7 +94,7 @@ class NotificationAuctionKafkaListenerTest {
 
         listener.consume(payload, AuctionEventType.AUCTION_CLOSED.name());
 
-        verify(notificationFacade).createNotification(10L, 100L, NotificationType.AUCTION_FAILED);
+        verify(notificationFacade).createNotification(10L, 100L, NotificationType.AUCTION_FAILED, "경매상품");
         verify(notificationFacade, never()).createNotification(any(), any(), eq(NotificationType.AUCTION_SUCCESS));
     }
 
@@ -105,14 +105,14 @@ class NotificationAuctionKafkaListenerTest {
     void consume_AuctionBuyNow() throws Exception {
         String payload = "{}";
         AuctionBuyNowEvent event = new AuctionBuyNowEvent(
-                100L, 10L, 30L, BigDecimal.valueOf(20000), "ORD-002", LocalDateTime.now());
+                100L, "테스트 상품", 10L, 30L, BigDecimal.valueOf(20000), "ORD-002", LocalDateTime.now());
 
         when(objectMapper.readValue(payload, AuctionBuyNowEvent.class)).thenReturn(event);
 
         listener.consume(payload, AuctionEventType.AUCTION_BUY_NOW.name());
 
-        verify(notificationFacade).createNotification(30L, 100L, NotificationType.AUCTION_SUCCESS);
-        verify(notificationFacade).createNotification(10L, 100L, NotificationType.AUCTION_SUCCESS);
+        verify(notificationFacade).createNotification(30L, 100L, NotificationType.AUCTION_SUCCESS, "테스트 상품", BigDecimal.valueOf(20000));
+        verify(notificationFacade).createNotification(10L, 100L, NotificationType.AUCTION_SUCCESS, "테스트 상품", BigDecimal.valueOf(20000));
     }
 
     // ── AUCTION_EXTENDED ─────────────────────────────────────────────────────────
