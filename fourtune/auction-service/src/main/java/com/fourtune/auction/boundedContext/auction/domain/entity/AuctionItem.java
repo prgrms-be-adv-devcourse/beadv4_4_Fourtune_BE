@@ -97,6 +97,20 @@ public class AuctionItem extends BaseTimeEntity {
     @Builder.Default
     private List<ItemImage> images = new ArrayList<>();
 
+    // ==================== 관심상품 카운트 메서드 ====================
+
+    public void incrementWatchlistCount() {
+        this.watchlistCount = (this.watchlistCount == null ? 0 : this.watchlistCount) + 1;
+    }
+
+    public void decrementWatchlistCount() {
+        if (this.watchlistCount == null || this.watchlistCount <= 0) {
+            this.watchlistCount = 0;
+            return;
+        }
+        this.watchlistCount--;
+    }
+
     // ==================== 이미지 관리 메서드 ====================
 
     /**
