@@ -5,19 +5,19 @@ ARG MODULE_NAME
 
 WORKDIR /app
 
-# Copy Gradle wrapper and build files
+# Copy Gradle wrapper files only
 COPY gradlew .
 COPY gradle gradle
+
+# Download Gradle distribution (cached independently of source code)
+RUN chmod +x gradlew && ./gradlew --version --no-daemon
+
+# Copy build files and full source
 COPY build.gradle .
 COPY settings.gradle .
-
-# Grant execute permission to gradlew
-RUN chmod +x gradlew
-
-# Copy full source so Gradle can configure all subprojects (e.g. common:core)
 COPY . .
 
-# Download dependencies (cache layer) — run after COPY so :common:core etc. exist
+# Download dependencies (cache layer)
 RUN ./gradlew dependencies --no-daemon || true
 
 # Build application

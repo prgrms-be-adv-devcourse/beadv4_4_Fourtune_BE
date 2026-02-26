@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +53,10 @@ public class WatchListSupport {
         return watchListItemsRepository.findById(auctionItemId);
     }
 
+    public List<WatchListAuctionItem> findAllItemsByIds(Set<Long> auctionItemIds) {
+        return watchListItemsRepository.findAllById(auctionItemIds);
+    }
+
     public List<Long> findAllByAuctionItemId(Long auctionItemId){
         return watchListRepository.findAllByAuctionItemId(auctionItemId);
     }
@@ -63,6 +68,11 @@ public class WatchListSupport {
 
     public List<WatchList> findAllByUserIdWithFetchJoin(Long userId){
         return watchListRepository.findAllByUserIdWithFetchJoin(userId);
+    }
+
+    @Transactional
+    public void deleteByUserIdAndAuctionItemId(Long userId, Long auctionItemId) {
+        watchListRepository.deleteByUserIdAndAuctionItemId(userId, auctionItemId);
     }
 
 }

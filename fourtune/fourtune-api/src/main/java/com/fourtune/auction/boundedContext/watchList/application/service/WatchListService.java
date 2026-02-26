@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -35,7 +36,7 @@ public class WatchListService {
     @Transactional
     public boolean toggleWatchList(Long userId, Long auctionItemId) {
         boolean isAdded;
-        if (isExistWatchList(userId, auctionItemId)) {
+        if (watchListRedisSetService.isUserInterested(userId, auctionItemId)) {
             watchListRedisSetService.removeInterest(userId, auctionItemId);
             isAdded = false;
         } else {
@@ -47,8 +48,12 @@ public class WatchListService {
     }
 
     public List<WatchListResponseDto> getMyWatchLists(Long userId) {
-        return watchListSupport.findAllByUserIdWithFetchJoin(userId).stream()
-                .map(WatchListMapper::from)
+        Set<Long> auctionItemIds = watchListRedisSetService.getUserAuctionItemIds(userId);
+        if (auctionItemIds.isEmpty()) {
+            return List.of();
+        }
+        return watchListSupport.findAllItemsByIds(auctionItemIds).stream()
+                .map(item -> WatchListMapper.fromItem(userId, item))
                 .collect(Collectors.toList());
     }
 

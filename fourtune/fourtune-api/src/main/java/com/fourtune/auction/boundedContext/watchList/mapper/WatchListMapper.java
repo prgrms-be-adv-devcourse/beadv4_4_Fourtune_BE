@@ -22,4 +22,15 @@ public class WatchListMapper {
         );
     }
 
+    public static WatchListResponseDto fromItem(Long userId, WatchListAuctionItem item) {
+        return new WatchListResponseDto(
+                userId,
+                item.getId(),
+                item.getTitle(),
+                item.getCurrentPrice(),
+                item.getBuyNowPrice(),
+                item.getThumbnailImageUrl()
+        );
+    }
+
 }
