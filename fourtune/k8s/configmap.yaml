@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fourtune-config
+  namespace: fourtune
+data:
+  SPRING_PROFILES_ACTIVE: "prod"
+  # Database
+  DB_URL: "jdbc:postgresql://postgres:5432/fourtune_db"
+  DB_NAME: "fourtune_db"
+  # Redis
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  # Elasticsearch
+  ELASTICSEARCH_URIS: "http://elasticsearch:9200"
+  # Kafka (Redpanda)
+  KAFKA_BOOTSTRAP_SERVERS: "redpanda:9092"
+  # Service URLs
+  API_AUCTION_BASE_URL: "http://auction-service:8083"
+  PAYOUT_URL: "http://payment-service:8080"
+  CASH_URL: "http://payment-service:8080"
+  # AWS S3
+  AWS_REGION: "ap-northeast-2"
+  AWS_S3_BUCKET: "team06-bucket"
+  S3_PUBLIC_URL: "https://team06-bucket.s3.ap-northeast-2.amazonaws.com"
+  # OAuth
+  OAUTH_BACKEND_URI: "https://api.fourtune.store"
+  OAUTH_FRONTEND_URI: "https://fourtune.store"
+  # Feature flags
+  FEATURE_KAFKA_ENABLED: "true"
+  FEATURE_KAFKA_USER_EVENTS_ENABLED: "true"
+  FEATURE_KAFKA_AUCTION_EVENTS_ENABLED: "true"
+  FEATURE_KAFKA_WATCHLIST_EVENTS_ENABLED: "true"
+  FEATURE_KAFKA_NOTIFICATION_EVENTS_ENABLED: "true"
+  FEATURE_KAFKA_PAYMENT_EVENTS_ENABLED: "true"
+  FEATURE_KAFKA_SETTLEMENT_EVENTS_ENABLED: "true"

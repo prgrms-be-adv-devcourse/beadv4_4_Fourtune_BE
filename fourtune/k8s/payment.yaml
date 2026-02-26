@@ -4,13 +4,13 @@ metadata:
   name: payment-config
   namespace: fourtune
 data:
-  DB_URL: "jdbc:postgresql://postgres-postgresql:5432/payment_db"
-  REDIS_HOST: "redis-master"
+  SPRING_PROFILES_ACTIVE: "prod"
+  DB_URL: "jdbc:postgresql://postgres:5432/payment_db"
+  REDIS_HOST: "redis"
   REDIS_PORT: "6379"
   KAFKA_BOOTSTRAP_SERVERS: "redpanda:9092"
   API_AUCTION_BASE_URL: "http://auction-service:8083"
-  PAYOUT_SERVICE_URL: "http://payment-service:8081"
-  CASH_SERVICE_URL: "http://payment-service:8081"
+  SERVER_PORT: "8080"
 
 ---
 apiVersion: apps/v1
@@ -22,30 +22,75 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: payment
+      app: payment-service
   template:
     metadata:
       labels:
-        app: payment
+        app: payment-service
     spec:
       containers:
-        - name: payment-container
-          image: payment-service:latest
-          imagePullPolicy: IfNotPresent
+        - name: payment-service
+          image: ghcr.io/prgrms-be-adv-devcourse/payment-service:latest
+          imagePullPolicy: Always
           ports:
-            - containerPort: 8081
+            - containerPort: 8080
           envFrom:
-            - secretRef:
-                name: fourtune-secrets   # 민감한 값: TOSS_CLIENT_KEY, TOSS_SECRET_KEY 등
             - configMapRef:
-                name: payment-config     # 비민감한 인프라 주소
+                name: payment-config
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: DB_PASSWORD
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: REDIS_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: JWT_SECRET
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: ENCRYPTION_KEY
+            - name: TOSS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: TOSS_SECRET_KEY
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
+              cpu: "250m"
               memory: "512Mi"
+            limits:
               cpu: "500m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 90
+            periodSeconds: 30
+      imagePullSecrets:
+        - name: ghcr-secret
+
 ---
 apiVersion: v1
 kind: Service
@@ -54,8 +99,7 @@ metadata:
   namespace: fourtune
 spec:
   selector:
-    app: payment
+    app: payment-service
   ports:
-    - protocol: TCP
-      port: 8081      # 외부/다른 서비스가 접근하는 포트
-      targetPort: 8081 # 컨테이너 내부 포트
+    - port: 8080
+      targetPort: 8080
