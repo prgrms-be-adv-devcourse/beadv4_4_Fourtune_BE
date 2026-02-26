@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,8 +53,12 @@ public class BidQueryUseCase {
         List<Bid> bids = bidSupport.findByBidderId(bidderId);
         var nicknames = userPort.getNicknamesByIds(Set.of(bidderId));
         String bidderNickname = nicknames.get(bidderId);
+
+        Set<Long> auctionIds = bids.stream().map(Bid::getAuctionId).collect(Collectors.toSet());
+        Map<Long, String> auctionTitles = auctionSupport.findTitlesByIds(auctionIds);
+
         return bids.stream()
-                .map(bid -> BidMapper.from(bid, bidderNickname))
+                .map(bid -> BidMapper.from(bid, auctionTitles.get(bid.getAuctionId()), bidderNickname))
                 .toList();
     }
 

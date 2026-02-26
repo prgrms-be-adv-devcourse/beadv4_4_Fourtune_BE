@@ -74,6 +74,7 @@ public class BidMapper {
                                           Map<Long, String> bidderNicknames) {
         List<BidResponse> bidResponses = bids.stream()
                 .map(bid -> BidMapper.from(bid,
+                        auctionItem.getTitle(),
                         bidderNicknames != null ? bidderNicknames.get(bid.getBidderId()) : null))
                 .toList();
         return new BidHistoryResponse(
@@ -91,8 +92,9 @@ public class BidMapper {
         return new BidResponse(
                 bid.getId(),
                 bid.getAuctionId(),
+                null,
                 bid.getBidderId(),
-                null, // bidderNickname은 User 조회 필요 - 나중에 조인 또는 별도 조회
+                null,
                 bid.getBidAmount(),
                 bid.getStatus().toString(),
                 bid.getIsWinning(),
@@ -107,6 +109,24 @@ public class BidMapper {
         return new BidResponse(
                 bid.getId(),
                 bid.getAuctionId(),
+                null,
+                bid.getBidderId(),
+                bidderNickname,
+                bid.getBidAmount(),
+                bid.getStatus().toString(),
+                bid.getIsWinning(),
+                bid.getCreatedAt()
+        );
+    }
+
+    /**
+     * Bid 엔티티 + 경매 타이틀 + 닉네임으로 BidResponse 생성 (마이페이지 입찰 내역용)
+     */
+    public static BidResponse from(Bid bid, String auctionTitle, String bidderNickname) {
+        return new BidResponse(
+                bid.getId(),
+                bid.getAuctionId(),
+                auctionTitle,
                 bid.getBidderId(),
                 bidderNickname,
                 bid.getBidAmount(),
