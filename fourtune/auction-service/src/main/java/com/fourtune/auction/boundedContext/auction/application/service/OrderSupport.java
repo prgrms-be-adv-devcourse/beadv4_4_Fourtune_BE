@@ -61,10 +61,11 @@ public class OrderSupport {
     }
 
     /**
-     * 경매 ID로 주문 조회
+     * 경매 ID로 주문 조회 (취소 제외한 가장 최근 주문)
+     * 재주문 허용 정책으로 CANCELLED 주문이 여럿 존재할 수 있으므로 활성 주문만 반환
      */
     public Optional<Order> findByAuctionId(Long auctionId) {
-        return orderRepository.findByAuctionId(auctionId);
+        return orderRepository.findFirstByAuctionIdAndStatusNotOrderByCreatedAtDesc(auctionId, OrderStatus.CANCELLED);
     }
 
     /**
@@ -83,10 +84,10 @@ public class OrderSupport {
 
     /**
      * 주문 생성 가능 여부 검증
-     * 이미 주문이 존재하면 생성 불가
+     * CANCELLED 상태 주문은 무시 — 취소 후 재시도 허용 (즉시구매 복구 정책)
      */
     public void validateOrderCreatable(Long auctionId) {
-        if (existsByAuctionId(auctionId)) {
+        if (orderRepository.existsByAuctionIdAndStatusNot(auctionId, OrderStatus.CANCELLED)) {
             throw new BusinessException(ErrorCode.ORDER_ALREADY_EXISTS);
         }
     }

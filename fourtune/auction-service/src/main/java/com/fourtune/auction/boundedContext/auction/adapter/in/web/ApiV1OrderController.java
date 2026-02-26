@@ -86,6 +86,19 @@ public class ApiV1OrderController {
     }
     
     /**
+     * 결제 재시도용 orderId 갱신
+     * Toss는 한 번 사용된 orderId 재사용 불가 → 결제 실패 후 재시도 시 새 orderId 발급
+     */
+    @PostMapping("/{orderId}/renew-payment-id")
+    public ResponseEntity<ApiResponse<String>> renewPaymentId(
+            @AuthenticationPrincipal UserContext user,
+            @PathVariable String orderId
+    ) {
+        String newOrderId = orderCompleteUseCase.renewPaymentId(orderId, user.id());
+        return ResponseEntity.ok(ApiResponse.success(newOrderId));
+    }
+
+    /**
      * 결제 완료 처리 (Payment 도메인에서 호출)
      * 내부 API - 별도 인증 처리 필요
      */

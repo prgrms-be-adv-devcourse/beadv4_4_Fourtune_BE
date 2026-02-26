@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
@@ -42,7 +44,6 @@ public class TossPaymentAdapter implements PaymentGatewayPort {
         body.put("amount", amount);
 
         try {
-            // WebClient를 이용한 승인 요청
             ResponseEntity<Map> response = webClient.post()
                     .uri(TOSS_API_URL + "/confirm")
                     .header("Authorization", basicAuth)
@@ -50,15 +51,40 @@ public class TossPaymentAdapter implements PaymentGatewayPort {
                     .bodyValue(body)
                     .retrieve()
                     .toEntity(Map.class)
-                    .block(); // 동기식 처리를 위해 대기
+                    .block();
 
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 return new PaymentExecutionResult(paymentKey, orderId, amount, true);
             } else {
                 throw new BusinessException(ErrorCode.PAYMENT_PG_FAILED);
             }
+        } catch (BusinessException e) {
+            throw e;
+        } catch (WebClientResponseException e) {
+            String errorBody = e.getResponseBodyAsString();
+            log.error("Toss Confirm API 오류 응답: orderId={}, status={}, body={}", orderId, e.getStatusCode(), errorBody);
+
+            // Toss 에러 코드별 분기
+            if (errorBody.contains("ALREADY_PROCESSING_REQUEST")) {
+                // 동시 confirm 요청 중 하나가 Toss에서 처리 중 → 동시 요청 충돌
+                // PaymentConfirmUseCase에서 DB 재확인 후 처리하도록 위임
+                log.warn("Toss 동시 confirm 충돌 감지 (ALREADY_PROCESSING_REQUEST). orderId={}", orderId);
+                throw new BusinessException(ErrorCode.PAYMENT_PG_SERVER_ERROR);
+            }
+            if (errorBody.contains("ALREADY_PROCESSED_PAYMENT")) {
+                // 이미 승인 완료된 결제 → PaymentConfirmUseCase에서 DB 재확인 후 처리
+                throw new BusinessException(ErrorCode.PAYMENT_PG_SERVER_ERROR);
+            }
+            if (errorBody.contains("PAY_PROCESS_CANCELED") || errorBody.contains("PAY_PROCESS_ABORTED")) {
+                // 사용자가 결제 창에서 직접 취소
+                throw new BusinessException(ErrorCode.PAYMENT_PG_FAILED);
+            }
+            if (errorBody.contains("REJECT_CARD_COMPANY")) {
+                throw new BusinessException(ErrorCode.PAYMENT_PG_FAILED);
+            }
+            throw new BusinessException(ErrorCode.PAYMENT_PG_SERVER_ERROR);
         } catch (Exception e) {
-            log.error("Toss Confirm API 호출 중 에러 발생: {}", e.getMessage());
+            log.error("Toss Confirm API 호출 중 예외 발생: orderId={}, error={}", orderId, e.getMessage());
             throw new BusinessException(ErrorCode.PAYMENT_PG_SERVER_ERROR);
         }
     }

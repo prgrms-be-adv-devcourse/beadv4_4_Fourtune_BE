@@ -2,6 +2,7 @@ package com.fourtune.auction.boundedContext.auction.adapter.in.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.auction.application.service.OrderCompleteUseCase;
+import com.fourtune.core.error.exception.BusinessException;
 import com.fourtune.kafka.KafkaTopicConfig;
 import com.fourtune.shared.payment.event.PaymentCanceledEvent;
 import com.fourtune.shared.payment.event.PaymentFailedEvent;
@@ -73,6 +74,9 @@ public class PaymentResultKafkaListener {
                     log.warn("PAYMENT_FAILED 수신했으나 order 정보 없음: key={}", key);
                 }
             }
+        } catch (BusinessException e) {
+            // 이미 처리된 주문 등 비즈니스 예외는 재시도 없이 무시 (멱등성 보장)
+            log.warn("Payment 결과 처리 중 비즈니스 예외 (재시도 안 함): eventType={}, key={}, error={}", eventType, key, e.getMessage());
         } catch (Exception e) {
             log.error("Payment 결과 처리 실패: eventType={}, key={}, error={}", eventType, key, e.getMessage(), e);
             throw new RuntimeException("Payment 결과 처리 실패", e);

@@ -225,6 +225,12 @@ services:
         condition: service_healthy
     networks:
       - fourtune-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
 
   # auction-service (경매 MSA — 8083, 호스트 9081)
   # 경매 시작/종료 시각 비교를 한국 시간 기준으로 통일 (프론트 KST 전송과 맞춤)
