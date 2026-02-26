@@ -31,10 +31,18 @@ public class RecentSearchController {
     @DeleteMapping
     public ResponseEntity<Void> removeRecentKeyword(
             @AuthenticationPrincipal UserContext user,
-            @RequestParam String keyword
-    ) {
+            @RequestParam String keyword) {
         if (user != null) {
             recentSearchService.removeKeyword(user.id(), keyword);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    // 최근 검색어 전체 삭제
+    @DeleteMapping("/all")
+    public ResponseEntity<Void> removeAllRecentKeywords(@AuthenticationPrincipal UserContext user) {
+        if (user != null) {
+            recentSearchService.removeAllKeywords(user.id());
         }
         return ResponseEntity.noContent().build();
     }
