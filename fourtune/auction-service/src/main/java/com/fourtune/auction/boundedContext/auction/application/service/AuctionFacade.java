@@ -1,5 +1,6 @@
 package com.fourtune.auction.boundedContext.auction.application.service;
 
+import com.fourtune.s3.service.S3Service;
 import com.fourtune.shared.auction.dto.AuctionItemCreateRequest;
 import com.fourtune.shared.auction.dto.AuctionItemDetailResponse;
 import com.fourtune.shared.auction.dto.AuctionItemResponse;
@@ -12,9 +13,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,6 +41,7 @@ public class AuctionFacade {
     private final AuctionBuyNowUseCase auctionBuyNowUseCase;
     private final AuctionStartUseCase auctionStartUseCase;
     private final RedisViewCountService redisViewCountService;
+    private final S3Service s3Service;
 
     @Value("${app.view-count.use-redis:true}")
     private boolean viewCountUseRedis;
@@ -45,12 +49,12 @@ public class AuctionFacade {
     /**
      * 경매 생성
      */
-    public AuctionItemResponse createAuction(Long sellerId, AuctionItemCreateRequest request, List<?> images) {
-        // 1. 이미지 업로드는 MVP에서 제외 (Mock URL 사용)
-        // TODO: S3Service로 이미지 업로드 추가 필요
+    public AuctionItemResponse createAuction(Long sellerId, AuctionItemCreateRequest request, List<MultipartFile> images) {
+        // 1. 이미지 S3/MinIO 업로드
+        List<String> imageUrls = uploadImages(images);
 
-        // 2. AuctionCreateUseCase 호출
-        Long auctionId = auctionCreateUseCase.createAuction(sellerId, request);
+        // 2. AuctionCreateUseCase 호출 (이미지 URL 포함)
+        Long auctionId = auctionCreateUseCase.createAuction(sellerId, request, imageUrls);
 
         // 3. 생성된 경매 조회 및 DTO 변환 (readOnly 트랜잭션으로 분리)
         return getAuctionByIdInReadOnlyTransaction(auctionId);
@@ -59,12 +63,36 @@ public class AuctionFacade {
     /**
      * 경매 수정
      */
-    public AuctionItemResponse updateAuction(Long auctionId, Long userId, AuctionItemUpdateRequest request) {
-        // 1. AuctionUpdateUseCase 호출
-        auctionUpdateUseCase.updateAuction(auctionId, userId, request);
+    public AuctionItemResponse updateAuction(Long auctionId, Long userId, AuctionItemUpdateRequest request, List<MultipartFile> images) {
+        // 1. 이미지 S3/MinIO 업로드 (이미지가 있을 때만)
+        List<String> imageUrls = uploadImages(images);
 
-        // 2. 수정된 경매 조회 및 DTO 변환 (readOnly 트랜잭션으로 분리)
+        // 2. AuctionUpdateUseCase 호출 (이미지 URL 포함)
+        auctionUpdateUseCase.updateAuction(auctionId, userId, request, imageUrls);
+
+        // 3. 수정된 경매 조회 및 DTO 변환 (readOnly 트랜잭션으로 분리)
         return getAuctionByIdInReadOnlyTransaction(auctionId);
+    }
+
+    /**
+     * MultipartFile 목록을 S3/MinIO에 업로드하고 URL 목록 반환
+     */
+    private List<String> uploadImages(List<MultipartFile> images) {
+        if (images == null || images.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<String> urls = new ArrayList<>();
+        for (MultipartFile image : images) {
+            if (image != null && !image.isEmpty()) {
+                try {
+                    String url = s3Service.uploadFile(image, "auctions");
+                    urls.add(url);
+                } catch (Exception e) {
+                    log.warn("이미지 업로드 실패 (스킵): {}, error={}", image.getOriginalFilename(), e.getMessage());
+                }
+            }
+        }
+        return urls;
     }
 
     /**

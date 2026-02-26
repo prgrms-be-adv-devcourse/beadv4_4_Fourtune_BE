@@ -12,6 +12,7 @@ import com.fourtune.shared.auction.event.AuctionItemCreatedEvent;
 import com.fourtune.shared.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,7 @@ public class AuctionCreateUseCase {
          * 경매 등록
          */
         @Transactional
-        public Long createAuction(Long sellerId, AuctionItemCreateRequest request) {
+        public Long createAuction(Long sellerId, AuctionItemCreateRequest request, List<String> imageUrls) {
                 // 1. 경매 엔티티 생성 (정적 팩토리 메서드 사용)
                 AuctionItem auctionItem = AuctionItem.create(
                                 sellerId,
@@ -54,7 +55,14 @@ public class AuctionCreateUseCase {
                                 request.auctionStartTime(),
                                 request.auctionEndTime());
 
-                // 2. DB 저장
+                // 2. 이미지 추가 (첫 번째 이미지가 썸네일)
+                if (imageUrls != null) {
+                        for (int i = 0; i < imageUrls.size(); i++) {
+                                auctionItem.addImage(imageUrls.get(i), i, i == 0);
+                        }
+                }
+
+                // 3. DB 저장
                 AuctionItem savedAuction = auctionSupport.save(auctionItem);
                 Long aggregateId = savedAuction.getId();
 

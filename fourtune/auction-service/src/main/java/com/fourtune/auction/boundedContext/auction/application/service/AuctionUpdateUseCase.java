@@ -6,6 +6,7 @@ import com.fourtune.auction.port.out.UserPort;
 import com.fourtune.core.eventPublisher.EventPublisher;
 import com.fourtune.shared.auction.dto.AuctionItemUpdateRequest;
 
+import java.util.List;
 import java.util.Set;
 import com.fourtune.shared.auction.event.AuctionUpdatedEvent;
 import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
@@ -39,7 +40,7 @@ public class AuctionUpdateUseCase {
      * 경매 정보 수정
      */
     @Transactional
-    public void updateAuction(Long auctionId, Long userId, AuctionItemUpdateRequest request) {
+    public void updateAuction(Long auctionId, Long userId, AuctionItemUpdateRequest request, List<String> imageUrls) {
         // 1. 경매 조회
         AuctionItem auctionItem = auctionSupport.findByIdOrThrow(auctionId);
         
@@ -49,7 +50,7 @@ public class AuctionUpdateUseCase {
         // 3. 수정 가능 여부 확인
         validateUpdateable(auctionItem);
         
-        // 4. 엔티티 수정 (엔티티의 update 메서드 호출)
+        // 4. 엔티티 수정 (제목, 설명, 즉시구매가)
         auctionItem.update(
                 request.title(),
                 request.description(),
@@ -57,7 +58,15 @@ public class AuctionUpdateUseCase {
                 request.buyNowPrice() != null  // buyNowEnabled
         );
 
-        // 5. DB 저장 (AuctionSupport의 readOnly 트랜잭션 컨텍스트로 dirty checking이 동작하지 않을 수 있어 명시적 save 호출)
+        // 5. 이미지 교체 (새 이미지가 있을 때만 기존 이미지 삭제 후 교체)
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            auctionItem.clearImages();
+            for (int i = 0; i < imageUrls.size(); i++) {
+                auctionItem.addImage(imageUrls.get(i), i, i == 0);
+            }
+        }
+
+        // 6. DB 저장 (AuctionSupport의 readOnly 트랜잭션 컨텍스트로 dirty checking이 동작하지 않을 수 있어 명시적 save 호출)
         auctionSupport.save(auctionItem);
         
         // 6. 이벤트 발행
