@@ -33,6 +33,12 @@ public interface AuctionItemRepository extends JpaRepository<AuctionItem, Long> 
         Long sellerId,
         Pageable pageable
     );
+
+    Page<AuctionItem> findBySellerIdAndStatusOrderByCreatedAtDesc(
+        Long sellerId,
+        AuctionStatus status,
+        Pageable pageable
+    );
     
     List<AuctionItem> findByAuctionEndTimeBeforeAndStatus(
         LocalDateTime endTime, 
