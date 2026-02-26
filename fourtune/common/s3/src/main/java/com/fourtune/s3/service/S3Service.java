@@ -5,11 +5,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -18,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class S3Service {
 
+    private final S3Client s3Client;
     private final S3Presigner s3Presigner;
 
     @Value("${spring.cloud.aws.s3.bucket}")
@@ -26,50 +31,71 @@ public class S3Service {
     @Value("${spring.cloud.aws.s3.path-prefix}")
     private String pathPrefix;
 
+    // 브라우저에서 접근할 공개 URL 베이스 (예: http://localhost:9000 또는 https://bucket.s3.amazonaws.com)
+    @Value("${spring.cloud.aws.s3.public-url:}")
+    private String publicUrl;
+
     /**
-     * Presigned URL 생성 (업로드용)
-     * 
-     * @param directory        디렉토리 명
-     * @param originalFileName 원본 파일명
-     * @param contentType      파일의 MIME 타입 (예: image/jpeg)
-     * @return Presigned URL 및 실제 접근 URL
+     * 서버에서 직접 S3/MinIO에 파일 업로드
+     * - 업로드 후 공개 접근 가능한 URL 반환
+     *
+     * @param file      업로드할 파일
+     * @param directory 저장 디렉토리 (예: "auctions")
+     * @return 공개 접근 URL
+     */
+    public String uploadFile(MultipartFile file, String directory) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("업로드할 파일이 없습니다.");
+        }
+
+        String key = createFileName(directory, file.getOriginalFilename());
+
+        try {
+            PutObjectRequest putRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .contentType(file.getContentType())
+                    .contentLength(file.getSize())
+                    .build();
+
+            s3Client.putObject(putRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+
+            String fileUrl = publicUrl + "/" + bucket + "/" + key;
+            log.info("파일 업로드 완료: {}", fileUrl);
+            return fileUrl;
+
+        } catch (IOException e) {
+            log.error("파일 업로드 실패: {}", file.getOriginalFilename(), e);
+            throw new RuntimeException("파일 업로드 실패: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Presigned URL 생성 (업로드용 - 클라이언트가 직접 S3에 업로드할 때 사용)
      */
     public S3PresignedUrlResponse generatePresignedUrl(String directory, String originalFileName, String contentType) {
         String fileName = createFileName(directory, originalFileName);
 
-        // Presigned URL 요청 생성 (PUT 메서드용)
         PutObjectRequest objectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(fileName)
-                .contentType(contentType) // Content-Type 설정 추가
+                .contentType(contentType)
                 .build();
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(10)) // 10분간 유효
+                .signatureDuration(Duration.ofMinutes(10))
                 .putObjectRequest(objectRequest)
                 .build();
 
         PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
         String presignedUrl = presignedRequest.url().toString();
 
-        // [수정] 업로드 후 조회 시에는 Presigned GET URL을 사용해야 함 (버킷이 Private일 경우)
-        // 하지만 아직 DB에 저장할 땐 일반 URL 포맷으로 저장하고, 조회 시점에 Presigned GET URL을 생성하는 방식이 일반적임.
-        // 여기서는 편의상 Key를 반환하거나, 아니면 바로 접근 가능한 URL을 반환해야 하는데
-        // 보안상 Private 버킷을 쓴다면 이 URL로는 접근 불가.
-        // -> 클라이언트가 이 URL을 '저장' 용도로 쓴다면 OK. 조회할 땐 별도 API 필요.
-        String fileKey = fileName;
-
         log.info("Presigned PUT URL generated: {}", presignedUrl);
-
-        return new S3PresignedUrlResponse(presignedUrl, fileKey);
+        return new S3PresignedUrlResponse(presignedUrl, fileName);
     }
 
     /**
-     * 조회용 Presigned URL 생성 (GET 메서드용)
-     * Private 버킷의 객체를 조회할 때 사용
-     * 
-     * @param fileKey S3 파일 키 (폴더/파일명)
-     * @return 10분간 유효한 조회 URL
+     * 조회용 Presigned URL 생성 (Private 버킷에서 사용)
      */
     public String generatePresignedGetUrl(String fileKey) {
         if (fileKey == null || fileKey.isBlank()) {
@@ -77,46 +103,37 @@ public class S3Service {
         }
 
         try {
-            software.amazon.awssdk.services.s3.model.GetObjectRequest objectRequest = software.amazon.awssdk.services.s3.model.GetObjectRequest
-                    .builder()
+            var objectRequest = software.amazon.awssdk.services.s3.model.GetObjectRequest.builder()
                     .bucket(bucket)
                     .key(fileKey)
                     .build();
 
-            software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest presignRequest = software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
-                    .builder()
+            var presignRequest = software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest.builder()
                     .signatureDuration(Duration.ofMinutes(10))
                     .getObjectRequest(objectRequest)
                     .build();
 
-            software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest presignedRequest = s3Presigner
-                    .presignGetObject(presignRequest);
-
-            return presignedRequest.url().toString();
+            return s3Presigner.presignGetObject(presignRequest).url().toString();
         } catch (Exception e) {
-            log.error("Failed to generate presigned GET url for key: {}", fileKey, e);
+            log.error("Presigned GET URL 생성 실패: {}", fileKey, e);
             return null;
         }
     }
 
     private String createFileName(String directory, String originalFileName) {
         String ext = extractExtension(originalFileName);
-        // [수정] directory가 없으면 바로 pathPrefix 아래에 저장
         if (directory == null || directory.isBlank()) {
-            return pathPrefix + "/" + UUID.randomUUID().toString() + "." + ext;
+            return pathPrefix + "/" + UUID.randomUUID() + "." + ext;
         }
-        return pathPrefix + "/" + directory + "/" + UUID.randomUUID().toString() + "." + ext;
+        return pathPrefix + "/" + directory + "/" + UUID.randomUUID() + "." + ext;
     }
 
     private String extractExtension(String originalFileName) {
         try {
             int pos = originalFileName.lastIndexOf(".");
-            if (pos == -1) {
-                return "jpg";
-            }
-            return originalFileName.substring(pos + 1);
+            return pos == -1 ? "jpg" : originalFileName.substring(pos + 1);
         } catch (Exception e) {
-            return "jpg"; // 예외 발생 시 기본값은 jpg로 지정함
+            return "jpg";
         }
     }
 }

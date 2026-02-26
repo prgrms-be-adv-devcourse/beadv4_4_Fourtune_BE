@@ -43,26 +43,48 @@ public class WatchListRedisSetUseCase {
     private final ObjectMapper objectMapper;
     private final ObjectProvider<WatchListKafkaProducer> watchListKafkaProducerProvider;
 
-    private static final String AUCTION_USERS_KEY = "watchlist:auction:";
+    private static final String AUCTION_USERS_KEY = "watchlist:auction:";   // auction→users
+    private static final String USER_AUCTIONS_KEY = "watchlist:user:";       // user→auctions (역방향)
     private static final String ALERT_START_SENT_KEY = "watchlist:alert:start:";
     private static final String ALERT_END_SENT_KEY = "watchlist:alert:end:";
 
     /**
-     * 관심상품 등록 (Redis Set에 추가)
+     * 관심상품 등록 (양방향 Redis Set에 추가)
      */
     public void addInterest(Long userId, Long auctionItemId) {
-        String key = AUCTION_USERS_KEY + auctionItemId;
-        redisTemplate.opsForSet().add(key, userId);
+        redisTemplate.opsForSet().add(AUCTION_USERS_KEY + auctionItemId, userId);
+        redisTemplate.opsForSet().add(USER_AUCTIONS_KEY + userId, auctionItemId);
         log.debug("[REDIS] 관심등록: user={}, auction={}", userId, auctionItemId);
     }
 
     /**
-     * 관심상품 해제 (Redis Set에서 제거)
+     * 관심상품 해제 (양방향 Redis Set에서 제거)
      */
     public void removeInterest(Long userId, Long auctionItemId) {
-        String key = AUCTION_USERS_KEY + auctionItemId;
-        redisTemplate.opsForSet().remove(key, userId);
+        redisTemplate.opsForSet().remove(AUCTION_USERS_KEY + auctionItemId, userId);
+        redisTemplate.opsForSet().remove(USER_AUCTIONS_KEY + userId, auctionItemId);
         log.debug("[REDIS] 관심해제: user={}, auction={}", userId, auctionItemId);
+    }
+
+    /**
+     * 유저의 관심등록 경매 ID 목록 조회
+     */
+    public Set<Long> getUserAuctionItemIds(Long userId) {
+        Set<Object> members = redisTemplate.opsForSet().members(USER_AUCTIONS_KEY + userId);
+        if (members == null || members.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return members.stream()
+                .map(o -> ((Number) o).longValue())
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * 특정 유저가 해당 경매에 관심등록했는지 확인 (O(1))
+     */
+    public boolean isUserInterested(Long userId, Long auctionItemId) {
+        String key = AUCTION_USERS_KEY + auctionItemId;
+        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(key, userId));
     }
 
     /**

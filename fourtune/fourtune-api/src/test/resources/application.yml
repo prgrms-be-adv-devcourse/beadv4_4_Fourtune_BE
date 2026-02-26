@@ -45,6 +45,8 @@ spring:
       s3:
         bucket: test-bucket
         path-prefix: test
+        endpoint: ""
+        public-url: ""
 
 security:
   oauth:

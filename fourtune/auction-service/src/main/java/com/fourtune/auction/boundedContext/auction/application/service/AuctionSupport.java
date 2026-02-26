@@ -107,6 +107,10 @@ public class AuctionSupport {
         return auctionItemRepository.findBySellerIdOrderByCreatedAtDesc(sellerId, pageable);
     }
 
+    public Page<AuctionItem> findBySellerIdAndStatusPaged(Long sellerId, AuctionStatus status, Pageable pageable) {
+        return auctionItemRepository.findBySellerIdAndStatusOrderByCreatedAtDesc(sellerId, status, pageable);
+    }
+
     /**
      * 판매자의 진행 중(ACTIVE) 경매 개수 (탈퇴 시 확인용)
      */

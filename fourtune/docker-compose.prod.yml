@@ -72,6 +72,8 @@ services:
       - xpack.security.enabled=false
       # 중요: 8GB 램 환경에서는 힙메모리를 1GB로 줄여야 OOM 방지됨
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ports:
+      - 127.0.0.1:9200:9200
     volumes:
       - elasticsearch_data_prod:/usr/share/elasticsearch/data
     networks:
@@ -286,6 +288,11 @@ services:
       - AWS_REGION=${AWS_REGION:-ap-northeast-2}
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
       - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - S3_PATH_PREFIX=${S3_PATH_PREFIX:-prod}
+      # S3_ENDPOINT_URL 미설정 → AWS S3 기본 엔드포인트 사용
+      # S3_PUBLIC_URL: 버킷이 public이면 https://{버킷}.s3.{리전}.amazonaws.com, private이면 별도 처리 필요
+      - S3_PUBLIC_URL=${S3_PUBLIC_URL:-https://${AWS_S3_BUCKET}.s3.${AWS_REGION:-ap-northeast-2}.amazonaws.com}
       - JWT_SECRET=${JWT_SECRET}
     ports:
       - "8083:8083"

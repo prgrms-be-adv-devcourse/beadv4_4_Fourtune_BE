@@ -93,8 +93,31 @@ public class AuctionItem extends BaseTimeEntity {
     private Boolean buyNowDisabledByPolicy = false; // 3진 아웃 시 즉시구매 영구 비활성화
 
     @OneToMany(mappedBy = "auctionItem", cascade = ALL, orphanRemoval = true)
+    @jakarta.persistence.OrderBy("displayOrder ASC")
     @Builder.Default
     private List<ItemImage> images = new ArrayList<>();
+
+    // ==================== 이미지 관리 메서드 ====================
+
+    /**
+     * 이미지 추가
+     */
+    public void addImage(String imageUrl, int displayOrder, boolean isThumbnail) {
+        ItemImage image = ItemImage.builder()
+                .auctionItem(this)
+                .imageUrl(imageUrl)
+                .displayOrder(displayOrder)
+                .isThumbnail(isThumbnail)
+                .build();
+        this.images.add(image);
+    }
+
+    /**
+     * 기존 이미지 전체 삭제 (orphanRemoval=true로 DB에서도 삭제됨)
+     */
+    public void clearImages() {
+        this.images.clear();
+    }
 
     // ==================== 비즈니스 메서드 ====================
 

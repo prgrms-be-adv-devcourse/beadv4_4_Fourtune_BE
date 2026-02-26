@@ -27,17 +27,31 @@ public class ApiV1AuctionController {
     
     private final AuctionFacade auctionFacade;
     
-    @PostMapping
+    @PostMapping(consumes = {"multipart/form-data", "application/json"})
     public ResponseEntity<AuctionItemResponse> createAuction(
         @AuthenticationPrincipal UserContext user,
-        @RequestPart @Valid AuctionItemCreateRequest request,
-        @RequestPart(required = false) List<MultipartFile> images
+        @RequestPart("request") @Valid AuctionItemCreateRequest request,
+        @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         Long sellerId = user.id();
         AuctionItemResponse response = auctionFacade.createAuction(sellerId, request, images);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
+    /**
+     * 내 경매 목록 조회 (로그인한 판매자 전용)
+     * GET /api/v1/auctions/me?status=ACTIVE&page=0&size=10
+     */
+    @GetMapping("/me")
+    public ResponseEntity<Page<AuctionItemResponse>> getMyAuctions(
+        @AuthenticationPrincipal UserContext user,
+        @RequestParam(required = false) AuctionStatus status,
+        Pageable pageable
+    ) {
+        Page<AuctionItemResponse> response = auctionFacade.getMyAuctions(user.id(), status, pageable);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     public ResponseEntity<Page<AuctionItemResponse>> getAuctionList(
         @RequestParam(required = false) AuctionStatus status,
@@ -68,7 +82,7 @@ public class ApiV1AuctionController {
         @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         Long userId = user.id();
-        AuctionItemResponse response = auctionFacade.updateAuction(id, userId, request);
+        AuctionItemResponse response = auctionFacade.updateAuction(id, userId, request, images);
         return ResponseEntity.ok(response);
     }
     

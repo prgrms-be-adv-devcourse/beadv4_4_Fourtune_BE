@@ -12,8 +12,10 @@ public class AuctionSecurityRoute implements SecurityRouteCustomizer {
     @Override
     public void customize(
             AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
-        // GET 조회만 비로그인 허용 (POST/PUT/DELETE는 인증 필요)
-        auth.requestMatchers(HttpMethod.GET, "/api/v1/auctions", "/api/v1/auctions/*").permitAll();
+        // 내 경매 목록 조회는 로그인 필수
+        auth.requestMatchers(HttpMethod.GET, "/api/v1/auctions/me").authenticated();
+        // GET 조회만 비로그인 허용 (/me 제외)
+        auth.requestMatchers(HttpMethod.GET, "/api/v1/auctions", "/api/v1/auctions/{id}").permitAll();
         auth.requestMatchers("/api/v1/search/**").permitAll();
         auth.requestMatchers("/api/v1/orders/public/**").permitAll(); // 서비스 간 Feign 호출 (payment-service)
         auth.requestMatchers("/internal/**").permitAll(); // 서비스 간 호출 (탈퇴 시 진행 중 경매 확인 등)

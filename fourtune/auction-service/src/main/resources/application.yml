@@ -32,13 +32,17 @@ spring:
   cloud:
     aws:
       credentials:
-        access-key: ${AWS_ACCESS_KEY:local}
-        secret-key: ${AWS_SECRET_KEY:local}
+        access-key: ${AWS_ACCESS_KEY:minioadmin}
+        secret-key: ${AWS_SECRET_KEY:minioadmin}
       region:
         static: ${AWS_REGION:ap-northeast-2}
       s3:
         bucket: ${AWS_S3_BUCKET:auction-local}
         path-prefix: ${S3_PATH_PREFIX:local}
+        # MinIO 등 커스텀 엔드포인트 (로컬: http://minio:9000, 운영: 미설정 → AWS S3 기본 엔드포인트 사용)
+        endpoint: ${S3_ENDPOINT_URL:}
+        # 브라우저에서 접근할 공개 URL (로컬: http://localhost:9000, 운영: https://버킷명.s3.리전.amazonaws.com)
+        public-url: ${S3_PUBLIC_URL:}
 
 server:
   port: ${SERVER_PORT:8083}
