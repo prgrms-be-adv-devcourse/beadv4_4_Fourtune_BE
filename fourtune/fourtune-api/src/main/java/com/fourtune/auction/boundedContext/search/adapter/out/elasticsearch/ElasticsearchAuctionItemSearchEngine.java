@@ -223,9 +223,9 @@ public class ElasticsearchAuctionItemSearchEngine implements AuctionItemSearchEn
                 d.getUpdatedAt() != null
                         ? d.getUpdatedAt().withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
                         : null,
-                d.getViewCount(),
-                d.getWatchlistCount(),
-                d.getBidCount(),
+                d.getViewCount() != null ? d.getViewCount() : 0L,
+                d.getWatchlistCount() != null ? d.getWatchlistCount() : 0,
+                d.getBidCount() != null ? d.getBidCount() : 0,
                 d.getSellerId(),
                 d.getSellerName());
     }
