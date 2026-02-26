@@ -43,7 +43,25 @@ public class PaymentConfirmUseCase {
             }
         }
 
-        PaymentExecutionResult result = paymentGatewayPort.confirm(paymentKey, orderId, pgAmount);
+        PaymentExecutionResult result;
+        try {
+            result = paymentGatewayPort.confirm(paymentKey, orderId, pgAmount);
+        } catch (BusinessException e) {
+            // Toss confirm 실패 시, 동시 요청(React StrictMode 등)이 먼저 처리 중일 수 있음
+            // ALREADY_PROCESSING_REQUEST: 상대 요청이 Toss에서 처리 완료될 때까지 잠시 대기 후 DB 재확인
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+            var raceCheck = paymentRepository.findPaymentByOrderId(orderId);
+            if (raceCheck.isPresent() && raceCheck.get().getStatus() == PaymentStatus.APPROVED) {
+                log.info("동시 요청에 의해 이미 처리된 결제 orderId={}, 기존 결과 반환", orderId);
+                Payment p = raceCheck.get();
+                return PaymentExecutionResult.success(p.getPaymentKey(), p.getOrderId(), p.getAmount());
+            }
+            throw e;
+        }
 
         try {
             paymentConfirmInternalUseCase.processInternalSystemLogic(orderId, pgAmount, paymentKey, userId);
@@ -69,7 +87,7 @@ public class PaymentConfirmUseCase {
         PaymentFailedEvent event = new PaymentFailedEvent(code, message, orderDto, pgAmount, shortfall);
         if (eventPublishingConfig.isKafkaEnabled()) {
             outboxService.append(AGGREGATE_TYPE_PAYMENT, 0L, PaymentEventMapper.EventType.PAYMENT_FAILED.name(),
-                    Map.of("eventType", PaymentEventMapper.EventType.PAYMENT_FAILED.name(), "aggregateId", orderId, "data", event));
+                    Map.of("eventType", PaymentEventMapper.EventType.PAYMENT_FAILED.name(), "aggregateId", 0L, "data", event));
         }
         eventPublisher.publish(event);
     }

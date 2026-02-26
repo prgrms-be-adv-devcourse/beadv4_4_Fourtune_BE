@@ -167,6 +167,18 @@ public class Order extends BaseTimeEntity {
         return this.status == OrderStatus.CANCELLED;
     }
 
+    /**
+     * 결제 재시도를 위한 orderId 갱신 (PENDING 상태에서만 허용)
+     * Toss는 한 번 사용된 orderId를 재사용 불허하므로, 결제 실패 후 재시도 시 새 orderId 필요
+     */
+    public String renewOrderId() {
+        if (this.status != OrderStatus.PENDING) {
+            throw new BusinessException(ErrorCode.ORDER_ALREADY_PROCESSED);
+        }
+        this.orderId = generateOrderId();
+        return this.orderId;
+    }
+
     // ==================== 검증 메서드 (private) ====================
     
     /**
