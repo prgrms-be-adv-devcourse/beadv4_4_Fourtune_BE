@@ -27,11 +27,11 @@ public class ApiV1AuctionController {
     
     private final AuctionFacade auctionFacade;
     
-    @PostMapping
+    @PostMapping(consumes = {"multipart/form-data", "application/json"})
     public ResponseEntity<AuctionItemResponse> createAuction(
         @AuthenticationPrincipal UserContext user,
-        @RequestPart @Valid AuctionItemCreateRequest request,
-        @RequestPart(required = false) List<MultipartFile> images
+        @RequestPart("request") @Valid AuctionItemCreateRequest request,
+        @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         Long sellerId = user.id();
         AuctionItemResponse response = auctionFacade.createAuction(sellerId, request, images);
@@ -68,7 +68,7 @@ public class ApiV1AuctionController {
         @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         Long userId = user.id();
-        AuctionItemResponse response = auctionFacade.updateAuction(id, userId, request);
+        AuctionItemResponse response = auctionFacade.updateAuction(id, userId, request, images);
         return ResponseEntity.ok(response);
     }
     
