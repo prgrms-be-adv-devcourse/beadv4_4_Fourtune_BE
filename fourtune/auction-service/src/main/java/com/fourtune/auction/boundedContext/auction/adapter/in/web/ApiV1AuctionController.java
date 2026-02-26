@@ -60,11 +60,12 @@ public class ApiV1AuctionController {
         return ResponseEntity.ok(response);
     }
     
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data", "application/json"})
     public ResponseEntity<AuctionItemResponse> updateAuction(
         @AuthenticationPrincipal UserContext user,
         @PathVariable Long id,
-        @RequestBody @Valid AuctionItemUpdateRequest request
+        @RequestPart("request") @Valid AuctionItemUpdateRequest request,
+        @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         Long userId = user.id();
         AuctionItemResponse response = auctionFacade.updateAuction(id, userId, request);
