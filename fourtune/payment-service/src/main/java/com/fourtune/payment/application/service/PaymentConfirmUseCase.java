@@ -34,11 +34,16 @@ public class PaymentConfirmUseCase {
     private final EventPublishingConfig eventPublishingConfig;
 
     public PaymentExecutionResult confirmPayment(String paymentKey, String orderId, Long pgAmount, Long userId) {
-        var existing = paymentRepository.findPaymentByOrderId(orderId);
+        // 프론트엔드가 Toss 중복결제 방지를 위해 타임스탬프 suffix를 붙임 (예: ORD-xxx_1714234567890)
+        // Toss confirm 호출엔 suffix 포함 원본 orderId를 사용하고,
+        // DB 조회 및 내부 처리엔 suffix를 제거한 cleanOrderId를 사용한다.
+        String cleanOrderId = orderId.replaceAll("_\\d{13}$", "");
+
+        var existing = paymentRepository.findPaymentByOrderId(cleanOrderId);
         if (existing.isPresent()) {
             Payment p = existing.get();
             if (p.getStatus() == PaymentStatus.APPROVED) {
-                log.debug("이미 처리된 결제 orderId={}, 기존 결과 반환", orderId);
+                log.debug("이미 처리된 결제 orderId={}, 기존 결과 반환", cleanOrderId);
                 return PaymentExecutionResult.success(p.getPaymentKey(), p.getOrderId(), p.getAmount());
             }
         }
@@ -54,9 +59,9 @@ public class PaymentConfirmUseCase {
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
             }
-            var raceCheck = paymentRepository.findPaymentByOrderId(orderId);
+            var raceCheck = paymentRepository.findPaymentByOrderId(cleanOrderId);
             if (raceCheck.isPresent() && raceCheck.get().getStatus() == PaymentStatus.APPROVED) {
-                log.info("동시 요청에 의해 이미 처리된 결제 orderId={}, 기존 결과 반환", orderId);
+                log.info("동시 요청에 의해 이미 처리된 결제 orderId={}, 기존 결과 반환", cleanOrderId);
                 Payment p = raceCheck.get();
                 return PaymentExecutionResult.success(p.getPaymentKey(), p.getOrderId(), p.getAmount());
             }
@@ -64,19 +69,19 @@ public class PaymentConfirmUseCase {
         }
 
         try {
-            paymentConfirmInternalUseCase.processInternalSystemLogic(orderId, pgAmount, paymentKey, userId);
+            paymentConfirmInternalUseCase.processInternalSystemLogic(cleanOrderId, pgAmount, paymentKey, userId);
         } catch (Exception e) {
-            log.error("내부 시스템 처리 실패. 결제 승인 취소를 진행합니다. orderId={}, error={}", orderId, e.getMessage());
+            log.error("내부 시스템 처리 실패. 결제 승인 취소를 진행합니다. orderId={}, error={}", cleanOrderId, e.getMessage());
 
             try {
                 paymentGatewayPort.cancel(paymentKey, "System Logic Failed: " + e.getMessage(), null);
             } catch (Exception cancelEx) {
                 log.error("CRITICAL: 결제 취소 실패! (수동 환불 필요) paymentKey={}, error={}", paymentKey, cancelEx.getMessage());
-                publishPaymentFailed(orderId, userId, "P311", "결제 취소 실패(관리자 문의)", pgAmount, 0L);
+                publishPaymentFailed(cleanOrderId, userId, "P311", "결제 취소 실패(관리자 문의)", pgAmount, 0L);
                 throw new BusinessException(ErrorCode.PAYMENT_PG_REFUND_FAILED);
             }
 
-            publishPaymentFailed(orderId, userId, "500", "내부 시스템 오류로 결제가 취소되었습니다.", pgAmount, 0L);
+            publishPaymentFailed(cleanOrderId, userId, "500", "내부 시스템 오류로 결제가 취소되었습니다.", pgAmount, 0L);
             throw e;
         }
         return result;

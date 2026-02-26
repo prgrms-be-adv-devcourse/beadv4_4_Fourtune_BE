@@ -2,10 +2,12 @@ package com.fourtune.auction.boundedContext.auction.application.service;
 
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionPolicy;
 import com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus;
+import com.fourtune.auction.boundedContext.auction.domain.constant.BidStatus;
 import com.fourtune.auction.boundedContext.auction.domain.constant.OrderStatus;
 import com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem;
 import com.fourtune.auction.boundedContext.auction.domain.entity.ItemImage;
 import com.fourtune.auction.boundedContext.auction.domain.entity.Order;
+import com.fourtune.auction.boundedContext.auction.port.out.BidRepository;
 import com.fourtune.core.error.ErrorCode;
 import com.fourtune.core.error.exception.BusinessException;
 import com.fourtune.core.eventPublisher.EventPublisher;
@@ -21,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -38,6 +41,7 @@ public class OrderCompleteUseCase {
 
     private final OrderSupport orderSupport;
     private final AuctionSupport auctionSupport;
+    private final BidRepository bidRepository;
     private final EventPublisher eventPublisher;
     private final EventPublishingConfig eventPublishingConfig;
     private final OutboxService outboxService;
@@ -151,13 +155,19 @@ public class OrderCompleteUseCase {
 
         auctionSupport.findById(order.getAuctionId()).ifPresent(auction -> {
             if (auction.getStatus() == AuctionStatus.SOLD_BY_BUY_NOW) {
+                // 즉시구매 시도 전 currentPrice 복원: ACTIVE 상태 최고 입찰가 or 시작가
+                BigDecimal previousPrice = bidRepository
+                        .findTopByAuctionIdAndStatusOrderByBidAmountDesc(auction.getId(), BidStatus.ACTIVE)
+                        .map(bid -> bid.getBidAmount())
+                        .orElse(auction.getStartPrice());
                 auction.recoverFromBuyNowFailure(
                         AuctionPolicy.BUY_NOW_RECOVERY_EXTEND_MINUTES,
-                        AuctionPolicy.BUY_NOW_RECOVERY_MAX_PER_AUCTION
+                        AuctionPolicy.BUY_NOW_RECOVERY_MAX_PER_AUCTION,
+                        previousPrice
                 );
                 auctionSupport.save(auction);
-                log.info("주문 취소로 경매 복구: auctionId={}, orderId={}, buyNowRecoveryCount={}, buyNowDisabled={}",
-                        auction.getId(), order.getOrderId(), auction.getBuyNowRecoveryCount(), auction.getBuyNowDisabledByPolicy());
+                log.info("주문 취소로 경매 복구: auctionId={}, orderId={}, restoredPrice={}, buyNowRecoveryCount={}, buyNowDisabled={}",
+                        auction.getId(), order.getOrderId(), previousPrice, auction.getBuyNowRecoveryCount(), auction.getBuyNowDisabledByPolicy());
                 publishAuctionItemUpdatedEvent(auction);
             } else if (auction.getStatus() == AuctionStatus.SOLD) {
                 auction.fail();

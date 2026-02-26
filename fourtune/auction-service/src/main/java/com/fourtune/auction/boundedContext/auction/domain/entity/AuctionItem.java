@@ -337,14 +337,17 @@ public class AuctionItem extends BaseTimeEntity {
     /**
      * 즉시구매 미결제 취소 시 경매 복구 (이중 제한 적용)
      * - SOLD_BY_BUY_NOW → ACTIVE
+     * - currentPrice를 즉시구매 시도 이전 가격으로 복원 (입찰 최고가 or 시작가)
      * - 종료 시각 지났으면 N분 연장 (Soft Closing)
      * - 연장 N회 초과 시 즉시구매 영구 비활성화 (Circuit Breaker)
      */
-    public void recoverFromBuyNowFailure(int extendMinutes, int maxRecoveryCount) {
+    public void recoverFromBuyNowFailure(int extendMinutes, int maxRecoveryCount, BigDecimal previousPrice) {
         if (this.status != AuctionStatus.SOLD_BY_BUY_NOW) {
             throw new BusinessException(ErrorCode.AUCTION_NOT_MODIFIABLE);
         }
         this.status = AuctionStatus.ACTIVE;
+        // executeBuyNow()에서 buyNowPrice로 덮어쓴 currentPrice를 이전 가격으로 복원
+        this.currentPrice = previousPrice;
 
         // null-safe (기존 DB 마이그레이션 시 호환)
         int currentCount = (this.buyNowRecoveryCount != null ? this.buyNowRecoveryCount : 0);
