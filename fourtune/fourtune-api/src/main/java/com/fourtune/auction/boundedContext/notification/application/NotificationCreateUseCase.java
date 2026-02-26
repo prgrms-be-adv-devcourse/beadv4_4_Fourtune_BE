@@ -33,45 +33,45 @@ public class NotificationCreateUseCase {
     private final ObjectProvider<NotificationKafkaProducer> notificationKafkaProducerProvider;
 
     @Transactional
-    public void bidPlaceToSeller(Long sellerId, Long bidderId, Long auctionId, NotificationType type) {
+    public void bidPlaceToSeller(Long sellerId, Long bidderId, Long auctionId, NotificationType type, Object... args) {
         if (sellerId.equals(bidderId)) {
             throw new BusinessException(ErrorCode.SELF_BIDDING_NOT_ALLOWED);
         }
 
         String relatedUrl = "/auctions/" + auctionId;
-        createNotification(sellerId, relatedUrl, type);
+        createNotification(sellerId, relatedUrl, type, args);
     }
 
     @Transactional
-    public void createNotificationWithUrl(Long receiverId, Long auctionId, NotificationType type) {
+    public void createNotificationWithUrl(Long receiverId, Long auctionId, NotificationType type, Object... args) {
         String relatedUrl = "/auctions/" + auctionId;
 
-        createNotification(receiverId, relatedUrl, type);
+        createNotification(receiverId, relatedUrl, type, args);
     }
 
     @Transactional
-    public void createGroupNotification(List<Long> userIds, Long auctionId, NotificationType type) {
+    public void createGroupNotification(List<Long> userIds, Long auctionId, NotificationType type, Object... args) {
         String relatedUrl = "/auctions/" + auctionId;
 
         for (Long userId : userIds) {
-            createNotification(userId, relatedUrl, type);
+            createNotification(userId, relatedUrl, type, args);
         }
     }
 
     @Transactional
-    public void createSettlementNotification(Long receiverId, Long settlementId, NotificationType type) {
+    public void createSettlementNotification(Long receiverId, Long settlementId, NotificationType type, Object... args) {
         String relatedUrl = "/settlements/" + settlementId;
-        createNotification(receiverId, relatedUrl, type);
+        createNotification(receiverId, relatedUrl, type, args);
     }
 
-    private void createNotification(Long receiverId, String relatedUrl, NotificationType type) {
+    private void createNotification(Long receiverId, String relatedUrl, NotificationType type, Object... args) {
         NotificationUser user = notificationSupport.findByUserId(receiverId);
 
         Notification notification = Notification.builder()
                 .user(user)
                 .type(type)
                 .title(type.getTitleTemplate())
-                .content(type.getContentTemplate())
+                .content(type.makeContent(args))
                 .relatedUrl(relatedUrl)
                 .build();
 

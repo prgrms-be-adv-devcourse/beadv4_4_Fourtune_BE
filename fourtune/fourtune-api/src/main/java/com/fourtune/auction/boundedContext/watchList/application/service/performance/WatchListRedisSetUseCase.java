@@ -83,7 +83,7 @@ public class WatchListRedisSetUseCase {
      * 경매 시작 알림 처리 (Redis Set 방식)
      * SETNX로 중복 방지 + 발송 마킹을 원자적으로 처리
      */
-    public WatchListBulkUseCase.ProcessResult processAuctionStart(Long auctionItemId) {
+    public WatchListBulkUseCase.ProcessResult processAuctionStart(Long auctionItemId, String auctionTitle) {
         long startTime = System.currentTimeMillis();
 
         // SETNX: 키가 없을 때만 set → true면 최초 처리, false면 이미 발송됨
@@ -99,7 +99,7 @@ public class WatchListRedisSetUseCase {
             return new WatchListBulkUseCase.ProcessResult(0, 0, 0);
         }
 
-        publishWatchListEvent(userIds.stream().toList(), auctionItemId, WatchListEventType.WATCHLIST_AUCTION_STARTED);
+        publishWatchListEvent(userIds.stream().toList(), auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_STARTED);
 
         long duration = System.currentTimeMillis() - startTime;
         log.info("[REDIS] 경매 {} 시작 알림 처리 완료: {}명, {}ms", auctionItemId, userIds.size(), duration);
@@ -111,7 +111,7 @@ public class WatchListRedisSetUseCase {
      * 경매 종료 알림 처리 (Redis Set 방식)
      * SETNX로 중복 방지 + 발송 마킹을 원자적으로 처리
      */
-    public WatchListBulkUseCase.ProcessResult processAuctionEnd(Long auctionItemId) {
+    public WatchListBulkUseCase.ProcessResult processAuctionEnd(Long auctionItemId, String auctionTitle) {
         long startTime = System.currentTimeMillis();
 
         // SETNX: 키가 없을 때만 set → true면 최초 처리, false면 이미 발송됨
@@ -127,7 +127,7 @@ public class WatchListRedisSetUseCase {
             return new WatchListBulkUseCase.ProcessResult(0, 0, 0);
         }
 
-        publishWatchListEvent(userIds.stream().toList(), auctionItemId, WatchListEventType.WATCHLIST_AUCTION_ENDED);
+        publishWatchListEvent(userIds.stream().toList(), auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_ENDED);
 
         long duration = System.currentTimeMillis() - startTime;
         log.info("[REDIS] 경매 {} 종료 알림 처리 완료: {}명, {}ms", auctionItemId, userIds.size(), duration);
@@ -135,11 +135,11 @@ public class WatchListRedisSetUseCase {
         return new WatchListBulkUseCase.ProcessResult(userIds.size(), 0, duration);
     }
 
-    private void publishWatchListEvent(List<Long> users, Long auctionItemId, WatchListEventType type) {
+    private void publishWatchListEvent(List<Long> users, Long auctionItemId, String auctionTitle, WatchListEventType type) {
         if (eventPublishingConfig.isWatchlistEventsKafkaEnabled()) {
             try {
                 String payload = objectMapper
-                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId));
+                        .writeValueAsString(Map.of("users", users, "auctionItemId", auctionItemId, "auctionTitle", auctionTitle));
                 watchListKafkaProducerProvider
                         .ifAvailable(producer -> producer.send(String.valueOf(auctionItemId), payload, type.name()));
             } catch (Exception e) {
@@ -147,9 +147,9 @@ public class WatchListRedisSetUseCase {
             }
         } else {
             if (type == WatchListEventType.WATCHLIST_AUCTION_STARTED) {
-                eventPublisher.publish(new WatchListAuctionStartedEvent(users, auctionItemId));
+                eventPublisher.publish(new WatchListAuctionStartedEvent(users, auctionItemId, auctionTitle));
             } else {
-                eventPublisher.publish(new WatchListAuctionEndedEvent(users, auctionItemId));
+                eventPublisher.publish(new WatchListAuctionEndedEvent(users, auctionItemId, auctionTitle));
             }
         }
     }

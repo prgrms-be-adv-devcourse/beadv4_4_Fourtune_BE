@@ -10,4 +10,5 @@ import java.util.List;
 public class WatchListAuctionStartedEvent {
     private final List<Long> users;
     private final Long auctionItemId;
+    private final String auctionTitle;
 }

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
  */
 public record AuctionBuyNowEvent(
     Long auctionId,
+    String auctionTitle,
     Long sellerId,
     Long buyerId,
     BigDecimal buyNowPrice,

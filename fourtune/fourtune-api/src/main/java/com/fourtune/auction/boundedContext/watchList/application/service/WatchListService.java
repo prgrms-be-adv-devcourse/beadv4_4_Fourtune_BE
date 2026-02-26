@@ -62,12 +62,12 @@ public class WatchListService {
         watchListSyncAuctionItemUseCase.syncAuctionItem(auctionItemId, title, currentPrice, thumbnailUrl, category);
     }
 
-    public void processAuctionStart(Long auctionItemId){
-        watchListRedisSetService.processAuctionStart(auctionItemId);
+    public void processAuctionStart(Long auctionItemId, String auctionTitle){
+        watchListRedisSetService.processAuctionStart(auctionItemId, auctionTitle);
     }
 
-    public void processAuctionEnd(Long auctionItemId){
-        watchListRedisSetService.processAuctionEnd(auctionItemId);
+    public void processAuctionEnd(Long auctionItemId, String auctionTitle){
+        watchListRedisSetService.processAuctionEnd(auctionItemId, auctionTitle);
     }
 
     private boolean isExistWatchList(Long userId, Long itemId) {

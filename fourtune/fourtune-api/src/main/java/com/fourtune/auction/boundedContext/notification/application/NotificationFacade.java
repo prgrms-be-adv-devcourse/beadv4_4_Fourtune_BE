@@ -48,20 +48,20 @@ public class NotificationFacade {
         return notificationSettingsService.getSettings(userId);
     }
 
-    public void bidPlaceToSeller(Long sellerId, Long bidderId, Long auctionId, NotificationType type) {
-        notificationCreateUseCase.bidPlaceToSeller(sellerId, bidderId, auctionId, type);
+    public void bidPlaceToSeller(Long sellerId, Long bidderId, Long auctionId, NotificationType type, Object... args) {
+        notificationCreateUseCase.bidPlaceToSeller(sellerId, bidderId, auctionId, type, args);
     }
 
-    public void createNotification(Long receiverId, Long auctionId, NotificationType type){
-        notificationCreateUseCase.createNotificationWithUrl(receiverId, auctionId, type);
+    public void createNotification(Long receiverId, Long auctionId, NotificationType type, Object... args){
+        notificationCreateUseCase.createNotificationWithUrl(receiverId, auctionId, type, args);
     }
 
-    public void createGroupNotification(List<Long> users, Long auctionItemId, NotificationType type){
-        notificationCreateUseCase.createGroupNotification(users, auctionItemId, type);
+    public void createGroupNotification(List<Long> users, Long auctionItemId, NotificationType type, Object... args){
+        notificationCreateUseCase.createGroupNotification(users, auctionItemId, type, args);
     }
 
-    public void createSettlementNotification(Long receiverId, Long settlementId, NotificationType type){
-        notificationCreateUseCase.createSettlementNotification(receiverId, settlementId, type);
+    public void createSettlementNotification(Long receiverId, Long settlementId, NotificationType type, Object... args){
+        notificationCreateUseCase.createSettlementNotification(receiverId, settlementId, type, args);
     }
 
 }
