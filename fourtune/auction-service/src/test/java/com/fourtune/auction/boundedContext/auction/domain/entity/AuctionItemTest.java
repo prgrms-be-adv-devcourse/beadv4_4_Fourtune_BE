@@ -239,7 +239,7 @@ class AuctionItemTest {
         item.executeBuyNow();
         assertThat(item.getStatus()).isEqualTo(AuctionStatus.SOLD_BY_BUY_NOW);
 
-        item.recoverFromBuyNowFailure(10, 3);
+        item.recoverFromBuyNowFailure(10, 3, BigDecimal.valueOf(10_000));
 
         assertThat(item.getStatus()).isEqualTo(AuctionStatus.ACTIVE);
     }
@@ -257,7 +257,7 @@ class AuctionItemTest {
         item.executeBuyNow();
 
         LocalDateTime beforeRecover = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-        item.recoverFromBuyNowFailure(10, 3);
+        item.recoverFromBuyNowFailure(10, 3, BigDecimal.valueOf(10_000));
 
         assertThat(item.getStatus()).isEqualTo(AuctionStatus.ACTIVE);
         assertThat(item.getAuctionEndTime()).isAfter(beforeRecover);
@@ -280,7 +280,7 @@ class AuctionItemTest {
         item.executeBuyNow();
         int countBefore = item.getBuyNowRecoveryCount();
 
-        item.recoverFromBuyNowFailure(10, 3);
+        item.recoverFromBuyNowFailure(10, 3, BigDecimal.valueOf(10_000));
 
         assertThat(item.getStatus()).isEqualTo(AuctionStatus.ACTIVE);
         assertThat(item.getAuctionEndTime()).isEqualTo(futureEnd);
@@ -301,7 +301,7 @@ class AuctionItemTest {
 
         // maxRecoveryCount=1 → 1회 연장으로 즉시 Circuit Breaker 발동
         item.executeBuyNow();
-        item.recoverFromBuyNowFailure(10, 1);
+        item.recoverFromBuyNowFailure(10, 1, BigDecimal.valueOf(10_000));
 
         assertThat(item.getBuyNowRecoveryCount()).isEqualTo(1);
         assertThat(item.getBuyNowDisabledByPolicy()).isTrue();
@@ -317,7 +317,7 @@ class AuctionItemTest {
         );
         item.start();
 
-        assertThatThrownBy(() -> item.recoverFromBuyNowFailure(10, 3))
+        assertThatThrownBy(() -> item.recoverFromBuyNowFailure(10, 3, BigDecimal.valueOf(10_000)))
                 .isInstanceOf(BusinessException.class);
     }
 }
