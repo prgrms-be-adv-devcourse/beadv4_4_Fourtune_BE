@@ -290,7 +290,7 @@ services:
       - REDIS_PORT=6379
       - AI_PROVIDER=${AI_PROVIDER:-ollama}
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - API_SEARCH_BASE_URL=http://app:8080
       - SERVER_PORT=8084
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
       # JWT

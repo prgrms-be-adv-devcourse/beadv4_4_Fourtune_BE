@@ -15,12 +15,14 @@ import com.fourtune.shared.auction.event.AuctionItemUpdatedEvent;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.shared.kafka.auction.AuctionEventType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -32,6 +34,7 @@ import java.util.Set;
      * - 자동 연장 체크
      * - 실시간 알림
      */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BidPlaceUseCase {
@@ -98,7 +101,7 @@ public class BidPlaceUseCase {
                 bidderId,
                 previousBidderId,
                 bidAmount,
-                LocalDateTime.now(),
+                LocalDateTime.now(ZoneId.of("Asia/Seoul")),
                 category
         );
         if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
@@ -109,7 +112,12 @@ public class BidPlaceUseCase {
 
         // 8. Search 인덱싱 전용 이벤트 발행 (스냅샷 형태)
         String thumbnailUrl = extractThumbnailUrl(auctionItem);
-        String sellerName = userPort.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
+        String sellerName = null;
+        try {
+            sellerName = userPort.getNicknamesByIds(Set.of(auctionItem.getSellerId())).getOrDefault(auctionItem.getSellerId(), null);
+        } catch (Exception e) {
+            log.warn("판매자 닉네임 조회 실패, null로 fallback: sellerId={}", auctionItem.getSellerId(), e);
+        }
         AuctionItemUpdatedEvent itemUpdatedEvent = new AuctionItemUpdatedEvent(
                 auctionItem.getId(),
                 auctionItem.getSellerId(),
@@ -164,8 +172,8 @@ public class BidPlaceUseCase {
             throw new BusinessException(ErrorCode.BID_NOT_ALLOWED);
         }
         
-        // 2. 경매 종료 시간이 지나지 않았는지
-        if (LocalDateTime.now().isAfter(auctionItem.getAuctionEndTime())) {
+        // 2. 경매 종료 시간이 지나지 않았는지 (KST 기준)
+        if (LocalDateTime.now(ZoneId.of("Asia/Seoul")).isAfter(auctionItem.getAuctionEndTime())) {
             throw new BusinessException(ErrorCode.AUCTION_ALREADY_ENDED);
         }
         
@@ -203,7 +211,7 @@ public class BidPlaceUseCase {
      * 종료 시간 5분 전이면 3분 연장
      */
     private void checkAndExtendAuction(AuctionItem auctionItem) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         LocalDateTime endTime = auctionItem.getAuctionEndTime();
         Duration remaining = Duration.between(now, endTime);
         

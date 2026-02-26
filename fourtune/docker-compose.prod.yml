@@ -270,6 +270,7 @@ services:
     env_file:
       - .env
     environment:
+      - TZ=Asia/Seoul
       - SPRING_PROFILES_ACTIVE=prod
       - DB_URL=jdbc:postgresql://postgres:5432/auction
       - DB_USERNAME=${DB_USERNAME}
@@ -337,7 +338,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - AI_PROVIDER=${AI_PROVIDER:-ollama}
+      - AI_PROVIDER=${AI_PROVIDER:-openai}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - API_SEARCH_BASE_URL=http://app:8080
       # JWT
