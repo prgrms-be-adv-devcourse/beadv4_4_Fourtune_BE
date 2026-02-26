@@ -32,7 +32,7 @@ public class S3Service {
     private String pathPrefix;
 
     // 브라우저에서 접근할 공개 URL 베이스 (예: http://localhost:9000 또는 https://bucket.s3.amazonaws.com)
-    @Value("${spring.cloud.aws.s3.public-url}")
+    @Value("${spring.cloud.aws.s3.public-url:}")
     private String publicUrl;
 
     /**

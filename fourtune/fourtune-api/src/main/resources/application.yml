@@ -147,6 +147,8 @@ spring:
       s3:
         bucket: ${AWS_S3_BUCKET}
         path-prefix: "local/${S3_USER_ID}"
+        endpoint: ${S3_ENDPOINT_URL:http://minio:9000}
+        public-url: ${S3_PUBLIC_URL:http://localhost:9000}
 
 feature:
   kafka:
@@ -223,6 +225,8 @@ spring:
       s3:
         bucket: ${AWS_S3_BUCKET:test-bucket}
         path-prefix: "test"
+        endpoint: ${S3_ENDPOINT_URL:}
+        public-url: ${S3_PUBLIC_URL:}
 
 feature:
   kafka:
@@ -298,6 +302,8 @@ spring:
       s3:
         bucket: ${AWS_S3_BUCKET}
         path-prefix: "dev"
+        endpoint: ${S3_ENDPOINT_URL:}
+        public-url: ${S3_PUBLIC_URL:}
 
 feature:
   kafka:
@@ -382,6 +388,8 @@ spring:
       s3:
         bucket: ${AWS_S3_BUCKET}
         path-prefix: "prod"
+        endpoint: ${S3_ENDPOINT_URL:}
+        public-url: ${S3_PUBLIC_URL:}
 
 feature:
   kafka:
