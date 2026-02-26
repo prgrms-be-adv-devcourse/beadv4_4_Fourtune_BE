@@ -42,11 +42,11 @@ public class RecentSearchService {
             // 2. 최대 개수 초과 시 오래된 순 삭제
             Long count = zSetOps.zCard(key);
             int maxKeywords = recentSearchPolicy.getMaxKeywords();
-            
+
             if (count != null && count > maxKeywords) {
                 zSetOps.removeRange(key, 0, count - maxKeywords - 1);
             }
-            
+
             // 3. TTL 설정
             redisTemplate.expire(key, recentSearchPolicy.getTtl());
 
@@ -62,7 +62,7 @@ public class RecentSearchService {
         }
         String key = recentSearchPolicy.getKeyPrefix() + userId;
         int maxKeywords = recentSearchPolicy.getMaxKeywords();
-        
+
         // Score 역순(최신순) 조회
         Set<String> keywords = redisTemplate.opsForZSet().reverseRange(key, 0, maxKeywords - 1);
         return keywords != null ? new ArrayList<>(keywords) : Collections.emptyList();
@@ -75,5 +75,14 @@ public class RecentSearchService {
         }
         String key = recentSearchPolicy.getKeyPrefix() + userId;
         redisTemplate.opsForZSet().remove(key, keyword);
+    }
+
+    // 최근 검색어 전체 삭제
+    public void removeAllKeywords(Long userId) {
+        if (userId == null) {
+            return;
+        }
+        String key = recentSearchPolicy.getKeyPrefix() + userId;
+        redisTemplate.delete(key);
     }
 }
