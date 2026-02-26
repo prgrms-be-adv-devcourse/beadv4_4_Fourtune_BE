@@ -1,7 +1,6 @@
 package com.fourtune.auction.boundedContext.watchList.application.service.performance;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fourtune.auction.boundedContext.watchList.port.out.WatchListItemsRepository;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.core.eventPublisher.EventPublisher;
 import com.fourtune.shared.watchList.event.WatchListAuctionStartedEvent;
@@ -39,7 +38,6 @@ import java.util.stream.Collectors;
 public class WatchListRedisSetUseCase {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final WatchListItemsRepository watchListItemsRepository;
     private final EventPublisher eventPublisher;
     private final EventPublishingConfig eventPublishingConfig;
     private final ObjectMapper objectMapper;
@@ -85,7 +83,7 @@ public class WatchListRedisSetUseCase {
      * 경매 시작 알림 처리 (Redis Set 방식)
      * SETNX로 중복 방지 + 발송 마킹을 원자적으로 처리
      */
-    public WatchListBulkUseCase.ProcessResult processAuctionStart(Long auctionItemId) {
+    public WatchListBulkUseCase.ProcessResult processAuctionStart(Long auctionItemId, String auctionTitle) {
         long startTime = System.currentTimeMillis();
 
         // SETNX: 키가 없을 때만 set → true면 최초 처리, false면 이미 발송됨
@@ -101,10 +99,6 @@ public class WatchListRedisSetUseCase {
             return new WatchListBulkUseCase.ProcessResult(0, 0, 0);
         }
 
-        String auctionTitle = watchListItemsRepository.findById(auctionItemId)
-                .map(item -> item.getTitle())
-                .orElse("");
-
         publishWatchListEvent(userIds.stream().toList(), auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_STARTED);
 
         long duration = System.currentTimeMillis() - startTime;
@@ -117,7 +111,7 @@ public class WatchListRedisSetUseCase {
      * 경매 종료 알림 처리 (Redis Set 방식)
      * SETNX로 중복 방지 + 발송 마킹을 원자적으로 처리
      */
-    public WatchListBulkUseCase.ProcessResult processAuctionEnd(Long auctionItemId) {
+    public WatchListBulkUseCase.ProcessResult processAuctionEnd(Long auctionItemId, String auctionTitle) {
         long startTime = System.currentTimeMillis();
 
         // SETNX: 키가 없을 때만 set → true면 최초 처리, false면 이미 발송됨
@@ -132,10 +126,6 @@ public class WatchListRedisSetUseCase {
         if (userIds.isEmpty()) {
             return new WatchListBulkUseCase.ProcessResult(0, 0, 0);
         }
-
-        String auctionTitle = watchListItemsRepository.findById(auctionItemId)
-                .map(item -> item.getTitle())
-                .orElse("");
 
         publishWatchListEvent(userIds.stream().toList(), auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_ENDED);
 

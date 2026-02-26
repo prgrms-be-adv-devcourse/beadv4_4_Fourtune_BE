@@ -76,7 +76,7 @@ public class WatchListEventListener {
         if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
             return;
         }
-        watchListService.processAuctionStart(event.auctionId());
+        watchListService.processAuctionStart(event.auctionId(), event.auctionTitle());
     }
 
     @Async
@@ -85,7 +85,7 @@ public class WatchListEventListener {
         if (eventPublishingConfig.isAuctionEventsKafkaEnabled()) {
             return;
         }
-        watchListService.processAuctionEnd(event.auctionId());
+        watchListService.processAuctionEnd(event.auctionId(), event.auctionTitle());
     }
 }
 

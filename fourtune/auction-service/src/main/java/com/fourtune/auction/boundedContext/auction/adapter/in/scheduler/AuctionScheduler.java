@@ -96,7 +96,7 @@ public class AuctionScheduler {
         log.info("관심상품 시작 5분 전 알림 대상: {}건", auctions.size());
         for (AuctionItem auction : auctions) {
             try {
-                String payload = objectMapper.writeValueAsString(new AuctionStartingSoonEvent(auction.getId()));
+                String payload = objectMapper.writeValueAsString(new AuctionStartingSoonEvent(auction.getId(), auction.getTitle()));
                 auctionKafkaProducer.send(String.valueOf(auction.getId()), payload,
                         AuctionEventType.AUCTION_STARTING_SOON.name());
                 log.debug("AUCTION_STARTING_SOON 발행: auctionId={}", auction.getId());
@@ -122,7 +122,7 @@ public class AuctionScheduler {
         log.info("관심상품 종료 5분 전 알림 대상: {}건", auctions.size());
         for (AuctionItem auction : auctions) {
             try {
-                String payload = objectMapper.writeValueAsString(new AuctionEndingSoonEvent(auction.getId()));
+                String payload = objectMapper.writeValueAsString(new AuctionEndingSoonEvent(auction.getId(), auction.getTitle()));
                 auctionKafkaProducer.send(String.valueOf(auction.getId()), payload,
                         AuctionEventType.AUCTION_ENDING_SOON.name());
                 log.debug("AUCTION_ENDING_SOON 발행: auctionId={}", auction.getId());

@@ -56,13 +56,13 @@ public class WatchListAuctionKafkaListener {
                 case AUCTION_STARTING_SOON -> {
                     AuctionStartingSoonEvent event = objectMapper.readValue(
                             payload, AuctionStartingSoonEvent.class);
-                    watchListService.processAuctionStart(event.auctionId());
+                    watchListService.processAuctionStart(event.auctionId(), event.auctionTitle());
                     log.debug("[WatchList] AuctionStartingSoon 처리 완료: auctionId={}", event.auctionId());
                 }
                 case AUCTION_ENDING_SOON -> {
                     AuctionEndingSoonEvent event = objectMapper.readValue(
                             payload, AuctionEndingSoonEvent.class);
-                    watchListService.processAuctionEnd(event.auctionId());
+                    watchListService.processAuctionEnd(event.auctionId(), event.auctionTitle());
                     log.debug("[WatchList] AuctionEndingSoon 처리 완료: auctionId={}", event.auctionId());
                 }
                 default -> {

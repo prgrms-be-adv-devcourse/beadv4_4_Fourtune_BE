@@ -1,7 +1,6 @@
 package com.fourtune.auction.boundedContext.watchList.application.service.performance;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fourtune.auction.boundedContext.watchList.port.out.WatchListItemsRepository;
 import com.fourtune.auction.boundedContext.watchList.port.out.WatchListRepository;
 import com.fourtune.core.config.EventPublishingConfig;
 import com.fourtune.core.eventPublisher.EventPublisher;
@@ -32,7 +31,6 @@ import java.util.Map;
 public class WatchListBulkUseCase {
 
     private final WatchListRepository watchListRepository;
-    private final WatchListItemsRepository watchListItemsRepository;
     private final EventPublisher eventPublisher;
     private final EventPublishingConfig eventPublishingConfig;
     private final ObjectMapper objectMapper;
@@ -43,7 +41,7 @@ public class WatchListBulkUseCase {
      * 쿼리: 1회 조회 + 1회 Bulk UPDATE = 2회
      */
     @Transactional
-    public ProcessResult processAuctionStart(Long auctionItemId) {
+    public ProcessResult processAuctionStart(Long auctionItemId, String auctionTitle) {
         long startTime = System.currentTimeMillis();
 
         // 1회 쿼리: 관심등록 유저 ID 리스트 조회
@@ -52,10 +50,6 @@ public class WatchListBulkUseCase {
         if (userIds.isEmpty()) {
             return new ProcessResult(0, 0, 0);
         }
-
-        String auctionTitle = watchListItemsRepository.findById(auctionItemId)
-                .map(item -> item.getTitle())
-                .orElse("");
 
         // 이벤트 발행
         publishWatchListEvent(userIds, auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_STARTED);
@@ -73,7 +67,7 @@ public class WatchListBulkUseCase {
      * 경매 종료 알림 처리 (Bulk 방식)
      */
     @Transactional
-    public ProcessResult processAuctionEnd(Long auctionItemId) {
+    public ProcessResult processAuctionEnd(Long auctionItemId, String auctionTitle) {
         long startTime = System.currentTimeMillis();
 
         List<Long> userIds = watchListRepository.findAllByAuctionItemId(auctionItemId);
@@ -81,10 +75,6 @@ public class WatchListBulkUseCase {
         if (userIds.isEmpty()) {
             return new ProcessResult(0, 0, 0);
         }
-
-        String auctionTitle = watchListItemsRepository.findById(auctionItemId)
-                .map(item -> item.getTitle())
-                .orElse("");
 
         publishWatchListEvent(userIds, auctionItemId, auctionTitle, WatchListEventType.WATCHLIST_AUCTION_ENDED);
         int updatedCount = watchListRepository.bulkMarkEndAlertSent(auctionItemId);

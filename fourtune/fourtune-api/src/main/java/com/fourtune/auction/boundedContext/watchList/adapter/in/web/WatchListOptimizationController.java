@@ -101,7 +101,7 @@ public class WatchListOptimizationController {
     @Operation(summary = "DB Bulk 방식 테스트", description = "1회 조회 + 1회 Bulk UPDATE로 처리")
     public ResponseEntity<Map<String, Object>> testBulk(@PathVariable Long auctionItemId) {
         return bulkTimer.record(() -> {
-            WatchListBulkUseCase.ProcessResult result = bulkService.processAuctionStart(auctionItemId);
+            WatchListBulkUseCase.ProcessResult result = bulkService.processAuctionStart(auctionItemId, "");
             return ResponseEntity.ok(Map.of(
                     "strategy", "DB Bulk",
                     "auctionItemId", auctionItemId,
@@ -116,7 +116,7 @@ public class WatchListOptimizationController {
     @Operation(summary = "Redis Set 방식 테스트", description = "SMEMBERS + SADD로 처리 (DB 접근 없음)")
     public ResponseEntity<Map<String, Object>> testRedis(@PathVariable Long auctionItemId) {
         return redisTimer.record(() -> {
-            WatchListBulkUseCase.ProcessResult result = redisService.processAuctionStart(auctionItemId);
+            WatchListBulkUseCase.ProcessResult result = redisService.processAuctionStart(auctionItemId, "");
             return ResponseEntity.ok(Map.of(
                     "strategy", "Redis Set",
                     "auctionItemId", auctionItemId,
@@ -131,7 +131,7 @@ public class WatchListOptimizationController {
     @Operation(summary = "Local Cache 방식 테스트", description = "메모리 조회/업데이트 (네트워크 없음)")
     public ResponseEntity<Map<String, Object>> testLocalCache(@PathVariable Long auctionItemId) {
         return localCacheTimer.record(() -> {
-            WatchListBulkUseCase.ProcessResult result = localCacheService.processAuctionStart(auctionItemId);
+            WatchListBulkUseCase.ProcessResult result = localCacheService.processAuctionStart(auctionItemId, "");
             return ResponseEntity.ok(Map.of(
                     "strategy", "Local Cache",
                     "auctionItemId", auctionItemId,
@@ -148,7 +148,7 @@ public class WatchListOptimizationController {
         List<Map<String, Object>> results = new ArrayList<>();
 
         // 1. DB Bulk
-        WatchListBulkUseCase.ProcessResult bulkResult = bulkService.processAuctionStart(auctionItemId);
+        WatchListBulkUseCase.ProcessResult bulkResult = bulkService.processAuctionStart(auctionItemId, "");
         results.add(Map.of(
                 "strategy", "DB Bulk",
                 "userCount", bulkResult.userCount(),
@@ -157,7 +157,7 @@ public class WatchListOptimizationController {
         ));
 
         // 2. Redis Set
-        WatchListBulkUseCase.ProcessResult redisResult = redisService.processAuctionStart(auctionItemId);
+        WatchListBulkUseCase.ProcessResult redisResult = redisService.processAuctionStart(auctionItemId, "");
         results.add(Map.of(
                 "strategy", "Redis Set",
                 "userCount", redisResult.userCount(),
@@ -166,7 +166,7 @@ public class WatchListOptimizationController {
         ));
 
         // 3. Local Cache
-        WatchListBulkUseCase.ProcessResult localResult = localCacheService.processAuctionStart(auctionItemId);
+        WatchListBulkUseCase.ProcessResult localResult = localCacheService.processAuctionStart(auctionItemId, "");
         results.add(Map.of(
                 "strategy", "Local Cache",
                 "userCount", localResult.userCount(),

@@ -86,7 +86,7 @@ class WatchListAuctionKafkaListenerTest {
     void consume_AuctionStartingSoon() throws Exception {
         // Given
         String payload = "{}";
-        AuctionStartingSoonEvent event = new AuctionStartingSoonEvent(100L);
+        AuctionStartingSoonEvent event = new AuctionStartingSoonEvent(100L, "테스트 경매상품");
 
         when(objectMapper.readValue(payload, AuctionStartingSoonEvent.class)).thenReturn(event);
 
@@ -94,7 +94,7 @@ class WatchListAuctionKafkaListenerTest {
         listener.consume(payload, AuctionEventType.AUCTION_STARTING_SOON.name());
 
         // Then
-        verify(watchListService).processAuctionStart(100L);
+        verify(watchListService).processAuctionStart(100L, "테스트 경매상품");
     }
 
     // ── AUCTION_ENDING_SOON
@@ -105,7 +105,7 @@ class WatchListAuctionKafkaListenerTest {
     void consume_AuctionEndingSoon() throws Exception {
         // Given
         String payload = "{}";
-        AuctionEndingSoonEvent event = new AuctionEndingSoonEvent(200L);
+        AuctionEndingSoonEvent event = new AuctionEndingSoonEvent(200L, "테스트 경매상품");
 
         when(objectMapper.readValue(payload, AuctionEndingSoonEvent.class)).thenReturn(event);
 
@@ -113,7 +113,7 @@ class WatchListAuctionKafkaListenerTest {
         listener.consume(payload, AuctionEventType.AUCTION_ENDING_SOON.name());
 
         // Then
-        verify(watchListService).processAuctionEnd(200L);
+        verify(watchListService).processAuctionEnd(200L, "테스트 경매상품");
     }
 
     // ── 공통 예외/무시 케이스 ──────────────────────────────────────────────────────
