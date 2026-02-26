@@ -68,6 +68,10 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleSettlementCompletedEvent(SettlementCompletedEvent event) {
+        if (eventPublishingConfig.isKafkaEnabled()) {
+            log.debug("[Notification] Settlement 이벤트는 Kafka로 처리됨 - Spring Event 무시");
+            return;
+        }
         Long payeeId = event.getSettlementDto().getPayeeId();
         Long settlementId = event.getSettlementDto().getId();
         String auctionTitle = event.getSettlementDto().getAuctionTitle() != null
@@ -157,10 +161,13 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentSucceededEvent(PaymentSucceededEvent event) {
+        if (eventPublishingConfig.isKafkaEnabled()) {
+            log.debug("[Notification] Payment 이벤트는 Kafka로 처리됨 - Spring Event 무시");
+            return;
+        }
         log.info("결제 성공 이벤트 수신 - orderId={}, userId={}",
                 event.getOrder().getAuctionOrderId(), event.getOrder().getUserId());
 
-        // 결제 성공 알림 (OrderDto의 items에서 첫 번째 item의 itemId를 auctionId로 사용)
         Long userId = event.getOrder().getUserId();
         if (event.getOrder().getItems() != null && !event.getOrder().getItems().isEmpty()) {
             Long auctionId = event.getOrder().getItems().get(0).getItemId();
@@ -175,10 +182,13 @@ public class NotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentFailedEvent(PaymentFailedEvent event) {
+        if (eventPublishingConfig.isKafkaEnabled()) {
+            log.debug("[Notification] Payment 이벤트는 Kafka로 처리됨 - Spring Event 무시");
+            return;
+        }
         log.info("결제 실패 이벤트 수신 - orderId={}, msg={}",
                 event.getOrder() != null ? event.getOrder().getAuctionOrderId() : "null", event.getMsg());
 
-        // 결제 실패 알림
         if (event.getOrder() != null) {
             Long userId = event.getOrder().getUserId();
             if (event.getOrder().getItems() != null && !event.getOrder().getItems().isEmpty()) {
