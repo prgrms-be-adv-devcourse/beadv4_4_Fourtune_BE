@@ -159,6 +159,10 @@ feature:
       enabled: true
     notification-events:
       enabled: true
+    payment-events:
+      enabled: true
+    settlement-events:
+      enabled: true
 
 
 # JWT 설정
