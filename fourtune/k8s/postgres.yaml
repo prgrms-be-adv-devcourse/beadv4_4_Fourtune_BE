@@ -1,0 +1,120 @@
+# init-db 스크립트: auction, recommendation, payment_db, fourtune_db 생성
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-initdb
+  namespace: fourtune
+data:
+  01-create-auction-db.sh: |
+    #!/bin/bash
+    set -e
+    USER="${POSTGRES_USER:-postgres}"
+    psql -v ON_ERROR_STOP=1 --username "$USER" --dbname "postgres" -c "CREATE DATABASE auction;"
+  02-create-recommendation-db.sh: |
+    #!/bin/bash
+    set -e
+    USER="${POSTGRES_USER:-postgres}"
+    psql -v ON_ERROR_STOP=1 --username "$USER" --dbname "postgres" -c "CREATE DATABASE recommendation;"
+  03-create-payment-db.sh: |
+    #!/bin/bash
+    set -e
+    USER="${POSTGRES_USER:-postgres}"
+    psql -v ON_ERROR_STOP=1 --username "$USER" --dbname "postgres" -c "CREATE DATABASE payment_db;"
+  04-create-fourtune-db.sh: |
+    #!/bin/bash
+    set -e
+    USER="${POSTGRES_USER:-postgres}"
+    psql -v ON_ERROR_STOP=1 --username "$USER" --dbname "postgres" -c "CREATE DATABASE fourtune_db;"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: fourtune
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path   # k3s 기본 StorageClass
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: fourtune
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "postgres"   # 기본 DB (각 서비스 DB는 initdb 스크립트로 생성)
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: DB_USERNAME
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: DB_PASSWORD
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: initdb
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "postgres"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "postgres"]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+        - name: initdb
+          configMap:
+            name: postgres-initdb
+            defaultMode: 0755
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: fourtune
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432

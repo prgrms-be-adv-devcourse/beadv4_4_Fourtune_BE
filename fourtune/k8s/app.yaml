@@ -1,47 +1,27 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: auction-config
-  namespace: fourtune
-data:
-  SPRING_PROFILES_ACTIVE: "prod"
-  TZ: "Asia/Seoul"
-  DB_URL: "jdbc:postgresql://postgres:5432/auction"
-  REDIS_HOST: "redis"
-  REDIS_PORT: "6379"
-  KAFKA_BOOTSTRAP_SERVERS: "redpanda:9092"
-  SERVER_PORT: "8083"
-  API_USER_BASE_URL: "http://app:8080"
-  AWS_REGION: "ap-northeast-2"
-  AWS_S3_BUCKET: "team06-bucket"
-  S3_PATH_PREFIX: "prod"
-  S3_PUBLIC_URL: "https://team06-bucket.s3.ap-northeast-2.amazonaws.com"
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auction-service
+  name: app
   namespace: fourtune
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auction-service
+      app: fourtune-api
   template:
     metadata:
       labels:
-        app: auction-service
+        app: fourtune-api
     spec:
       containers:
-        - name: auction-service
-          image: ghcr.io/prgrms-be-adv-devcourse/auction-service:latest
+        - name: fourtune-api
+          image: ghcr.io/prgrms-be-adv-devcourse/fourtune:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8083
+            - containerPort: 8080
           envFrom:
             - configMapRef:
-                name: auction-config
+                name: fourtune-config
           env:
             - name: DB_USERNAME
               valueFrom:
@@ -63,6 +43,16 @@ spec:
                 secretKeyRef:
                   name: fourtune-secrets
                   key: JWT_SECRET
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: ENCRYPTION_KEY
+            - name: TOSS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: TOSS_SECRET_KEY
             - name: AWS_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
@@ -73,38 +63,53 @@ spec:
                 secretKeyRef:
                   name: fourtune-secrets
                   key: AWS_SECRET_KEY
+            - name: OAUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: OAUTH_CLIENT_ID
+            - name: OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: OAUTH_CLIENT_SECRET
+            - name: FIREBASE_SERVICE_ACCOUNT_JSON
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: FIREBASE_SERVICE_ACCOUNT_JSON
           resources:
             requests:
-              cpu: "250m"
-              memory: "512Mi"
-            limits:
               cpu: "500m"
               memory: "1Gi"
+            limits:
+              cpu: "1200m"
+              memory: "2Gi"
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 8083
+              port: 8080
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 6
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 8083
+              port: 8080
             initialDelaySeconds: 90
             periodSeconds: 30
       imagePullSecrets:
-        - name: ghcr-secret
+        - name: ghcr-secret   # kubectl create secret docker-registry ghcr-secret 으로 생성
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: auction-service
+  name: app
   namespace: fourtune
 spec:
   selector:
-    app: auction-service
+    app: fourtune-api
   ports:
-    - port: 8083
-      targetPort: 8083
+    - port: 8080
+      targetPort: 8080

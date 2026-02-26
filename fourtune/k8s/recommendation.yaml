@@ -1,47 +1,45 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: auction-config
+  name: recommendation-config
   namespace: fourtune
 data:
   SPRING_PROFILES_ACTIVE: "prod"
-  TZ: "Asia/Seoul"
-  DB_URL: "jdbc:postgresql://postgres:5432/auction"
+  SERVER_PORT: "8084"
+  DB_URL: "jdbc:postgresql://postgres:5432/recommendation"
   REDIS_HOST: "redis"
   REDIS_PORT: "6379"
   KAFKA_BOOTSTRAP_SERVERS: "redpanda:9092"
-  SERVER_PORT: "8083"
-  API_USER_BASE_URL: "http://app:8080"
+  API_SEARCH_BASE_URL: "http://app:8080"
   AWS_REGION: "ap-northeast-2"
   AWS_S3_BUCKET: "team06-bucket"
-  S3_PATH_PREFIX: "prod"
-  S3_PUBLIC_URL: "https://team06-bucket.s3.ap-northeast-2.amazonaws.com"
+  AI_PROVIDER: "openai"
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auction-service
+  name: recommendation-service
   namespace: fourtune
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auction-service
+      app: recommendation-service
   template:
     metadata:
       labels:
-        app: auction-service
+        app: recommendation-service
     spec:
       containers:
-        - name: auction-service
-          image: ghcr.io/prgrms-be-adv-devcourse/auction-service:latest
+        - name: recommendation-service
+          image: ghcr.io/prgrms-be-adv-devcourse/recommendation-service:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8083
+            - containerPort: 8084
           envFrom:
             - configMapRef:
-                name: auction-config
+                name: recommendation-config
           env:
             - name: DB_USERNAME
               valueFrom:
@@ -73,6 +71,12 @@ spec:
                 secretKeyRef:
                   name: fourtune-secrets
                   key: AWS_SECRET_KEY
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fourtune-secrets
+                  key: OPENAI_API_KEY
+                  optional: true
           resources:
             requests:
               cpu: "250m"
@@ -83,14 +87,14 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 8083
+              port: 8084
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 6
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 8083
+              port: 8084
             initialDelaySeconds: 90
             periodSeconds: 30
       imagePullSecrets:
@@ -100,11 +104,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: auction-service
+  name: recommendation-service
   namespace: fourtune
 spec:
   selector:
-    app: auction-service
+    app: recommendation-service
   ports:
-    - port: 8083
-      targetPort: 8083
+    - port: 8084
+      targetPort: 8084

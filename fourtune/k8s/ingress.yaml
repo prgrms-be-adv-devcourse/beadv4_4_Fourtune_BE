@@ -1,0 +1,181 @@
+# cert-manager 설치 필요:
+#   kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+#
+# ClusterIssuer 생성 필요 (아래 주석 참고):
+#
+# apiVersion: cert-manager.io/v1
+# kind: ClusterIssuer
+# metadata:
+#   name: letsencrypt-prod
+# spec:
+#   acme:
+#     server: https://acme-v02.api.letsencrypt.org/directory
+#     email: your-email@example.com
+#     privateKeySecretRef:
+#       name: letsencrypt-prod
+#     solvers:
+#       - http01:
+#           ingress:
+#             class: traefik
+
+---
+# HTTP → HTTPS 리다이렉트
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fourtune-ingress-http
+  namespace: fourtune
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: fourtune-redirect-https@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: api.fourtune.store
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 8080
+
+---
+# HTTPS 라우팅 (메인)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fourtune-ingress
+  namespace: fourtune
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - api.fourtune.store
+      secretName: fourtune-tls
+  rules:
+    - host: api.fourtune.store
+      http:
+        paths:
+          # 결제 API → payment-service
+          - path: /api/payments
+            pathType: Prefix
+            backend:
+              service:
+                name: payment-service
+                port:
+                  number: 8080
+          # 추천 API → recommendation-service
+          - path: /api/v1/recommendations
+            pathType: Prefix
+            backend:
+              service:
+                name: recommendation-service
+                port:
+                  number: 8084
+          # 경매 API → auction-service
+          - path: /api/v1/auctions
+            pathType: Prefix
+            backend:
+              service:
+                name: auction-service
+                port:
+                  number: 8083
+          - path: /api/v1/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: auction-service
+                port:
+                  number: 8083
+          - path: /api/v1/bids
+            pathType: Prefix
+            backend:
+              service:
+                name: auction-service
+                port:
+                  number: 8083
+          - path: /api/v1/cart
+            pathType: Prefix
+            backend:
+              service:
+                name: auction-service
+                port:
+                  number: 8083
+          # WebSocket, OAuth2, 그 외 → fourtune-api
+          - path: /ws/
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 8080
+          - path: /oauth2/
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 8080
+          - path: /login/oauth2/
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 8080
+          - path: /api/
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 8080
+          - path: /actuator/health
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 8080
+
+---
+# HTTP→HTTPS 리다이렉트 Middleware
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https
+  namespace: fourtune
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+
+---
+# Rate Limiting Middleware (API: 10 req/s, burst 20)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit-api
+  namespace: fourtune
+spec:
+  rateLimit:
+    average: 10
+    burst: 20
+
+---
+# Rate Limiting Middleware (Auth: 5 req/s, burst 10)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit-auth
+  namespace: fourtune
+spec:
+  rateLimit:
+    average: 5
+    burst: 10
