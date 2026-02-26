@@ -40,6 +40,6 @@ public class UserDataInit {
 
         userFacade.signup(new UserSignUpRequest(CashPolicy.SYSTEM_HOLDING_USER_EMAIL, "1234", "system", "010-1111-1111"));
         userFacade.signup(new UserSignUpRequest(CashPolicy.PLATFORM_REVENUE_USER_EMAIL, "1234", "platform", "010-2222-2222"));
-        userFacade.signup(new UserSignUpRequest("user1@google.com", "1234", "user1", "010-3333-3333"));
+        userFacade.signup(new UserSignUpRequest("user1@gmail.com", "1234", "user1", "010-3333-3333"));
     }
 }
