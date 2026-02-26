@@ -157,6 +157,17 @@ public class AuctionFacade {
     }
 
     /**
+     * 내 경매 목록 조회 (로그인한 판매자 전용)
+     */
+    @Transactional(readOnly = true)
+    public Page<AuctionItemResponse> getMyAuctions(
+            Long sellerId,
+            com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus status,
+            Pageable pageable) {
+        return auctionQueryUseCase.getSellerAuctions(sellerId, status, pageable);
+    }
+
+    /**
      * 경매 목록 조회 (필터링)
      */
     @Transactional(readOnly = true)
@@ -183,7 +194,7 @@ public class AuctionFacade {
      */
     @Transactional(readOnly = true)
     public Page<AuctionItemResponse> getSellerAuctions(Long sellerId, Pageable pageable) {
-        Page<AuctionItemResponse> page = auctionQueryUseCase.getSellerAuctions(sellerId, pageable);
+        Page<AuctionItemResponse> page = auctionQueryUseCase.getSellerAuctions(sellerId, null, pageable);
         if (viewCountUseRedis && !page.isEmpty()) {
             List<AuctionItemResponse> content = page.getContent();
             List<Long> ids = content.stream().map(AuctionItemResponse::id).toList();

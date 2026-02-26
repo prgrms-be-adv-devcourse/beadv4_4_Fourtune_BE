@@ -83,15 +83,18 @@ public class AuctionQueryUseCase {
     }
 
     /**
-     * 판매자의 경매 목록 조회
+     * 판매자의 경매 목록 조회 (내 경매 관리용)
+     * status가 null이면 전체 조회, 있으면 해당 상태만 필터링
      */
-    public Page<AuctionItemResponse> getSellerAuctions(Long sellerId, Pageable pageable) {
-        // 1. 판매자의 경매 목록 조회
+    public Page<AuctionItemResponse> getSellerAuctions(
+            Long sellerId,
+            com.fourtune.auction.boundedContext.auction.domain.constant.AuctionStatus status,
+            Pageable pageable) {
         Page<com.fourtune.auction.boundedContext.auction.domain.entity.AuctionItem> auctionPage =
-                auctionSupport.findBySellerIdPaged(sellerId, pageable);
-        // 2. 판매자 닉네임 조회 (동일 판매자)
+                (status != null)
+                        ? auctionSupport.findBySellerIdAndStatusPaged(sellerId, status, pageable)
+                        : auctionSupport.findBySellerIdPaged(sellerId, pageable);
         String sellerNickname = userPort.getNicknamesByIds(Set.of(sellerId)).get(sellerId);
-        // 3. DTO 변환 후 반환
         return auctionPage.map(item -> AuctionMapper.from(item, sellerNickname));
     }
 

@@ -38,6 +38,20 @@ public class ApiV1AuctionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
+    /**
+     * 내 경매 목록 조회 (로그인한 판매자 전용)
+     * GET /api/v1/auctions/me?status=ACTIVE&page=0&size=10
+     */
+    @GetMapping("/me")
+    public ResponseEntity<Page<AuctionItemResponse>> getMyAuctions(
+        @AuthenticationPrincipal UserContext user,
+        @RequestParam(required = false) AuctionStatus status,
+        Pageable pageable
+    ) {
+        Page<AuctionItemResponse> response = auctionFacade.getMyAuctions(user.id(), status, pageable);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     public ResponseEntity<Page<AuctionItemResponse>> getAuctionList(
         @RequestParam(required = false) AuctionStatus status,
