@@ -65,7 +65,9 @@ services:
 
   # Elasticsearch
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.3
+    build:
+      context: .
+      dockerfile: Dockerfile.elasticsearch
     container_name: fourtune-elasticsearch-prod
     environment:
       - discovery.type=single-node
