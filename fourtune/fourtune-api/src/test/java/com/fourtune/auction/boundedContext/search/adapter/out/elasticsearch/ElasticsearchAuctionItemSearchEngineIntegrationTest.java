@@ -3,13 +3,12 @@ package com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch;
 import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
 import com.fourtune.api.infrastructure.kafka.search.SearchKafkaProducer;
 import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
+import com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.document.SearchAuctionItemDocument;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository;
-import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
-import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
-import com.fourtune.auction.boundedContext.search.domain.SearchPriceRange;
-import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
+import com.fourtune.auction.boundedContext.search.domain.*;
 import com.fourtune.auction.boundedContext.search.domain.constant.SearchSort;
+import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,11 +20,8 @@ import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -33,21 +29,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * ElasticSearch 검색 엔진 통합 테스트
- * - Testcontainers를 사용하여 실제 ElasticSearch 환경에서 테스트를 수행
- * - 검색 기능(키워드, 필터, 정렬, 페이징)이 정상 작동하는지 검증할 것
+ * - 싱글턴 ElasticsearchTestContainer를 사용 (Nori 플러그인 포함)
+ * - elasticsearch/Dockerfile을 재사용하므로 ES 버전/플러그인 변경 시 Dockerfile만 수정하면 됨
  */
 @SpringBootTest
-@Testcontainers
 @DisplayName("ElasticSearch 검색 엔진 통합 테스트")
 class ElasticsearchAuctionItemSearchEngineIntegrationTest {
 
-    @Container
-    static ElasticsearchContainer elasticsearch = new ElasticsearchContainer(
-            "docker.elastic.co/elasticsearch/elasticsearch:9.2.3")
-            .withEnv("xpack.security.enabled", "false")
-            .withEnv("discovery.type", "single-node")
-            .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
-            .withStartupTimeout(Duration.ofMinutes(5)); // 타임아웃 시간을 5분으로 연장
+    static ElasticsearchContainer elasticsearch = ElasticsearchTestContainer.getInstance();
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
@@ -55,13 +44,10 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
     }
 
     @MockitoBean
-    private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
+    private FirebaseMessaging firebaseMessaging;
 
     @MockitoBean
-    private com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener auctionItemIndexEventListener;
-
-    @MockitoBean
-    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchAuctionItemIndexingHandler elasticsearchAuctionItemIndexingHandler;
+    private AuctionItemIndexEventListener auctionItemIndexEventListener;
 
     @MockitoBean
     private WatchListKafkaProducer watchListKafkaProducer;
@@ -145,6 +131,34 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
         // then
         assertThat(result.items()).hasSize(1);
         assertThat(result.items().get(0).title()).isEqualTo("게이밍 노트북");
+    }
+
+    @Test
+    @DisplayName("Nori 분석기: 복합어 및 조사가 포함된 한국어 검색이 정상 작동해야 한다")
+    void search_ByNoriAnalyzer_ShouldHandleKoreanMorphology() {
+        // given
+        // 1. 복합어 (붙여쓰기)
+        saveTestDocument("맥북프로", "최신형 노트북", "ELECTRONICS", "ACTIVE", 2000000, 0L);
+        // 2. 조사 포함된 데이터
+        saveTestDocument("아이폰이 예뻐요", "스마트폰", "ELECTRONICS", "ACTIVE", 1200000, 0L);
+        // 3. 복합어 (삼성전자)
+        saveTestDocument("삼성전자 갤럭시북", "노트북", "ELECTRONICS", "ACTIVE", 1500000, 0L);
+        refreshIndex();
+
+        // Case 1: 복합어 분해 검색 ("맥북"으로 "맥북프로" 찾기)
+        SearchCondition cond1 = new SearchCondition("맥북", null, null, null, SearchSort.LATEST, 1);
+        SearchResultPage<SearchAuctionItemView> res1 = searchEngine.search(cond1);
+        assertThat(res1.items()).extracting(SearchAuctionItemView::title).contains("맥북프로");
+
+        // Case 2: 조사 제거 검색 ("아이폰"으로 "아이폰이 예뻐요" 찾기)
+        SearchCondition cond2 = new SearchCondition("아이폰", null, null, null, SearchSort.LATEST, 1);
+        SearchResultPage<SearchAuctionItemView> res2 = searchEngine.search(cond2);
+        assertThat(res2.items()).extracting(SearchAuctionItemView::title).contains("아이폰이 예뻐요");
+
+        // Case 3: 복합어 내부 키워드 검색 ("삼성"으로 "삼성전자 갤럭시북" 찾기)
+        SearchCondition cond3 = new SearchCondition("삼성", null, null, null, SearchSort.LATEST, 1);
+        SearchResultPage<SearchAuctionItemView> res3 = searchEngine.search(cond3);
+        assertThat(res3.items()).extracting(SearchAuctionItemView::title).contains("삼성전자 갤럭시북");
     }
 
     @Test
@@ -268,7 +282,8 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
         SearchResultPage<SearchAuctionItemView> result = searchEngine.search(condition);
 
         // then
-        result.items().forEach(item -> System.out.println("Result Item: " + item.title() + ", View: " + item.viewCount()));
+        result.items()
+                .forEach(item -> System.out.println("Result Item: " + item.title() + ", View: " + item.viewCount()));
 
         assertThat(result.items()).hasSize(3);
         assertThat(result.items().get(0).title()).isEqualTo("인기 많음");
