@@ -12,16 +12,16 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @Builder
 @Document(indexName = "auction_items")
-// @Setting(settingPath = "...")
+@Setting(settingPath = "elasticsearch/auction-items-settings.json")
 public class SearchAuctionItemDocument {
 
     @Id
     private Long auctionItemId;
 
-    @Field(type = FieldType.Text, analyzer = "standard")
+    @Field(type = FieldType.Text, analyzer = "nori_analyzer", searchAnalyzer = "nori_analyzer")
     private String title;
 
-    @Field(type = FieldType.Text, analyzer = "standard")
+    @Field(type = FieldType.Text, analyzer = "nori_analyzer", searchAnalyzer = "nori_analyzer")
     private String description;
 
     @Field(type = FieldType.Keyword)

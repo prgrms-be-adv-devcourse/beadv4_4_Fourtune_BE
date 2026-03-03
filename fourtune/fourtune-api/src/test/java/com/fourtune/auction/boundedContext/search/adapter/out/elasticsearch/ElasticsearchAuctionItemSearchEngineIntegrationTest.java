@@ -3,13 +3,12 @@ package com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch;
 import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
 import com.fourtune.api.infrastructure.kafka.search.SearchKafkaProducer;
 import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
+import com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.document.SearchAuctionItemDocument;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository;
-import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
-import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
-import com.fourtune.auction.boundedContext.search.domain.SearchPriceRange;
-import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
+import com.fourtune.auction.boundedContext.search.domain.*;
 import com.fourtune.auction.boundedContext.search.domain.constant.SearchSort;
+import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,11 +20,8 @@ import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -33,21 +29,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * ElasticSearch 검색 엔진 통합 테스트
- * - Testcontainers를 사용하여 실제 ElasticSearch 환경에서 테스트를 수행
- * - 검색 기능(키워드, 필터, 정렬, 페이징)이 정상 작동하는지 검증할 것
+ * - 싱글턴 ElasticsearchTestContainer를 사용 (Nori 플러그인 포함)
+ * - elasticsearch/Dockerfile을 재사용하므로 ES 버전/플러그인 변경 시 Dockerfile만 수정하면 됨
  */
 @SpringBootTest
-@Testcontainers
 @DisplayName("ElasticSearch 검색 엔진 통합 테스트")
 class ElasticsearchAuctionItemSearchEngineIntegrationTest {
 
-    @Container
-    static ElasticsearchContainer elasticsearch = new ElasticsearchContainer(
-            "docker.elastic.co/elasticsearch/elasticsearch:9.2.3")
-            .withEnv("xpack.security.enabled", "false")
-            .withEnv("discovery.type", "single-node")
-            .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
-            .withStartupTimeout(Duration.ofMinutes(5)); // 타임아웃 시간을 5분으로 연장
+    static ElasticsearchContainer elasticsearch = ElasticsearchTestContainer.getInstance();
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
@@ -55,13 +44,10 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
     }
 
     @MockitoBean
-    private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
+    private FirebaseMessaging firebaseMessaging;
 
     @MockitoBean
-    private com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener auctionItemIndexEventListener;
-
-    @MockitoBean
-    private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchAuctionItemIndexingHandler elasticsearchAuctionItemIndexingHandler;
+    private AuctionItemIndexEventListener auctionItemIndexEventListener;
 
     @MockitoBean
     private WatchListKafkaProducer watchListKafkaProducer;
@@ -268,7 +254,8 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
         SearchResultPage<SearchAuctionItemView> result = searchEngine.search(condition);
 
         // then
-        result.items().forEach(item -> System.out.println("Result Item: " + item.title() + ", View: " + item.viewCount()));
+        result.items()
+                .forEach(item -> System.out.println("Result Item: " + item.title() + ", View: " + item.viewCount()));
 
         assertThat(result.items()).hasSize(3);
         assertThat(result.items().get(0).title()).isEqualTo("인기 많음");
