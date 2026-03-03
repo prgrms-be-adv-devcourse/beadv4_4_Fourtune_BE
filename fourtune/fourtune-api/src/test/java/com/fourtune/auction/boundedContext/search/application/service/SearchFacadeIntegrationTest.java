@@ -2,19 +2,16 @@ package com.fourtune.auction.boundedContext.search.application.service;
 
 import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
 import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
-import com.fourtune.auction.boundedContext.notification.adapter.in.kafka.NotificationUserKafkaListener;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.document.SearchAuctionItemDocument;
+import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchTestContainer;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository;
 import com.fourtune.auction.boundedContext.search.domain.SearchAuctionItemView;
 import com.fourtune.auction.boundedContext.search.domain.SearchLog;
 import com.fourtune.auction.boundedContext.search.domain.SearchCondition;
 import com.fourtune.auction.boundedContext.search.domain.constant.SearchSort;
 import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
-import com.fourtune.auction.boundedContext.settlement.adapter.in.kafka.SettlementUserKafkaListener;
-import com.fourtune.auction.boundedContext.watchList.adapter.in.kafka.WatchListUserKafkaListener;
 import com.fourtune.api.infrastructure.kafka.search.SearchKafkaProducer;
 import com.fourtune.shared.search.event.SearchAuctionItemEvent;
-import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +30,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -49,14 +45,8 @@ import org.mockito.ArgumentCaptor;
 @DisplayName("SearchFacade 통합 테스트 (ES + Redis)")
 class SearchFacadeIntegrationTest {
 
-    // 1. Elasticsearch Container
-    @Container
-    static ElasticsearchContainer elasticsearch = new ElasticsearchContainer(
-            "docker.elastic.co/elasticsearch/elasticsearch:9.2.3") // 프로젝트 버전과 일치 확인 필요 (기존 테스트 참고함)
-            .withEnv("xpack.security.enabled", "false")
-            .withEnv("discovery.type", "single-node")
-            .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
-            .withStartupTimeout(Duration.ofMinutes(5));
+    // 1. Elasticsearch Container (Nori 포함 싱글턴 사용)
+    static ElasticsearchContainer elasticsearch = ElasticsearchTestContainer.getInstance();
 
     // 2. Redis Container
     @Container
@@ -69,10 +59,6 @@ class SearchFacadeIntegrationTest {
         registry.add("spring.data.redis.host", redis::getHost);
         registry.add("spring.data.redis.port", redis::getFirstMappedPort);
     }
-
-    // Mock External Dependencies to prevent context load failure
-    @MockitoBean
-    private com.google.firebase.messaging.FirebaseMessaging firebaseMessaging;
 
     @MockitoBean
     private com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener auctionItemIndexEventListener;
