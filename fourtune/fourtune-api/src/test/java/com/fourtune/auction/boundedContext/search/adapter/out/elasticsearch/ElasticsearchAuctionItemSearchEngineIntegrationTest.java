@@ -134,6 +134,34 @@ class ElasticsearchAuctionItemSearchEngineIntegrationTest {
     }
 
     @Test
+    @DisplayName("Nori 분석기: 복합어 및 조사가 포함된 한국어 검색이 정상 작동해야 한다")
+    void search_ByNoriAnalyzer_ShouldHandleKoreanMorphology() {
+        // given
+        // 1. 복합어 (붙여쓰기)
+        saveTestDocument("맥북프로", "최신형 노트북", "ELECTRONICS", "ACTIVE", 2000000, 0L);
+        // 2. 조사 포함된 데이터
+        saveTestDocument("아이폰이 예뻐요", "스마트폰", "ELECTRONICS", "ACTIVE", 1200000, 0L);
+        // 3. 복합어 (삼성전자)
+        saveTestDocument("삼성전자 갤럭시북", "노트북", "ELECTRONICS", "ACTIVE", 1500000, 0L);
+        refreshIndex();
+
+        // Case 1: 복합어 분해 검색 ("맥북"으로 "맥북프로" 찾기)
+        SearchCondition cond1 = new SearchCondition("맥북", null, null, null, SearchSort.LATEST, 1);
+        SearchResultPage<SearchAuctionItemView> res1 = searchEngine.search(cond1);
+        assertThat(res1.items()).extracting(SearchAuctionItemView::title).contains("맥북프로");
+
+        // Case 2: 조사 제거 검색 ("아이폰"으로 "아이폰이 예뻐요" 찾기)
+        SearchCondition cond2 = new SearchCondition("아이폰", null, null, null, SearchSort.LATEST, 1);
+        SearchResultPage<SearchAuctionItemView> res2 = searchEngine.search(cond2);
+        assertThat(res2.items()).extracting(SearchAuctionItemView::title).contains("아이폰이 예뻐요");
+
+        // Case 3: 복합어 내부 키워드 검색 ("삼성"으로 "삼성전자 갤럭시북" 찾기)
+        SearchCondition cond3 = new SearchCondition("삼성", null, null, null, SearchSort.LATEST, 1);
+        SearchResultPage<SearchAuctionItemView> res3 = searchEngine.search(cond3);
+        assertThat(res3.items()).extracting(SearchAuctionItemView::title).contains("삼성전자 갤럭시북");
+    }
+
+    @Test
     @DisplayName("특정 카테고리에 속한 상품만 필터링되어야 한다")
     void search_ByCategory_ShouldReturnOnlyMatchingCategory() {
         // given
