@@ -2,6 +2,7 @@ package com.fourtune.auction.boundedContext.search.application.service;
 
 import com.fourtune.api.infrastructure.kafka.notification.NotificationKafkaProducer;
 import com.fourtune.api.infrastructure.kafka.watchList.WatchListKafkaProducer;
+import com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.document.SearchAuctionItemDocument;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchTestContainer;
 import com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.repository.SearchAuctionItemCrudRepository;
@@ -12,6 +13,7 @@ import com.fourtune.auction.boundedContext.search.domain.constant.SearchSort;
 import com.fourtune.auction.boundedContext.search.domain.SearchResultPage;
 import com.fourtune.api.infrastructure.kafka.search.SearchKafkaProducer;
 import com.fourtune.shared.search.event.SearchAuctionItemEvent;
+import com.google.firebase.messaging.FirebaseMessaging;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,7 +63,10 @@ class SearchFacadeIntegrationTest {
     }
 
     @MockitoBean
-    private com.fourtune.auction.boundedContext.search.adapter.in.event.AuctionItemIndexEventListener auctionItemIndexEventListener;
+    private FirebaseMessaging firebaseMessaging;
+
+    @MockitoBean
+    private AuctionItemIndexEventListener auctionItemIndexEventListener;
 
     @MockitoBean
     private com.fourtune.auction.boundedContext.search.adapter.out.elasticsearch.ElasticsearchAuctionItemIndexingHandler elasticsearchAuctionItemIndexingHandler;
