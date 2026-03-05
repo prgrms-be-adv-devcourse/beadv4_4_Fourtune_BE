@@ -8,7 +8,6 @@ services:
     image: postgres:16-alpine
     container_name: fourtune-postgres
     environment:
-      POSTGRES_DB: fourtune_db
       POSTGRES_USER: fourtune_user
       POSTGRES_PASSWORD: fourtune
     ports:
@@ -20,7 +19,7 @@ services:
     networks:
       - fourtune-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fourtune_user -d fourtune_db"]
+      test: ["CMD-SHELL", "pg_isready -U fourtune_user -d postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
