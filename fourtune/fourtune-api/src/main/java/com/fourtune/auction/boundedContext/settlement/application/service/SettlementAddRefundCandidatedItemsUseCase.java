@@ -8,6 +8,7 @@ import com.fourtune.auction.boundedContext.settlement.port.out.SettlementCandida
 import com.fourtune.shared.payment.dto.RefundDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -45,36 +46,48 @@ public class SettlementAddRefundCandidatedItemsUseCase {
                                                 "판매자를 찾을 수 없습니다: " + item.getSellerId()));
 
                 // 1. 판매자 → 구매자: 환불금 전체 반환
-                settlementCandidatedItemRepository.save(
-                                SettlementCandidatedItem.builder()
-                                                .settlementEventType(SettlementEventType.환불__상품판매_대금)
-                                                .relTypeCode("RefundItem")
-                                                .relId(refund.getAuctionOrderId())
-                                                .relNo(refund.getOrderId())
-                                                .paymentDate(refund.getRefundDate())
-                                                .payee(buyer)
-                                                .payer(seller)
-                                                .amount(item.getRefundPrice()) // 환불금 전체
-                                                .build());
+                saveIgnoreDuplicate(SettlementCandidatedItem.builder()
+                                .settlementEventType(SettlementEventType.환불__상품판매_대금)
+                                .relTypeCode("RefundItem")
+                                .relId(refund.getAuctionOrderId())
+                                .relNo(refund.getOrderId())
+                                .paymentDate(refund.getRefundDate())
+                                .payee(buyer)
+                                .payer(seller)
+                                .amount(item.getRefundPrice())
+                                .build());
 
                 log.debug("[Settlement] 판매자→구매자 환불금 전체 정산 후보: seller={} -> buyer={}, amount={}",
                                 seller.getId(), buyer.getId(), item.getRefundPrice());
 
                 // 2. 플랫폼 → 판매자: 수수료 환급
-                settlementCandidatedItemRepository.save(
-                                SettlementCandidatedItem.builder()
-                                                .settlementEventType(SettlementEventType.환불__상품판매_수수료)
-                                                .relTypeCode("RefundItem")
-                                                .relId(refund.getAuctionOrderId())
-                                                .relNo(refund.getOrderId())
-                                                .paymentDate(refund.getRefundDate())
-                                                .payee(seller) // 받는 사람: 판매자 (수수료 환급)
-                                                .payer(platform)
-                                                .amount(getCommissionAmount(item.getRefundPrice()))
-                                                .build());
+                saveIgnoreDuplicate(SettlementCandidatedItem.builder()
+                                .settlementEventType(SettlementEventType.환불__상품판매_수수료)
+                                .relTypeCode("RefundItem")
+                                .relId(refund.getAuctionOrderId())
+                                .relNo(refund.getOrderId())
+                                .paymentDate(refund.getRefundDate())
+                                .payee(seller)
+                                .payer(platform)
+                                .amount(getCommissionAmount(item.getRefundPrice()))
+                                .build());
 
                 log.debug("[Settlement] 플랫폼→판매자 수수료 환급 정산 후보: platform -> seller={}, amount={}",
                                 seller.getId(), getCommissionAmount(item.getRefundPrice()));
+        }
+
+        /**
+         * [DEFECT-002 수정] Kafka at-least-once 중복 이벤트 방어.
+         * SettlementCandidatedItem의 (relNo, settlementEventType) 유니크 제약에 의해
+         * 중복 INSERT 시 DataIntegrityViolationException이 발생한다 → 무시하고 넘어간다.
+         */
+        private void saveIgnoreDuplicate(SettlementCandidatedItem item) {
+                try {
+                        settlementCandidatedItemRepository.saveAndFlush(item);
+                } catch (DataIntegrityViolationException e) {
+                        log.warn("환불 정산 후보 중복 등록 감지 (Kafka 재전송 추정), 스킵: relNo={}, type={}",
+                                        item.getRelNo(), item.getSettlementEventType());
+                }
         }
 
         Long getCommissionAmount(Long refundPrice) {
