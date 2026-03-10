@@ -50,6 +50,7 @@ public class SettlementItem extends BaseIdAndTime {
         this.settlementEventType = settlementEventType;
         this.relTypeCode = relTypeCode;
         this.relId = relId;
+        this.paymentDate = paymentDate;
         this.payer = payer;
         this.payee = payee;
         this.amount = amount;

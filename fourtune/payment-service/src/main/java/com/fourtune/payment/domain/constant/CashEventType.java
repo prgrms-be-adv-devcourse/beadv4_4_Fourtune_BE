@@ -3,6 +3,7 @@ package com.fourtune.payment.domain.constant;
 public enum CashEventType {
     충전__무통장입금,
     충전__PG결제_토스페이먼츠,
+    충전__지갑충전_토스페이먼츠,
     출금__통장입금,
     사용__주문결제,
     임시보관__주문결제,

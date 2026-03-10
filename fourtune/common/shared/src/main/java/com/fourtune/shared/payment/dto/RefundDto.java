@@ -1,6 +1,7 @@
 package com.fourtune.shared.payment.dto;
 
 import com.fourtune.shared.payment.event.AuctionRefundCompletedEvent;
+import com.fourtune.shared.payment.event.PaymentCanceledEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -55,6 +56,40 @@ public class RefundDto {
                 ))
                 .refundReason(event.refundReason())
                 .paymentKey(event.paymentKey())
+                .build();
+    }
+
+    /**
+     * PaymentCanceledEvent → RefundDto 변환.
+     * auction-service가 결제 취소 이벤트를 수신한 뒤 ORDER_REFUNDED 이벤트를 발행할 때 사용.
+     * refundId는 auction-service에서 알 수 없으므로 null 처리.
+     */
+    public static RefundDto from(PaymentCanceledEvent event) {
+        OrderDto order = event.getOrder();
+        if (order == null) {
+            return null;
+        }
+
+        List<RefundItem> items = order.getItems() == null ? List.of() :
+                order.getItems().stream()
+                        .map(item -> RefundItem.builder()
+                                .itemId(item.getItemId())
+                                .sellerId(item.getSellerId())
+                                .refundPrice(item.getPrice())
+                                .itemName(item.getItemName())
+                                .build())
+                        .toList();
+
+        return RefundDto.builder()
+                .refundId(null)
+                .orderId(order.getOrderId())
+                .auctionOrderId(order.getAuctionOrderId())
+                .refundAmount(event.getCancelAmount())
+                .userId(order.getUserId())
+                .refundDate(java.time.LocalDateTime.now())
+                .items(items)
+                .refundReason(event.getCancelReason())
+                .paymentKey(order.getPaymentKey())
                 .build();
     }
 }

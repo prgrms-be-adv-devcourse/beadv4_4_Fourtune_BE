@@ -2,6 +2,7 @@ package com.fourtune.payment.adapter.in.web;
 
 import com.fourtune.payment.application.service.PaymentFacade;
 import com.fourtune.payment.adapter.in.web.dto.CancelPaymentRequest;
+import com.fourtune.payment.adapter.in.web.dto.RefundResponse;
 import com.fourtune.payment.domain.entity.Refund;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -27,7 +28,7 @@ public class InternalPaymentController {
     private String internalToken;
 
     @PostMapping("/cancel")
-    public ResponseEntity<Refund> cancelPayment(
+    public ResponseEntity<RefundResponse> cancelPayment(
             @Valid @RequestBody CancelPaymentRequest request,
             @RequestHeader(value = "X-Internal-Token", required = false) String token,
             HttpServletRequest httpRequest
@@ -43,7 +44,7 @@ public class InternalPaymentController {
                 request.cancelReason(),
                 request.cancelAmount()
         );
-        return ResponseEntity.ok(refund);
+        return ResponseEntity.ok(RefundResponse.from(refund));
     }
 
     private boolean isInternalTokenRequired() {

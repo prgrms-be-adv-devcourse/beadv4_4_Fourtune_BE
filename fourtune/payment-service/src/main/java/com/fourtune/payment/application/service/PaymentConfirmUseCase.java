@@ -71,8 +71,18 @@ public class PaymentConfirmUseCase {
         try {
             paymentConfirmInternalUseCase.processInternalSystemLogic(cleanOrderId, pgAmount, paymentKey, userId);
         } catch (Exception e) {
-            log.error("내부 시스템 처리 실패. 결제 승인 취소를 진행합니다. orderId={}, error={}", cleanOrderId, e.getMessage());
+            log.error("내부 시스템 처리 실패. orderId={}, error={}", cleanOrderId, e.getMessage());
 
+            // DataIntegrityViolationException 등 DB 예외 발생 시, 다른 스레드/재시도가 이미 결제를
+            // 성공적으로 처리했을 수 있다. PG 취소 전에 반드시 DB를 재확인해 성공 여부를 판단한다.
+            var successCheck = paymentRepository.findPaymentByOrderId(cleanOrderId);
+            if (successCheck.isPresent() && successCheck.get().getStatus() == PaymentStatus.APPROVED) {
+                log.warn("내부 처리 예외가 발생했으나 결제가 이미 DB에 APPROVED 상태. PG 취소 스킵. orderId={}", cleanOrderId);
+                Payment p = successCheck.get();
+                return PaymentExecutionResult.success(p.getPaymentKey(), p.getOrderId(), p.getAmount());
+            }
+
+            log.error("결제 미처리 확인. 결제 승인 취소를 진행합니다. orderId={}", cleanOrderId);
             try {
                 paymentGatewayPort.cancel(paymentKey, "System Logic Failed: " + e.getMessage(), null);
             } catch (Exception cancelEx) {

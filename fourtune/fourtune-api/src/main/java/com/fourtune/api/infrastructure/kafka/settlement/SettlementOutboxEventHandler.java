@@ -1,4 +1,4 @@
-package com.fourtune.payment.infrastructure.kafka.settlement;
+package com.fourtune.api.infrastructure.kafka.settlement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.outbox.handler.OutboxEventHandler;
@@ -8,9 +8,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
- * 정산 도메인 Outbox 이벤트 핸들러
- * payload = {"eventType":"...","aggregateId":123,"data":{...}} 형태로 저장된 JSON을 파싱
- * 후 Kafka 발행
+ * Settlement 도메인 Outbox 이벤트 핸들러 (fourtune-api).
+ * fourtune-api가 Settlement outbox를 write하므로, poller도 여기서 처리해야 한다.
+ * payload = {"eventType":"...","aggregateId":123,"data":{...}} 형태로 저장된 JSON을 파싱 후 Kafka 발행.
  */
 @Slf4j
 @Component

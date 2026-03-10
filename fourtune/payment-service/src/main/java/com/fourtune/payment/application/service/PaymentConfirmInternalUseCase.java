@@ -31,7 +31,9 @@ public class PaymentConfirmInternalUseCase {
             throw new BusinessException(ErrorCode.PAYMENT_ORDER_NOT_PENDING);
         }
 
-        if (!orderDto.getPrice().equals(pgAmount)) {
+        // 혼합 결제: pgAmount는 주문금액의 부족분만 결제하므로 주문금액 이하여야 한다.
+        // pgAmount > orderDto.getPrice()인 경우만 오류(초과 결제 방지)
+        if (pgAmount > orderDto.getPrice()) {
             throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 

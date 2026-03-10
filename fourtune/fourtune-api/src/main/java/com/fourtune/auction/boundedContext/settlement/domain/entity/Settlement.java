@@ -43,7 +43,7 @@ public class Settlement extends BaseIdAndTime {
         this.amount = 0L;
     }
 
-    public void competeSettlement(){
+    public void completeSettlement(){
         this.settledAt = LocalDateTime.now();
         publishEvent(new SettlementCompletedEvent(
                 toDto()

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
  */
 public record OrderCompletedEvent(
     String orderId,           // 주문 ID (UUID)
+    Long auctionOrderId,      // 주문 DB PK (정산 relId 추적용)
     Long auctionId,           // 경매 ID
     Long winnerId,            // 구매자 ID
     Long sellerId,            // 판매자 ID

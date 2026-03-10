@@ -64,7 +64,10 @@ public class PaymentSettlementKafkaListener {
      * 정산 완료 → 지급
      */
     private void handleSettlementCompleted(SettlementCompletedEvent event) {
-        log.info("정산 완료 이벤트 처리 시작: settlementId={}, userId={}, amount={}");
+        log.info("정산 완료 이벤트 처리 시작: settlementId={}, userId={}, amount={}",
+                event.getSettlementDto().getId(),
+                event.getSettlementDto().getPayeeId(),
+                event.getSettlementDto().getAmount());
 
         try {
             paymentFacade.completeSettlement(event.getSettlementDto());

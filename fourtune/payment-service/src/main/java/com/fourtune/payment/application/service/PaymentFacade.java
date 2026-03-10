@@ -27,6 +27,8 @@ public class PaymentFacade {
     private final PaymentSyncUserUseCase paymentSyncUserUseCase;
     private final PaymentCreateWalletUseCase paymentCreateWalletUseCase;
     private final PaymentCancelUseCase paymentCancelUseCase;
+    private final WalletChargeUseCase walletChargeUseCase;
+    private final WalletPayUseCase walletPayUseCase;
     private final CashLogRepository cashLogRepository;
     private final AuctionPort auctionPort;
 
@@ -108,6 +110,14 @@ public class PaymentFacade {
     @Transactional
     public void deleteUser(UserResponse user) {
         paymentSupport.deleteUser(user);
+    }
+
+    public Wallet chargeWallet(Long userId, String paymentKey, String orderId, Long amount) {
+        return walletChargeUseCase.charge(userId, paymentKey, orderId, amount);
+    }
+
+    public Payment walletPay(Long userId, String orderId) {
+        return walletPayUseCase.pay(userId, orderId);
     }
 
     /**
