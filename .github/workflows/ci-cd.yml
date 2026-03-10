@@ -261,31 +261,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy-dev:
-    name: Deploy to Development
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/develop'
-    environment:
-      name: development
-      url: https://dev.fourtune.com
-
-    steps:
-      - name: Deploy to development server
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USERNAME }}
-          key: ${{ secrets.DEV_SSH_KEY }}
-          script: |
-            cd /home/fourtune/fourtune || exit 1
-            git fetch origin || exit 1
-            git reset --hard origin/develop || exit 1
-            docker compose -f docker-compose.dev.yml down --remove-orphans || true
-            docker compose -f docker-compose.dev.yml build --no-cache app payment-service auction-service recommendation-service || exit 1
-            docker compose -f docker-compose.dev.yml up -d || exit 1
-            docker system prune -af
-
   deploy-prod:
     name: Deploy to Production
     runs-on: ubuntu-latest
