@@ -117,6 +117,10 @@ public enum ErrorCode {
 
     PAYMENT_CANCEL_AMOUNT_EXCEEDS_BALANCE(400, "P501", "취소 요청 금액이 취소 가능 잔액을 초과합니다."),
     PAYMENT_ALREADY_CANCELED(400, "P502", "이미 전액 취소된 결제입니다."),
+    PAYMENT_ALREADY_APPROVED(400, "P503", "이미 결제 완료된 주문입니다."),
+
+    PAYMENT_WALLET_CHARGE_AMOUNT_TOO_SMALL(400, "P601", "최소 충전금액은 1,000원입니다."),
+    PAYMENT_WALLET_CHARGE_AMOUNT_TOO_LARGE(400, "P602", "1회 최대 충전금액은 5,000,000원입니다."),
 
     //Bid(입찰 관련)
     SELF_BIDDING_NOT_ALLOWED(400, " B007", "판매자는 자신의 물건에 입찰할 수 없습니다."),

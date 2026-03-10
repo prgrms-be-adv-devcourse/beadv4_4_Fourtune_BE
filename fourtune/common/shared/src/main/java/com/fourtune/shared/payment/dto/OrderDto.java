@@ -49,14 +49,14 @@ public class OrderDto {
      */
     public static OrderDto from(OrderCompletedEvent event) {
         return OrderDto.builder()
-                // event.orderId()는 String(UUID)
                 .orderId(event.orderId())
+                .auctionOrderId(event.auctionOrderId())
                 .price(event.amount().longValue())
                 .userId(event.winnerId())
                 .paymentDate(event.paidAt())
                 .items(List.of(
                         OrderItem.builder()
-                                .itemId(event.auctionId())// order item id x, 일단 auction id로
+                                .itemId(event.auctionId())
                                 .sellerId(event.sellerId())
                                 .price(event.amount().longValue())
                                 .itemName(event.orderName())

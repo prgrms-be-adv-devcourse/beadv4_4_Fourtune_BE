@@ -69,6 +69,7 @@ public class OrderCompleteUseCase {
         Long auctionId = order.getAuctionId();
         OrderCompletedEvent completedEvent = new OrderCompletedEvent(
                 order.getOrderId(),
+                order.getId(),
                 auctionId,
                 order.getWinnerId(),
                 order.getSellerId(),

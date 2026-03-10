@@ -10,7 +10,15 @@ import java.time.LocalDateTime;
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
-@Table(name = "SETTLEMENT_CANDIDATED_ITEM")
+@Table(
+    name = "SETTLEMENT_CANDIDATED_ITEM",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_settlement_candidated_item_rel",
+        // [DEFECT-002 수정] Kafka at-least-once 중복 이벤트 방어.
+        // 동일 주문(relNo) + 동일 정산유형(settlementEventType) 조합의 중복 INSERT를 DB 레벨에서 차단한다.
+        columnNames = {"rel_no", "settlement_event_type"}
+    )
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class SettlementCandidatedItem extends BaseIdAndTime {

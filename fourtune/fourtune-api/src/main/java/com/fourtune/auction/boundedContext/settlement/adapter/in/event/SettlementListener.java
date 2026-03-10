@@ -9,8 +9,6 @@ import com.fourtune.shared.settlement.event.SettlementUserCreatedEvent;
 import com.fourtune.shared.user.event.UserDeletedEvent;
 import com.fourtune.shared.user.event.UserJoinedEvent;
 import com.fourtune.shared.user.event.UserModifiedEvent;
-import com.fourtune.shared.payment.dto.RefundDto;
-import com.fourtune.shared.payment.event.AuctionRefundCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -96,16 +94,10 @@ public class SettlementListener {
         settlementFacade.addSettlementCandidatedItem(orderDto);
     }
 
-    /**
-     * 환불 완료시 정산 후보 등록 (역방향)
+    /*
+     * 환불 완료시 정산 후보 등록은 Kafka로 처리됨.
+     * auction-service: PAYMENT_CANCELED 수신 → ORDER_REFUNDED 발행
+     * fourtune-api: SettlementAuctionKafkaListener가 ORDER_REFUNDED 수신 → settlementFacade.addRefundSettlementCandidatedItem()
+     * AuctionRefundCompletedEvent는 payment-service와 fourtune-api가 별도 JVM이므로 Spring Event로 수신 불가.
      */
-    @TransactionalEventListener(phase = AFTER_COMMIT, fallbackExecution = true)
-    @Transactional(propagation = REQUIRES_NEW)
-    public void handle(AuctionRefundCompletedEvent event) {
-        log.info("[SettlementListener] 환불 완료 확인: refundId={}, orderId={}",
-                event.refundId(), event.orderId());
-
-        RefundDto refundDto = RefundDto.from(event);
-        settlementFacade.addRefundSettlementCandidatedItem(refundDto);
-    }
 }

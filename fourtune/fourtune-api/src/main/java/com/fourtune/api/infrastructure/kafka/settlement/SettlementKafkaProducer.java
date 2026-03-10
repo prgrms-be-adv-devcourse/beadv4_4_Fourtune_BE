@@ -1,4 +1,4 @@
-package com.fourtune.payment.infrastructure.kafka.settlement;
+package com.fourtune.api.infrastructure.kafka.settlement;
 
 import com.fourtune.kafka.KafkaTopicConfig;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * 정산 이벤트 Kafka Producer
- * 파티션 키로 settlementId(aggregateId)를 사용하여 같은 정산 내 이벤트 순서 보장
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -23,12 +19,8 @@ import java.util.concurrent.CompletableFuture;
 public class SettlementKafkaProducer {
 
     private static final String HEADER_EVENT_TYPE = "X-Event-Type";
-
     private final KafkaTemplate<String, String> settlementKafkaTemplate;
 
-    /**
-     * 정산 이벤트 발행 (payload = JSON 문자열, Header에 X-Event-Type 포함)
-     */
     public CompletableFuture<?> send(String key, String payload, String eventType) {
         Message<String> message = MessageBuilder
                 .withPayload(payload)
@@ -42,15 +34,12 @@ public class SettlementKafkaProducer {
                         log.debug("Settlement 이벤트 발행 성공: topic={}, key={}, eventType={}",
                                 KafkaTopicConfig.SETTLEMENT_EVENTS_TOPIC, key, eventType);
                     } else {
-                        log.error("Settlement 이벤트 발행 실패: topic={}, key={}, eventType={}, error={}",
-                                KafkaTopicConfig.SETTLEMENT_EVENTS_TOPIC, key, eventType, ex.getMessage(), ex);
+                        log.error("Settlement 이벤트 발행 실패: key={}, eventType={}, error={}",
+                                key, eventType, ex.getMessage());
                     }
                 });
     }
 
-    /**
-     * 동기 발행 (OutboxPublisher에서 사용)
-     */
     public void sendSync(String key, String payload, String eventType) {
         try {
             send(key, payload, eventType).get();

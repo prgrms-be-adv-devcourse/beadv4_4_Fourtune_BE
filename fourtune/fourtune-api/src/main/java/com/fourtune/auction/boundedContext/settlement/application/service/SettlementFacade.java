@@ -55,8 +55,11 @@ public class SettlementFacade {
 
     @Transactional(readOnly = true)
     public SettlementResponse findLatestSettlementByUserId(Long userId){
-        Settlement settlement = settlementSupport.findLatestSettlementByUserId(userId).getFirst();
-        return settlement.toResponse();
+        return settlementSupport.findLatestSettlementByUserId(userId)
+                .stream()
+                .findFirst()
+                .map(Settlement::toResponse)
+                .orElse(null);
     }
 
     @Transactional(readOnly = true)

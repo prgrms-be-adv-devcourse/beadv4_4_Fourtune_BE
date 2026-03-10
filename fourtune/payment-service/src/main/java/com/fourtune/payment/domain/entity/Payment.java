@@ -21,8 +21,8 @@ public class Payment extends BaseIdAndTime {
     @Column(nullable = false)
     private String orderId; // Auction 모듈의 주문 UUID
 
-    @Column(nullable = false)
-    private Long auctionOrderId; // Auction 모듈의 주문 ID
+    @Column(nullable = true)
+    private Long auctionOrderId; // Auction 모듈의 주문 ID (지갑 단순 충전 시 null)
 
     @ManyToOne(fetch = FetchType.LAZY)
     private PaymentUser paymentUser; // 구매자 ID (결제 이력 조회용)
@@ -53,6 +53,13 @@ public class Payment extends BaseIdAndTime {
         this.pgPaymentAmount = pgPaymentAmount;
         this.balanceAmount = amount; // 생성 시 잔액은 결제 금액과 동일
         this.status = status;
+    }
+
+    /**
+     * CHARGE_PENDING → APPROVED 전환 (지갑 충전 완료 시 호출)
+     */
+    public void approve() {
+        this.status = PaymentStatus.APPROVED;
     }
 
     /**

@@ -22,6 +22,12 @@ import java.util.Map;
 /**
  * 결제 취소 DB 처리 전용. 락·지갑 입출금·저장·이벤트를 한 트랜잭션으로 수행.
  * PaymentCancelUseCase에서 PG 호출 후 이 컴포넌트를 호출해 트랜잭션 경계를 분리한다.
+ *
+ * [동시성 보호]
+ * Payment 엔티티를 비관적 락(SELECT FOR UPDATE)으로 재조회한 후 잔액을 재검증한다.
+ * PG 호출과 DB 처리 사이의 Race Condition(Lost Update)을 방지하기 위함이다.
+ * PG는 이미 취소됐는데 DB 재검증에서 실패하는 경우(극히 드문 동시 요청)는
+ * 운영팀이 PG 취소 이력으로 수동 대사하도록 CRITICAL 로그를 남긴다.
  */
 @Slf4j
 @Component
@@ -38,7 +44,20 @@ public class PaymentCancelCompletion {
     private final EventPublishingConfig eventPublishingConfig;
 
     @Transactional
-    public Refund completeCancelInDb(Payment payment, OrderDto orderDto, Long requestAmount, String cancelReason) {
+    public Refund completeCancelInDb(Payment paymentParam, OrderDto orderDto, Long requestAmount, String cancelReason) {
+        // [DEFECT-001 수정] stale 파라미터 대신 비관적 락으로 Payment를 재조회해 Lost Update를 방지한다.
+        // 락 획득 순서: Payment → User Wallet → System Wallet (일관된 순서 유지)
+        Payment payment = paymentRepository.findByIdForUpdate(paymentParam.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        // 락 안에서 잔액을 재검증한다. 동시 요청으로 이미 다른 스레드가 차감했을 수 있다.
+        if (payment.getBalanceAmount() < requestAmount) {
+            log.error("CRITICAL: 락 획득 후 잔액 부족 감지 (동시 부분취소 요청 의심) — PG는 이미 취소됨, 수동 대사 필요. " +
+                            "paymentId={}, currentBalance={}, requestedAmount={}",
+                    payment.getId(), payment.getBalanceAmount(), requestAmount);
+            throw new BusinessException(ErrorCode.PAYMENT_CANCEL_AMOUNT_EXCEEDS_BALANCE);
+        }
+
         Wallet payerWallet = paymentSupport.findWalletByUserIdForUpdate(payment.getPaymentUser().getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_WALLET_NOT_FOUND));
         Wallet systemWallet = paymentSupport.findSystemWalletForUpdate()

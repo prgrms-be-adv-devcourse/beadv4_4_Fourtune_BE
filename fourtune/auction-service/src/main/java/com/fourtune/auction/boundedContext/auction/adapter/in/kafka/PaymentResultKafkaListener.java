@@ -2,16 +2,20 @@ package com.fourtune.auction.boundedContext.auction.adapter.in.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fourtune.auction.boundedContext.auction.application.service.OrderCompleteUseCase;
+import com.fourtune.auction.boundedContext.auction.application.service.OrderRefundPublisher;
 import com.fourtune.core.error.exception.BusinessException;
 import com.fourtune.kafka.KafkaTopicConfig;
+import com.fourtune.shared.payment.dto.RefundDto;
 import com.fourtune.shared.payment.event.PaymentCanceledEvent;
 import com.fourtune.shared.payment.event.PaymentFailedEvent;
 import com.fourtune.shared.payment.event.PaymentSucceededEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
+
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
@@ -29,6 +33,9 @@ public class PaymentResultKafkaListener {
 
     private final ObjectMapper objectMapper;
     private final OrderCompleteUseCase orderCompleteUseCase;
+
+    @Autowired(required = false)
+    private OrderRefundPublisher orderRefundPublisher;
 
     @KafkaListener(
             topics = KafkaTopicConfig.PAYMENT_EVENTS_TOPIC,
@@ -61,6 +68,15 @@ public class PaymentResultKafkaListener {
                 if (event.getOrder() != null && event.getOrder().getOrderId() != null) {
                     orderCompleteUseCase.cancelOrder(event.getOrder().getOrderId());
                     log.info("주문 취소 처리 완료(결제 취소 반영): orderId={}", event.getOrder().getOrderId());
+
+                    // 결제 취소 완료 → fourtune-api settlement에서 환불 정산 후보 등록을 위한 이벤트 발행
+                    if (orderRefundPublisher != null) {
+                        RefundDto refundDto = RefundDto.from(event);
+                        if (refundDto != null) {
+                            orderRefundPublisher.publishOrderRefunded(refundDto);
+                            log.info("ORDER_REFUNDED 이벤트 발행 완료: orderId={}", event.getOrder().getOrderId());
+                        }
+                    }
                 } else {
                     log.warn("PAYMENT_CANCELED 수신했으나 order 정보 없음: key={}", key);
                 }
