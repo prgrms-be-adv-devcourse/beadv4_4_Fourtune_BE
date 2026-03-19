@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -49,7 +51,7 @@ class RecommendationSchedulerTest {
     @Test
     @DisplayName("활성 사용자가 없으면 스킵")
     void refreshRecommendations_noActiveUsers_skips() {
-        when(redisTemplate.keys("metrics:user:*")).thenReturn(Collections.emptySet());
+        when(redisTemplate.scan(any(ScanOptions.class))).thenReturn(emptyCursor());
 
         scheduler.refreshRecommendations();
 
@@ -60,8 +62,7 @@ class RecommendationSchedulerTest {
     @Test
     @DisplayName("활성 사용자 있으면 Feign → AI → Redis 캐싱 호출")
     void refreshRecommendations_activeUser_generatesAndCaches() {
-        Set<String> keys = Set.of("metrics:user:42");
-        when(redisTemplate.keys("metrics:user:*")).thenReturn(keys);
+        when(redisTemplate.scan(any(ScanOptions.class))).thenReturn(cursorOf("metrics:user:42"));
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         when(userPreferenceService.getTopCategories(42L, RecommendationConstants.TOP_CATEGORY_LIMIT))
@@ -84,7 +85,7 @@ class RecommendationSchedulerTest {
     @Test
     @DisplayName("프로파일 없는 사용자는 건너뜀")
     void refreshRecommendations_noProfile_skipsUser() {
-        when(redisTemplate.keys("metrics:user:*")).thenReturn(Set.of("metrics:user:99"));
+        when(redisTemplate.scan(any(ScanOptions.class))).thenReturn(cursorOf("metrics:user:99"));
         when(userPreferenceService.getTopCategories(99L, RecommendationConstants.TOP_CATEGORY_LIMIT))
                 .thenReturn(Collections.emptyList());
 
@@ -96,8 +97,8 @@ class RecommendationSchedulerTest {
     @Test
     @DisplayName("개별 사용자 실패해도 다른 사용자는 계속 처리")
     void refreshRecommendations_oneUserFails_continuesOthers() {
-        Set<String> keys = new LinkedHashSet<>(List.of("metrics:user:1", "metrics:user:2"));
-        when(redisTemplate.keys("metrics:user:*")).thenReturn(keys);
+        when(redisTemplate.scan(any(ScanOptions.class)))
+                .thenReturn(cursorOf("metrics:user:1", "metrics:user:2"));
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         // 사용자 1, 2 모두 카테고리 존재
@@ -121,6 +122,22 @@ class RecommendationSchedulerTest {
     }
 
     // ── 헬퍼 ──
+
+    @SuppressWarnings("unchecked")
+    private Cursor<String> emptyCursor() {
+        Cursor<String> cursor = mock(Cursor.class);
+        when(cursor.hasNext()).thenReturn(false);
+        return cursor;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Cursor<String> cursorOf(String... keys) {
+        Cursor<String> cursor = mock(Cursor.class);
+        Iterator<String> iterator = Arrays.asList(keys).iterator();
+        when(cursor.hasNext()).thenAnswer(inv -> iterator.hasNext());
+        when(cursor.next()).thenAnswer(inv -> iterator.next());
+        return cursor;
+    }
 
     private RecommendedItemResponse createItem(Long id, String title) {
         return new RecommendedItemResponse(id, title, "카테고리", "ACTIVE",

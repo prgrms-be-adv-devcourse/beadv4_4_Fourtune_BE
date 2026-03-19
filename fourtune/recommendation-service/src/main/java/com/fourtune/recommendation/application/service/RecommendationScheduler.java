@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -38,15 +40,18 @@ public class RecommendationScheduler {
     private long cacheTtlSeconds;
 
     /**
-     * 활성 사용자들의 추천 결과를 배치로 갱신합니다.
-     * 프로파일이 존재하는 사용자(metrics:user:*)를 대상으로 합니다.
+     * 활성 사용자들의 추천 결과를 배치로 갱신
+     * 프로파일이 존재하는 사용자(metrics:user:*)를 대상으로 함
+     *
+     * SCAN 커맨드를 사용하여 Redis 블로킹을 방지
+     * (KEYS * 명령은 O(N)으로 싱글 스레드인 Redis를 블로킹하여 전체 서비스에 영향을 줄 수 있음)
      */
     @Scheduled(fixedRateString = "${recommendation.schedule.interval}")
     public void refreshRecommendations() {
         log.info("[REC][SCHEDULER] 추천 배치 갱신 시작");
 
-        Set<String> userKeys = redisTemplate.keys(RecommendationConstants.USER_METRICS_KEY_PREFIX + "*");
-        if (userKeys == null || userKeys.isEmpty()) {
+        Set<String> userKeys = scanUserKeys();
+        if (userKeys.isEmpty()) {
             log.info("[REC][SCHEDULER] 활성 사용자 없음, 스킵");
             return;
         }
@@ -94,6 +99,24 @@ public class RecommendationScheduler {
         }
 
         log.info("[REC][SCHEDULER] 추천 배치 완료: 성공={}, 실패={}, 전체={}", success, fail, userKeys.size());
+    }
+
+    /**
+     * Redis SCAN 커맨드로 사용자 프로파일 키 조회
+     */
+    private Set<String> scanUserKeys() {
+        Set<String> keys = new HashSet<>();
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(RecommendationConstants.USER_METRICS_KEY_PREFIX + "*")
+                .count(100)
+                .build();
+
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                keys.add(cursor.next());
+            }
+        }
+        return keys;
     }
 
     private Long extractUserId(String key) {
