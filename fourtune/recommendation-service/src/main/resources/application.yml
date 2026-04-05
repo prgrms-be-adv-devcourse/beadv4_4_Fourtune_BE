@@ -73,3 +73,17 @@ springdoc:
   paths-to-exclude:
     - /actuator/**
     - /error
+
+# ─ Actuator & Prometheus 메트릭 수집 설정 ─
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}   # Grafana에서 서비스 구분할 때 사용
+  prometheus:
+    metrics:
+      export:
+        enabled: true

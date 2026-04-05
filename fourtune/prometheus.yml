@@ -39,3 +39,13 @@ scrape_configs:
         labels:
           application: 'auction-service'
           environment: 'docker'
+
+  # Docker Compose 내부 네트워크: recommendation-service (추천 MSA, 8084)
+  - job_name: 'recommendation-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['recommendation-service:8084']
+        labels:
+          application: 'recommendation-service'
+          environment: 'docker'
